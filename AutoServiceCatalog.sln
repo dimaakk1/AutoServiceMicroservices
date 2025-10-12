@@ -7,7 +7,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCatalog.API", "A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCatalog.BLL", "AutoServiceCatalog.BLL\AutoServiceCatalog.BLL.csproj", "{8D675C31-65C9-4650-9CD9-83F912AFBFC5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoServiceCatalog.DAL", "AutoServiceCatalog.DAL\AutoServiceCatalog.DAL.csproj", "{E8F412CC-66F9-4CEA-9E65-05B5E02A409B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoServiceCatalog.DAL", "AutoServiceCatalog.DAL\AutoServiceCatalog.DAL.csproj", "{E8F412CC-66F9-4CEA-9E65-05B5E02A409B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoserviceCatalog", "AutoserviceCatalog", "{BECBBED3-022B-4E46-B49A-DF0BFA96CB7F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AutoserviceOrders", "AutoserviceOrders", "{F73F2386-E9E8-471F-B9E6-11878496192B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoserviceOrders.API", "AutoserviceOrders.API\AutoserviceOrders.API.csproj", "{3D4C9E7A-3E98-4112-9DAC-FC1390B87D8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoserviceOrders.BLL", "AutoserviceOrders.BLL\AutoserviceOrders.BLL.csproj", "{1C315C3D-BA10-4568-B7B3-E173792BE50F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoserviceOrders.DAL", "AutoserviceOrders.DAL\AutoserviceOrders.DAL.csproj", "{1B841B25-D645-425C-B141-46225B5392FB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,9 +37,29 @@ Global
 		{E8F412CC-66F9-4CEA-9E65-05B5E02A409B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8F412CC-66F9-4CEA-9E65-05B5E02A409B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8F412CC-66F9-4CEA-9E65-05B5E02A409B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4C9E7A-3E98-4112-9DAC-FC1390B87D8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4C9E7A-3E98-4112-9DAC-FC1390B87D8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4C9E7A-3E98-4112-9DAC-FC1390B87D8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4C9E7A-3E98-4112-9DAC-FC1390B87D8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C315C3D-BA10-4568-B7B3-E173792BE50F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C315C3D-BA10-4568-B7B3-E173792BE50F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C315C3D-BA10-4568-B7B3-E173792BE50F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C315C3D-BA10-4568-B7B3-E173792BE50F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B841B25-D645-425C-B141-46225B5392FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B841B25-D645-425C-B141-46225B5392FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B841B25-D645-425C-B141-46225B5392FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B841B25-D645-425C-B141-46225B5392FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{145CF600-445B-488E-8A32-B38DB392DDA0} = {BECBBED3-022B-4E46-B49A-DF0BFA96CB7F}
+		{8D675C31-65C9-4650-9CD9-83F912AFBFC5} = {BECBBED3-022B-4E46-B49A-DF0BFA96CB7F}
+		{E8F412CC-66F9-4CEA-9E65-05B5E02A409B} = {BECBBED3-022B-4E46-B49A-DF0BFA96CB7F}
+		{3D4C9E7A-3E98-4112-9DAC-FC1390B87D8A} = {F73F2386-E9E8-471F-B9E6-11878496192B}
+		{1C315C3D-BA10-4568-B7B3-E173792BE50F} = {F73F2386-E9E8-471F-B9E6-11878496192B}
+		{1B841B25-D645-425C-B141-46225B5392FB} = {F73F2386-E9E8-471F-B9E6-11878496192B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D0F88AF4-206C-4605-A005-17234DFD5C59}
