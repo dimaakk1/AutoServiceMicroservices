@@ -41,7 +41,6 @@ namespace AutoServiceCatalog.API.Middleware
 
             var problemDetails = new
             {
-                type = "https://example.com/probs/error",
                 title,
                 status = (int)status,
                 detail = exception.Message,

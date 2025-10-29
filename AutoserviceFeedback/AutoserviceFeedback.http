@@ -1,0 +1,6 @@
+@AutoserviceFeedback_HostAddress = http://localhost:5213
+
+GET {{AutoserviceFeedback_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
