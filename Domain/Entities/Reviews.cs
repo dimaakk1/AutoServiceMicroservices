@@ -32,5 +32,11 @@ namespace Domain.Entities
             Rating = rating;
             Comment = comment;
         }
+
+        public void Update(int rating, string comment)
+        {
+            Rating = new Rating(rating);
+            Comment = comment;
+        }
     }
 }

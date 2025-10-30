@@ -53,5 +53,18 @@ namespace WebApi.Controllers
             await _mediator.Send(new DeleteReviewCommand(id));
             return NoContent();
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateReviewCommand command)
+        {
+            if (id != command.Id)
+                return BadRequest("ID mismatch.");
+
+            var result = await _mediator.Send(command);
+            if (!result)
+                return NotFound();
+
+            return NoContent();
+        }
     }
 }

@@ -44,5 +44,15 @@ namespace Infrastructure.Repositories
             var result = await _reviews.DeleteOneAsync(r => r.Id == id);
             return result.DeletedCount > 0; 
         }
+        public async Task<Review> GetByIdAsync(string id)
+        {
+            return await _reviews.Find(r => r.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateAsync(Review review)
+        {
+            var filter = Builders<Review>.Filter.Eq(r => r.Id, review.Id);
+            await _reviews.ReplaceOneAsync(filter, review);
+        }
     }
 }
