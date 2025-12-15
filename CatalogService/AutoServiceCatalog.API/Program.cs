@@ -14,6 +14,7 @@ using FluentValidation;
 using AutoServiceCatalog.BLL.DTO;
 using AutoServiceCatalog.BLL.Validation;
 using AutoServiceCatalog.API.Middleware;
+using AppHostt.ServiceDefaults;
 namespace AutoServiceCatalog.API
 {
     public class Program
@@ -24,6 +25,7 @@ namespace AutoServiceCatalog.API
 
 
             builder.AddServiceDefaults();
+            builder.Services.AddScoped(typeof(TwoLevelCacheService<>));
 
 
             // Add services to the container.

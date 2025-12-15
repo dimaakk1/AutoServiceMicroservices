@@ -42,7 +42,7 @@ namespace AutoserviceOrders.BLL.Services
 
         public async Task AddOrderItemAsync(OrderItemDto dto)
         {
-            var entity = _mapper.Map<OrderItem>(dto);
+            var entity = _mapper.Map<DAL.Models.OrderItem>(dto);
 
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -59,7 +59,7 @@ namespace AutoserviceOrders.BLL.Services
 
         public async Task UpdateOrderItemAsync(OrderItemDto dto)
         {
-            var entity = _mapper.Map<OrderItem>(dto);
+            var entity = _mapper.Map<DAL.Models.OrderItem>(dto);
 
             await _unitOfWork.BeginTransactionAsync();
             try

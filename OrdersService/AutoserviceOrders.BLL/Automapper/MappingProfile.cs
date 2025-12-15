@@ -18,7 +18,7 @@ namespace AutoserviceOrders.BLL.Automapper
             CreateMap<ProductDto, Product>().ReverseMap();
             CreateMap<Customer, CustomerDto>().ReverseMap();
             CreateMap<OrderDetails, OrderDetailsDto>().ReverseMap();
-            CreateMap<OrderItem, OrderItemDto>().ReverseMap();
+            CreateMap<DAL.Models.OrderItem, OrderItemDto>().ReverseMap();
             CreateMap<Order, OrderDto>().ReverseMap();
             CreateMap<OrderItemProductInfo, OrderItemWithProductDto>();
         }

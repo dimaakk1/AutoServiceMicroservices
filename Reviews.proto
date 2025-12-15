@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+
+
+message ReviewRequest {
+    int32 orderId = 1;
+}
+
+message ReviewResponse {
+    string id = 1;
+    int32 customerId = 2;
+    int32 orderId = 3;
+    int32 rating = 4;
+    string comment = 5;
+    string createdAt = 6;
+}
+
+service ReviewService {
+    rpc GetReviewsByOrderId(ReviewRequest) returns (stream ReviewResponse);
+}

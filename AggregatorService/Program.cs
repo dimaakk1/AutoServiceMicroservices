@@ -11,14 +11,16 @@ public class Program
 
         // Add services to the container.
 
-        builder.Services.AddHttpClient("orders", c =>
+
+
+        builder.Services.AddGrpcClient<OrderService.OrderServiceClient>(o =>
         {
-            c.BaseAddress = new Uri("https://localhost:5003"); 
+            o.Address = new Uri("https://localhost:5003"); // OrdersService
         });
 
-        builder.Services.AddHttpClient("reviews", c =>
+        builder.Services.AddGrpcClient<ReviewService.ReviewServiceClient>(o =>
         {
-            c.BaseAddress = new Uri("https://localhost:5002");
+            o.Address = new Uri("https://localhost:5002"); // ReviewsService
         });
 
         builder.Services.AddScoped<IAggregationService, AggregationService>();

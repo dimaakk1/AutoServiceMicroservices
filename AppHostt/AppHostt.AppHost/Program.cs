@@ -12,32 +12,50 @@ var mongo = builder.AddMongoDB("mongo")
     .WithImage("mongo:7")
     .WithDataVolume("mongo");
 
+var redis = builder.AddRedis("redis")
+    .WithDataVolume("redis-data");
+
 
 
 
 var catalogService = builder.AddProject<Projects.AutoServiceCatalog_API>("catalog-service")
     .WithReference(sql)
-    .WaitFor(sql);
+    .WithReference(redis)
+    .WaitFor(sql)
+    .WaitFor(redis);
+
 
 var ordersService = builder.AddProject<Projects.AutoserviceOrders_API>("orders-service")
     .WithReference(sql)
-    .WaitFor(sql);
+    .WithReference(redis)
+    .WaitFor(sql)
+    .WaitFor(redis);
+
 
 var reviewsService = builder.AddProject<Projects.WebApi>("reviews-service")
     .WithReference(mongo)
-    .WaitFor(mongo);
+    .WithReference(redis)
+    .WaitFor(mongo)
+    .WaitFor(redis);
+
 
 var apiGateway = builder.AddProject<Projects.ApiGateway>("gateway")
     .WithReference(catalogService)
     .WithReference(ordersService)
     .WithReference(reviewsService)
-    .WithExternalHttpEndpoints();
+    .WithExternalHttpEndpoints()
+    .WaitFor(mongo)
+    .WaitFor(sql)
+    .WaitFor(redis);
+
 
 var aggregationApi = builder.AddProject<Projects.AggregatorService>("aggregation-service")
     .WithReference(ordersService)
     .WithReference(reviewsService)
+    .WithReference(redis)
     .WaitFor(sql)
-    .WaitFor(mongo);
+    .WaitFor(mongo)
+    .WaitFor(redis);
 
 
 

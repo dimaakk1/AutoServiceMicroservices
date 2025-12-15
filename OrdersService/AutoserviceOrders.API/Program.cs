@@ -9,6 +9,7 @@ using Microsoft.Data.SqlClient;
 using System.Data;
 using Dapper;
 using AutoserviceOrders.DAL.db;
+using AutoserviceOrders.BLL.Grpc;
 
 
 namespace AutoserviceOrders.API
@@ -19,8 +20,10 @@ namespace AutoserviceOrders.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            builder.Services.AddGrpc();
             builder.AddServiceDefaults();
+
+
 
             var sqlConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__SqlServer");
             DatabaseInitializer.Initialize(sqlConnectionString);
@@ -31,7 +34,7 @@ namespace AutoserviceOrders.API
             builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
             builder.Services.AddScoped<IProductService, ProductService>();
-            builder.Services.AddScoped<IOrderService, OrderService>();
+            builder.Services.AddScoped<IOrderService, BLL.Services.OrderService>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<IOrderDetailsService, OrderDetailsService>();
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
@@ -59,6 +62,7 @@ namespace AutoserviceOrders.API
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
+            app.MapGrpcService<OrderServiceImpl>(); 
 
 
             app.MapControllers();

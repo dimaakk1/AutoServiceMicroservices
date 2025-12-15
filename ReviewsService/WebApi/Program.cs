@@ -4,6 +4,7 @@ using Application;
 using Application.Automapper;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using Application.Grpc;
 
 namespace WebApi
 {
@@ -12,6 +13,7 @@ namespace WebApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddGrpc();
             builder.AddServiceDefaults();
             // Add services to the container.
             builder.Services.AddApplication();
@@ -19,6 +21,13 @@ namespace WebApi
             builder.Services.AddAutoMapper(cfg =>
             {
                 cfg.AddProfile(new MappingProfile());
+            });
+
+            builder.Services.AddScoped<OrderGrpcClient>();
+
+            builder.Services.AddGrpcClient<OrderService.OrderServiceClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5003"); // OrdersService
             });
 
             builder.Services.AddControllers();
@@ -39,6 +48,7 @@ namespace WebApi
 
             app.UseAuthorization();
 
+            app.MapGrpcService<ReviewServiceImpl>(); // або ReviewServiceImpl
 
             app.MapControllers();
 

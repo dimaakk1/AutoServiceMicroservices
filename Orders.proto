@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+
+message OrderItem {
+    int32 productId = 1;
+    int32 quantity = 2;
+    double price = 3; 
+}
+
+message OrderRequest {
+    int32 orderId = 1;
+}
+
+message OrderResponse {
+    int32 orderId = 1;
+    int32 customerId = 2;
+    string status = 3;
+    string orderDate = 4;
+    repeated OrderItem items = 5; 
+}
+
+service OrderService {
+    rpc GetOrder(OrderRequest) returns (OrderResponse);
+}

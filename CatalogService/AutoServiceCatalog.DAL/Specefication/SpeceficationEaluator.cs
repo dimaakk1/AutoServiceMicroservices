@@ -15,21 +15,17 @@ namespace AutoServiceCatalog.DAL.Specefication
         {
             var query = inputQuery;
 
-            // Where
             query = query.Where(spec.Criteria);
 
-            // Include
             query = spec.Includes.Aggregate(query,
                 (current, include) => current.Include(include));
 
-            // OrderBy
             if (spec.OrderBy != null)
                 query = spec.OrderBy(query);
 
             if (spec.OrderByDescending != null)
                 query = spec.OrderByDescending(query);
 
-            // Pagination
             if (spec.Skip.HasValue)
                 query = query.Skip(spec.Skip.Value);
 
