@@ -10,6 +10,7 @@ using System.Data;
 using Dapper;
 using AutoserviceOrders.DAL.db;
 using AutoserviceOrders.BLL.Grpc;
+using AutoserviceOrders.BLL.Cache;
 
 
 namespace AutoserviceOrders.API
@@ -21,7 +22,16 @@ namespace AutoserviceOrders.API
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddGrpc();
+            builder.Logging.AddConsole();
+
+            builder.Services.AddMemoryCache();
+
             builder.AddServiceDefaults();
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            });
+            builder.Services.AddScoped(typeof(TwoLevelCacheService<>));
 
 
 

@@ -1,5 +1,6 @@
 
 using AggregatorService.Services;
+using AggregatorService.Cache;
 
 namespace AggregatorService;
 
@@ -11,7 +12,15 @@ public class Program
 
         // Add services to the container.
 
+        builder.Logging.AddConsole();
 
+        builder.Services.AddMemoryCache();
+
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = builder.Configuration.GetConnectionString("Redis");
+        });
+        builder.Services.AddScoped(typeof(TwoLevelCacheService<>));
 
         builder.Services.AddGrpcClient<OrderService.OrderServiceClient>(o =>
         {

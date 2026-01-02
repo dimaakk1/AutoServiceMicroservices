@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoServiceCatalog.BLL.Cache;
 using AutoServiceCatalog.BLL.DTO;
 using AutoServiceCatalog.BLL.Services.Interfaces;
 using AutoServiceCatalog.DAL.Entities;
@@ -15,23 +16,48 @@ namespace AutoServiceCatalog.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly TwoLevelCacheService<List<CategoryDto>> _categoryCache;
+        private readonly TwoLevelCacheService<List<PartDto>> _partsCache;
 
-        public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
+        public CategoryService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            TwoLevelCacheService<List<CategoryDto>> categoryCache,
+            TwoLevelCacheService<List<PartDto>> partsCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _categoryCache = categoryCache;
+            _partsCache = partsCache;
         }
 
         public async Task<List<CategoryDto>> GetAllCategoriesAsync()
         {
-            var categories = await _unitOfWork.Categories.GetAllAsync();
-            return _mapper.Map<List<CategoryDto>>(categories);
+            return await _categoryCache.GetOrCreateAsync(
+                key: "categories:all",
+                factory: async () =>
+                {
+                    var categories = await _unitOfWork.Categories.GetAllAsync();
+                    return _mapper.Map<List<CategoryDto>>(categories);
+                },
+                l1Ttl: TimeSpan.FromSeconds(30),
+                l2Ttl: TimeSpan.FromMinutes(5)
+            ) ?? new List<CategoryDto>();
         }
 
         public async Task<List<PartDto>> GetPartsByCategoryNameAsync(string categoryName)
         {
-            var parts = await _unitOfWork.Categories.GetPartsByCategoryNameAsync(categoryName);
-            return _mapper.Map<List<PartDto>>(parts);
+            var key = $"parts:byCategory:{categoryName}";
+            return await _partsCache.GetOrCreateAsync(
+                key: key,
+                factory: async () =>
+                {
+                    var parts = await _unitOfWork.Categories.GetPartsByCategoryNameAsync(categoryName);
+                    return _mapper.Map<List<PartDto>>(parts);
+                },
+                l1Ttl: TimeSpan.FromSeconds(30),
+                l2Ttl: TimeSpan.FromMinutes(5)
+            ) ?? new List<PartDto>();
         }
 
         public async Task<CategoryDto> AddCategoryAsync(CategoryDto categoryDto)
@@ -43,6 +69,9 @@ namespace AutoServiceCatalog.BLL.Services
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
 
+            // Інвалідуємо кеш після зміни
+            await _categoryCache.InvalidateAsync("categories:all");
+
             return _mapper.Map<CategoryDto>(category);
         }
 
@@ -53,6 +82,10 @@ namespace AutoServiceCatalog.BLL.Services
             {
                 _unitOfWork.Categories.DeleteAsync(entity);
                 await _unitOfWork.SaveChangesAsync();
+
+                // Інвалідуємо кеш
+                await _categoryCache.InvalidateAsync("categories:all");
+                await _partsCache.InvalidateAsync($"parts:byCategory:{entity.Name}");
             }
         }
 
@@ -70,12 +103,16 @@ namespace AutoServiceCatalog.BLL.Services
                 throw new ArgumentException("Назва категорії не може бути порожньою!");
             }
 
+            var oldName = existing.Name;
             existing.Name = dto.Name;
 
             _unitOfWork.Categories.UpdateAsync(existing);
             await _unitOfWork.SaveChangesAsync();
+
+            // Інвалідуємо кеш
+            await _categoryCache.InvalidateAsync("categories:all");
+            await _partsCache.InvalidateAsync($"parts:byCategory:{oldName}");
+            await _partsCache.InvalidateAsync($"parts:byCategory:{dto.Name}");
         }
-
-
     }
 }

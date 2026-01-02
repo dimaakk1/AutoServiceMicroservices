@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace AppHostt.ServiceDefaults
+namespace AutoserviceOrders.BLL.Cache
 {
     public class TwoLevelCacheService<T>
     {

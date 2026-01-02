@@ -14,7 +14,7 @@ using FluentValidation;
 using AutoServiceCatalog.BLL.DTO;
 using AutoServiceCatalog.BLL.Validation;
 using AutoServiceCatalog.API.Middleware;
-using AppHostt.ServiceDefaults;
+using AutoServiceCatalog.BLL.Cache;
 namespace AutoServiceCatalog.API
 {
     public class Program
@@ -22,11 +22,17 @@ namespace AutoServiceCatalog.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Logging.AddConsole();
 
-
+            builder.Services.AddMemoryCache();
+            
             builder.AddServiceDefaults();
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            });
             builder.Services.AddScoped(typeof(TwoLevelCacheService<>));
-
+            
 
             // Add services to the container.
             var sqlConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__SqlServer");
