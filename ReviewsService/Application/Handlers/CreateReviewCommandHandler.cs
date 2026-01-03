@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Cache;
 
 namespace Application.Handlers
 {
@@ -20,35 +21,33 @@ namespace Application.Handlers
         private readonly IReviewRepository _repository;
         private readonly IMapper _mapper;
         private readonly OrderGrpcClient _orderGrpcClient;
+        private readonly TwoLevelCacheService<ReviewDto> _cache;
 
-
-        public CreateReviewCommandHandler(IReviewRepository repository, IMapper mapper, OrderGrpcClient orderGrpcClient)
+        public CreateReviewCommandHandler(
+            IReviewRepository repository,
+            IMapper mapper,
+            OrderGrpcClient orderGrpcClient,
+            TwoLevelCacheService<ReviewDto> cache)
         {
             _repository = repository;
             _mapper = mapper;
             _orderGrpcClient = orderGrpcClient;
+            _cache = cache;
         }
 
-        public async Task<ReviewDto> Handle(
-        CreateReviewCommand request,
-        CancellationToken cancellationToken)
+        public async Task<ReviewDto> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
         {
             var order = await _orderGrpcClient.GetOrderAsync(request.OrderId);
 
             if (order == null)
             {
                 throw new RpcException(
-                    new Status(
-                        StatusCode.NotFound,
-                        $"Order with ID {request.OrderId} not found"
-                    )
+                    new Status(StatusCode.NotFound, $"Order with ID {request.OrderId} not found")
                 );
             }
 
-            var customerId = order.CustomerId;
-
             var review = new Review(
-                customerId,
+                order.CustomerId,
                 request.OrderId,
                 new Rating(request.Rating),
                 request.Comment
@@ -56,7 +55,11 @@ namespace Application.Handlers
 
             await _repository.AddAsync(review);
 
+            // 🔥 Інвалідуємо кеш агрегатора
+            await _cache.InvalidateAsync($"orderwithreview:{request.OrderId}");
+
             return _mapper.Map<ReviewDto>(review);
         }
     }
+
 }

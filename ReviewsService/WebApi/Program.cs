@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
 using Application.Grpc;
 using WebApi.Middleware;
+using Application.Cache;
 
 namespace WebApi
 {
@@ -15,7 +16,15 @@ namespace WebApi
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddGrpc();
+
+            builder.Services.AddMemoryCache();
+
             builder.AddServiceDefaults();
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration.GetConnectionString("Redis");
+            });
+            builder.Services.AddScoped(typeof(TwoLevelCacheService<>));
             // Add services to the container.
             builder.Services.AddApplication();
             builder.Services.AddInfrastructure(builder.Configuration);
