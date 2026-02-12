@@ -22,13 +22,13 @@ namespace AutoserviceOrders.BLL.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OrderDetailsDto>> GetAllAsync()
+        public async Task<IEnumerable<OrderItemDto>> GetAllAsync()
         {
             await _unitOfWork.BeginTransactionAsync();
             var all = await _unitOfWork.OrderItems.GetAllAsync();
             await _unitOfWork.CommitAsync();
 
-            return _mapper.Map<IEnumerable<OrderDetailsDto>>(all);
+            return _mapper.Map<IEnumerable<OrderItemDto>>(all);
         }
 
         public async Task<IEnumerable<OrderItemDto>> GetItemsByOrderIdAsync(int orderId)

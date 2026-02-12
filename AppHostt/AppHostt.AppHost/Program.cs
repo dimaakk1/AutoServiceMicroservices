@@ -6,6 +6,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var sql = builder.AddSqlServer("sqlserver")
     .WithDataVolume();
 
+var identityDb = sql.AddDatabase("IdentityDb");
 
 
 var mongo = builder.AddMongoDB("mongo")
@@ -14,8 +15,6 @@ var mongo = builder.AddMongoDB("mongo")
 
 var redis = builder.AddRedis("redis")
     .WithDataVolume("redis-data");
-
-
 
 
 var catalogService = builder.AddProject<Projects.AutoServiceCatalog_API>("catalog-service")
@@ -56,6 +55,14 @@ var aggregationApi = builder.AddProject<Projects.AggregatorService>("aggregation
     .WaitFor(sql)
     .WaitFor(mongo)
     .WaitFor(redis);
+
+
+
+
+builder.AddProject<Projects.AutoServiceUsers_API>("users-service")
+    .WithReference(identityDb)
+    .WaitFor(identityDb);
+
 
 
 

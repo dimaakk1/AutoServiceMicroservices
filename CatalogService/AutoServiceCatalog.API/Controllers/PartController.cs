@@ -2,11 +2,13 @@
 using AutoServiceCatalog.BLL.Services.Interfaces;
 using AutoServiceCatalog.DAL.QueryParametrs;
 using AutoServiceCatalog.DAL.Specefication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoServiceCatalog.API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/Catalog/[controller]")]
     [ApiController]
     public class PartController : ControllerBase

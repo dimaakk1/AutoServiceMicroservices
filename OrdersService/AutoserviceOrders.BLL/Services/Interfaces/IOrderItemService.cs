@@ -9,7 +9,7 @@ namespace AutoserviceOrders.BLL.Services.Interfaces
 {
     public interface IOrderItemService
     {
-        Task<IEnumerable<OrderDetailsDto>> GetAllAsync();
+        Task<IEnumerable<OrderItemDto>> GetAllAsync();
         Task<IEnumerable<OrderItemDto>> GetItemsByOrderIdAsync(int orderId);
         Task AddOrderItemAsync(OrderItemDto dto);
         Task UpdateOrderItemAsync(OrderItemDto dto);

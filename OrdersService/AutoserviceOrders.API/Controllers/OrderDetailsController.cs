@@ -1,10 +1,13 @@
 ﻿using AutoserviceOrders.BLL.DTO;
 using AutoserviceOrders.BLL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoserviceOrders.API.Controllers
 {
+    [Authorize]
+
     [Route("api/Orders/[controller]")]
     [ApiController]
     public class OrderDetailsController : ControllerBase

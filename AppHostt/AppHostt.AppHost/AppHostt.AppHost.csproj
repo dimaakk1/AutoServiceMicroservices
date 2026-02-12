@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\AggregatorService\AggregatorService.csproj" />
     <ProjectReference Include="..\..\ApiGateway\ApiGateway.csproj" />
+    <ProjectReference Include="..\..\AutoServiceUsers.API\AutoServiceUsers.API.csproj" />
     <ProjectReference Include="..\..\CatalogService\AutoServiceCatalog.API\AutoServiceCatalog.API.csproj" />
     <ProjectReference Include="..\..\ordersservice\AutoserviceOrders.API\AutoserviceOrders.API.csproj" />
     <ProjectReference Include="..\..\ReviewsService\WebApi\WebApi.csproj" />

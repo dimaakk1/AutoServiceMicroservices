@@ -1,11 +1,13 @@
 ﻿using AutoServiceCatalog.BLL.DTO;
 using AutoServiceCatalog.BLL.Services;
 using AutoServiceCatalog.BLL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AutoServiceCatalog.API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/Catalog/[controller]")]
     [ApiController]
     public class CategoryController : ControllerBase

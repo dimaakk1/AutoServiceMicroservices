@@ -11,6 +11,10 @@ using Dapper;
 using AutoserviceOrders.DAL.db;
 using AutoserviceOrders.BLL.Grpc;
 using AutoserviceOrders.BLL.Cache;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
 
 
 namespace AutoserviceOrders.API
@@ -55,6 +59,67 @@ namespace AutoserviceOrders.API
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             // Add services to the container.
 
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = ctx =>
+        {
+            Console.WriteLine("RAW TOKEN: " + ctx.Token);
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = ctx =>
+        {
+            Console.WriteLine("JWT FAILED: " + ctx.Exception);
+            return Task.CompletedTask;
+        }
+    };
+});
+
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
+
+                var jwtSecurityScheme = new OpenApiSecurityScheme
+                {
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.Http,
+                    Description = "¬вед≥ть JWT токен: Bearer {your token}",
+
+                    Reference = new OpenApiReference
+                    {
+                        Id = JwtBearerDefaults.AuthenticationScheme,
+                        Type = ReferenceType.SecurityScheme
+                    }
+                };
+
+                c.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
+
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                     { jwtSecurityScheme, Array.Empty<string>() }
+                });
+            });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -71,9 +136,10 @@ namespace AutoserviceOrders.API
 
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-            app.MapGrpcService<OrderServiceImpl>(); 
+            app.MapGrpcService<OrderServiceImpl>();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 

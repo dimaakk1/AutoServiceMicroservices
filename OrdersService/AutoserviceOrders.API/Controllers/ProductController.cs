@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using AutoserviceOrders.BLL.DTO;
 using AutoserviceOrders.BLL.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace AutoserviceOrders.API.Controllers
 {
+    [Authorize]
     [Route("api/Orders/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
