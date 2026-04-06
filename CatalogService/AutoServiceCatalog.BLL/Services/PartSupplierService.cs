@@ -12,120 +12,116 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.Services
 {
-    public class PartSupplierService : IPartSupplierService
+    public class ServiceSupplierService : IServiceSupplierService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly TwoLevelCacheService<List<PartSupplierDto>> _partSupplierCache;
-        private readonly TwoLevelCacheService<List<PartDto>> _partsCache;
+        private readonly TwoLevelCacheService<List<ServiceSupplierDto>> _serviceSupplierCache;
+        private readonly TwoLevelCacheService<List<ServiceDto>> _servicesCache;
         private readonly TwoLevelCacheService<List<SupplierDto>> _suppliersCache;
 
-        public PartSupplierService(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            TwoLevelCacheService<List<PartSupplierDto>> partSupplierCache,
-            TwoLevelCacheService<List<PartDto>> partsCache,
-            TwoLevelCacheService<List<SupplierDto>> suppliersCache)
+        public ServiceSupplierService(IUnitOfWork unitOfWork, IMapper mapper, TwoLevelCacheService<List<ServiceSupplierDto>> serviceSupplierCache, TwoLevelCacheService<List<ServiceDto>> servicesCache, TwoLevelCacheService<List<SupplierDto>> suppliersCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _partSupplierCache = partSupplierCache;
-            _partsCache = partsCache;
+            _serviceSupplierCache = serviceSupplierCache;
+            _servicesCache = servicesCache;
             _suppliersCache = suppliersCache;
         }
 
-        public async Task<List<PartSupplierDto>> GetAllAsync()
+        public async Task<List<ServiceSupplierDto>> GetAllAsync()
         {
-            return await _partSupplierCache.GetOrCreateAsync(
-                key: "partsuppliers:all",
-                factory: async () =>
-                {
-                    var entities = await _unitOfWork.PartSupplier.GetAllAsync();
-                    return _mapper.Map<List<PartSupplierDto>>(entities);
-                },
-                l1Ttl: TimeSpan.FromSeconds(30),
-                l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<PartSupplierDto>();
-        }
-
-        public async Task<PartSupplierDto?> GetByIdsAsync(int partId, int supplierId)
-        {
-            var key = $"partsupplier:{partId}:{supplierId}";
-            return await _partSupplierCache.GetOrCreateAsync(
+            var key = "servicesuppliers:all";
+            return await _serviceSupplierCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var all = await _unitOfWork.PartSupplier.GetAllAsync();
-                    var entity = all.FirstOrDefault(ps => ps.PartId == partId && ps.SupplierId == supplierId);
-                    return entity != null ? new List<PartSupplierDto> { _mapper.Map<PartSupplierDto>(entity) } : new List<PartSupplierDto>();
+                    var entities = await _unitOfWork.ServiceSupplier.GetAllAsync();
+                    return _mapper.Map<List<ServiceSupplierDto>>(entities);
+                },
+                l1Ttl: TimeSpan.FromSeconds(30),
+                l2Ttl: TimeSpan.FromMinutes(5)
+            ) ?? new List<ServiceSupplierDto>();
+        }
+
+        public async Task<ServiceSupplierDto?> GetByIdsAsync(int serviceId, int supplierId)
+        {
+            var key = $"servicesupplier:{serviceId}:{supplierId}";
+            return await _serviceSupplierCache.GetOrCreateAsync(
+                key: key,
+                factory: async () =>
+                {
+                    var all = await _unitOfWork.ServiceSupplier.GetAllAsync();
+                    var entity = all.FirstOrDefault(ss => ss.ServiceId == serviceId && ss.SupplierId == supplierId);
+                    return entity != null ? new List<ServiceSupplierDto> { _mapper.Map<ServiceSupplierDto>(entity) } : new List<ServiceSupplierDto>();
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
             ).ContinueWith(t => t.Result.FirstOrDefault());
         }
 
-        public async Task<PartSupplierDto> CreateAsync(PartSupplierDto dto)
+        public async Task<ServiceSupplierDto> CreateAsync(ServiceSupplierDto dto)
         {
-            var entity = _mapper.Map<PartSupplier>(dto);
-            await _unitOfWork.PartSupplier.AddAsync(entity);
+            var entity = _mapper.Map<ServiceSupplier>(dto);
+            await _unitOfWork.ServiceSupplier.AddAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
             // Інвалідація кешу
-            await _partSupplierCache.InvalidateAsync("partsuppliers:all");
-            await _partSupplierCache.InvalidateAsync($"partsupplier:{entity.PartId}:{entity.SupplierId}");
-            await _partsCache.InvalidateAsync($"parts:supplier:{entity.SupplierId}");
-            await _suppliersCache.InvalidateAsync($"suppliers:part:{entity.PartId}");
+            await _serviceSupplierCache.InvalidateAsync("servicesuppliers:all");
+            await _serviceSupplierCache.InvalidateAsync($"servicesupplier:{entity.ServiceId}:{entity.SupplierId}");
+            await _servicesCache.InvalidateAsync($"services:supplier:{entity.SupplierId}");
+            await _suppliersCache.InvalidateAsync($"suppliers:service:{entity.ServiceId}");
 
-            return _mapper.Map<PartSupplierDto>(entity);
+            return _mapper.Map<ServiceSupplierDto>(entity);
         }
 
-        public async Task DeleteAsync(int partId, int supplierId)
+        public async Task DeleteAsync(int serviceId, int supplierId)
         {
-            var all = await _unitOfWork.PartSupplier.GetAllAsync();
-            var entity = all.FirstOrDefault(ps => ps.PartId == partId && ps.SupplierId == supplierId);
+            var all = await _unitOfWork.ServiceSupplier.GetAllAsync();
+            var entity = all.FirstOrDefault(ss => ss.ServiceId == serviceId && ss.SupplierId == supplierId);
 
             if (entity == null)
-                throw new Exception("PartSupplier link not found");
+                throw new Exception("ServiceSupplier link not found");
 
-            _unitOfWork.PartSupplier.DeleteAsync(entity);
+            _unitOfWork.ServiceSupplier.DeleteAsync(entity);
             await _unitOfWork.SaveChangesAsync();
 
             // Інвалідація кешу
-            await _partSupplierCache.InvalidateAsync("partsuppliers:all");
-            await _partSupplierCache.InvalidateAsync($"partsupplier:{partId}:{supplierId}");
-            await _partsCache.InvalidateAsync($"parts:supplier:{supplierId}");
-            await _suppliersCache.InvalidateAsync($"suppliers:part:{partId}");
+            await _serviceSupplierCache.InvalidateAsync("servicesuppliers:all");
+            await _serviceSupplierCache.InvalidateAsync($"servicesupplier:{serviceId}:{supplierId}");
+            await _servicesCache.InvalidateAsync($"services:supplier:{supplierId}");
+            await _suppliersCache.InvalidateAsync($"suppliers:service:{serviceId}");
         }
 
-        public async Task<List<PartDto>> GetPartsBySupplierIdAsync(int supplierId)
+        public async Task<List<ServiceDto>> GetServicesBySupplierIdAsync(int supplierId)
         {
-            var key = $"parts:supplier:{supplierId}";
-            return await _partsCache.GetOrCreateAsync(
+            var key = $"services:supplier:{supplierId}";
+            return await _servicesCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var parts = await _unitOfWork.PartSupplier.GetPartsBySupplierIdAsync(supplierId);
-                    return _mapper.Map<List<PartDto>>(parts);
+                    var services = await _unitOfWork.ServiceSupplier.GetServicesBySupplierIdAsync(supplierId);
+                    return _mapper.Map<List<ServiceDto>>(services);
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<PartDto>();
+            ) ?? new List<ServiceDto>();
         }
 
-        public async Task<List<SupplierDto>> GetSuppliersByPartIdAsync(int partId)
+        public async Task<List<SupplierDto>> GetSuppliersByServiceIdAsync(int serviceId)
         {
-            var key = $"suppliers:part:{partId}";
+            var key = $"suppliers:service:{serviceId}";
             return await _suppliersCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var suppliers = await _unitOfWork.PartSupplier.GetSuppliersByPartIdAsync(partId);
+                    var suppliers = await _unitOfWork.ServiceSupplier.GetSuppliersByServiceIdAsync(serviceId);
                     return _mapper.Map<List<SupplierDto>>(suppliers);
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
             ) ?? new List<SupplierDto>();
         }
-    }
+    }   
 
 }

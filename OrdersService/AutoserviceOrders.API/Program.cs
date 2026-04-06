@@ -1,19 +1,21 @@
-using AutoserviceOrders.DAL.UnitOfWork;
+using AutoMapper;
+using AutoserviceOrders.BLL.Automapper;
+using AutoserviceOrders.BLL.Cache;
+using AutoserviceOrders.BLL.Grpc;
+using AutoserviceOrders.BLL.Services;
+using AutoserviceOrders.BLL.Services.Interfaces;
+using AutoserviceOrders.DAL.db;
 using AutoserviceOrders.DAL.Repositories;
 using AutoserviceOrders.DAL.Repositories.Interfaces;
-using AutoserviceOrders.BLL.Services.Interfaces;
-using AutoserviceOrders.BLL.Services;
-using AutoserviceOrders.BLL.Automapper;
-using AutoMapper;
-using Microsoft.Data.SqlClient;
-using System.Data;
+using AutoserviceOrders.DAL.UnitOfWork;
 using Dapper;
-using AutoserviceOrders.DAL.db;
-using AutoserviceOrders.BLL.Grpc;
-using AutoserviceOrders.BLL.Cache;
+using Grpc.AspNetCore.Server;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Part;
+using System.Data;
 using System.Text;
 
 
@@ -45,14 +47,11 @@ namespace AutoserviceOrders.API
             builder.Services.AddScoped<IDbConnection>(sp => new SqlConnection(sqlConnectionString));
 
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
-            builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<IOrderService, BLL.Services.OrderService>();
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<IOrderDetailsService, OrderDetailsService>();
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
-
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -120,6 +119,11 @@ namespace AutoserviceOrders.API
                 });
             });
 
+            builder.Services.AddGrpcClient<PartService.PartServiceClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5001"); // URL твого PartService
+            });
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -133,7 +137,6 @@ namespace AutoserviceOrders.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
             app.UseHttpsRedirection();
 
             app.MapGrpcService<OrderServiceImpl>();

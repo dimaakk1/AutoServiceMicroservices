@@ -9,11 +9,12 @@ namespace AutoServiceCatalog.BLL.Services.Interfaces
 {
     public interface ISupplierService
     {
-        Task<IEnumerable<SupplierDto>> GetAllAsync();
+        Task<List<SupplierDto>> GetAllAsync();
         Task<SupplierDto> GetByIdAsync(int id);
         Task<SupplierDto> CreateAsync(SupplierCreateDto dto);
         Task UpdateAsync(int id, SupplierCreateDto dto);
         Task DeleteAsync(int id);
-        Task<SupplierDto> GetSupplierWithPartsAsync(int id);
+        Task<SupplierDto> GetSupplierWithServicesAsync(int id);
+        Task<List<SupplierDto>> SearchByNameAsync(string keyword);
     }
 }

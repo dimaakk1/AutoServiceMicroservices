@@ -11,36 +11,36 @@ namespace AutoServiceCatalog.API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/Catalog/[controller]")]
     [ApiController]
-    public class PartController : ControllerBase
+    public class ServiceController : ControllerBase
     {
-        private readonly IPartService _partService;
+        private readonly IServiceService _serviceService;
 
-        public PartController(IPartService partService)
+        public ServiceController(IServiceService serviceService)
         {
-            _partService = partService;
+            _serviceService = serviceService;
         }
 
-        [HttpGet("parts")]
-        public async Task<IActionResult> GetParts([FromQuery] PartQueryParameters parameters)
+        [HttpGet("services")]
+        public async Task<IActionResult> GetServices([FromQuery] PartQueryParameters parameters)
         {
-            var parts = await _partService.GetPartsAsync(parameters);
+            var services = await _serviceService.GetServicesAsync(parameters);
 
-            var result = parts.Items.Select(p => new PartDto
+            var result = services.Items.Select(s => new ServiceDto
             {
-                PartId = p.PartId,
-                Name = p.Name,
-                Price = p.Price,
-                CategoryId = p.Category.CategoryId
+                ServiceId = s.ServiceId,
+                Name = s.Name,
+                Price = s.Price,
+                CategoryId = s.Category.CategoryId
             });
 
-            return Ok(new PagedResult<PartDto>(result, parts.TotalCount, parameters.PageSize));
+            return Ok(new PagedResult<ServiceDto>(result, services.TotalCount, parameters.PageSize));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var parts = await _partService.GetAllAsync();
-            return Ok(parts);
+            var services = await _serviceService.GetAllAsync();
+            return Ok(services);
         }
 
         [HttpGet("{id}")]
@@ -48,8 +48,8 @@ namespace AutoServiceCatalog.API.Controllers
         {
             try
             {
-                var part = await _partService.GetByIdAsync(id);
-                return Ok(part);
+                var service = await _serviceService.GetByIdAsync(id);
+                return Ok(service);
             }
             catch (Exception ex)
             {
@@ -58,12 +58,12 @@ namespace AutoServiceCatalog.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] PartCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] ServiceCreateDto dto)
         {
             try
             {
-                var created = await _partService.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = created.PartId }, created);
+                var created = await _serviceService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.ServiceId }, created);
             }
             catch (ArgumentException ex)
             {
@@ -71,11 +71,11 @@ namespace AutoServiceCatalog.API.Controllers
             }
         }
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] PartCreateDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] ServiceCreateDto dto)
         {
             try
             {
-                await _partService.UpdateAsync(id, dto);
+                await _serviceService.UpdateAsync(id, dto);
                 return NoContent();
             }
             catch (Exception ex)
@@ -89,7 +89,7 @@ namespace AutoServiceCatalog.API.Controllers
         {
             try
             {
-                await _partService.DeleteAsync(id);
+                await _serviceService.DeleteAsync(id);
                 return NoContent();
             }
             catch (Exception ex)
@@ -100,27 +100,27 @@ namespace AutoServiceCatalog.API.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> Search([FromQuery] string keyword)
         {
-            var parts = await _partService.SearchByNameAsync(keyword);
-            return Ok(parts);
+            var services = await _serviceService.SearchByNameAsync(keyword);
+            return Ok(services);
         }
         [HttpGet("price/above/{price}")]
-        public async Task<IActionResult> GetPartsAbovePrice(decimal price)
+        public async Task<IActionResult> GetServicesAbovePrice(decimal price)
         {
-            var parts = await _partService.GetPartsAbovePriceAsync(price);
-            if (parts == null || !parts.Any())
-                return NotFound("No parts found above this price");
+            var services = await _serviceService.GetServicesAbovePriceAsync(price);
+            if (services == null || !services.Any())
+                return NotFound("No services found above this price");
 
-            return Ok(parts);
+            return Ok(services);
         }
 
         [HttpGet("price/below/{price}")]
-        public async Task<IActionResult> GetPartsBelowPrice(decimal price)
+        public async Task<IActionResult> GetServicesBelowPrice(decimal price)
         {
-            var parts = await _partService.GetPartsBelowPriceAsync(price);
-            if (parts == null || !parts.Any())
-                return NotFound("No parts found below this price");
+            var services = await _serviceService.GetServicesBelowPriceAsync(price);
+            if (services == null || !services.Any())
+                return NotFound("No services found below this price");
 
-            return Ok(parts);
+            return Ok(services);
         }
     }
 

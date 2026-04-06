@@ -58,11 +58,6 @@ namespace AutoserviceOrders.DAL.db
         );
 
         IF OBJECT_ID('Products') IS NULL
-        CREATE TABLE Products (
-            ProductId INT IDENTITY(1,1) PRIMARY KEY,
-            Name NVARCHAR(100) NOT NULL,
-            Price DECIMAL(10,2) NOT NULL
-        );
 
         IF OBJECT_ID('OrderItems') IS NULL
         CREATE TABLE OrderItems (
@@ -71,7 +66,6 @@ namespace AutoserviceOrders.DAL.db
             ProductId INT NOT NULL,
             Quantity INT NOT NULL,
             FOREIGN KEY (OrderId) REFERENCES Orders(OrderId),
-            FOREIGN KEY (ProductId) REFERENCES Products(ProductId)
         );";
 
             using var cmd2 = new SqlCommand(createTablesScript, conn);

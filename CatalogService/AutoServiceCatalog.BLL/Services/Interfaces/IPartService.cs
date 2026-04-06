@@ -10,16 +10,16 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.Services.Interfaces
 {
-    public interface IPartService
+    public interface IServiceService
     {
-        Task<IEnumerable<PartDto>> GetAllAsync();
-        Task<PartDto> GetByIdAsync(int id);
-        Task<PartDto> CreateAsync(PartCreateDto dto);
-        Task UpdateAsync(int id, PartCreateDto dto);
+        Task<List<ServiceDto>> GetAllAsync();
+        Task<ServiceDto> GetByIdAsync(int id);
+        Task<ServiceDto> CreateAsync(ServiceCreateDto dto);
+        Task UpdateAsync(int id, ServiceCreateDto dto);
         Task DeleteAsync(int id);
-        Task<List<PartDto>> SearchByNameAsync(string keyword);
-        Task<List<PartDto>> GetPartsAbovePriceAsync(decimal price);
-        Task<List<PartDto>> GetPartsBelowPriceAsync(decimal price);
-        Task<PagedResult<Part>> GetPartsAsync(PartQueryParameters parameters);
+        Task<List<ServiceDto>> SearchByNameAsync(string keyword);
+        Task<List<ServiceDto>> GetServicesAbovePriceAsync(decimal price);
+        Task<List<ServiceDto>> GetServicesBelowPriceAsync(decimal price);
+        Task<PagedResult<Service>> GetServicesAsync(PartQueryParameters parameters);
     }
 }

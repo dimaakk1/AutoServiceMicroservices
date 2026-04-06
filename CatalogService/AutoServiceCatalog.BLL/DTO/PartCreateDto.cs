@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.DTO
 {
-    public class PartCreateDto
+    public class ServiceCreateDto
     {
         public string Name { get; set; } = null!;
         public decimal Price { get; set; }

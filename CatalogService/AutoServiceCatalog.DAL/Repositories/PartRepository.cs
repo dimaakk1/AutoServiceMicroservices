@@ -12,43 +12,43 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.DAL.Repositories
 {
-    public class PartRepository : GenericRepository<Part>, IPartRepository
+    public class ServiceRepository : GenericRepository<Service>, IServiceRepository
     {
-        public PartRepository(CarServiceContext context) : base(context) { }
+        public ServiceRepository(CarServiceContext context) : base(context) { }
 
-        public async Task<PagedResult<Part>> GetPartsAsync(PartQueryParameters parameters)
+        public async Task<PagedResult<Service>> GetServicesAsync(PartQueryParameters parameters)
         {
-            var spec = new PartSpecification(parameters);
+            var spec = new ServiceSpecification(parameters);
 
-            var query = SpecificationEvaluator.GetQuery(_context.Parts.AsQueryable(), spec);
+            var query = SpecificationEvaluator.GetQuery<Service>(_context.Services.AsQueryable(), spec);
 
-            var totalCount = await _context.Parts
+            var totalCount = await _context.Services
                 .Where(spec.Criteria)
                 .CountAsync();
 
             var items = await query.ToListAsync();
 
-            return new PagedResult<Part>(items, totalCount, parameters.PageSize);
+            return new PagedResult<Service>(items, totalCount, parameters.PageSize);
         }
 
-        public async Task<List<Part>> GetPartsAbovePriceAsync(decimal price)
+        public async Task<List<Service>> GetServicesAbovePriceAsync(decimal price)
         {
-            return await _context.Parts
-                .Where(p => p.Price > price)
+            return await _context.Services
+                .Where(s => s.Price > price)
                 .ToListAsync();
         }
 
-        public async Task<List<Part>> GetPartsBelowPriceAsync(decimal price)
+        public async Task<List<Service>> GetServicesBelowPriceAsync(decimal price)
         {
-            return await _context.Parts
-                .Where(p => p.Price < price)
+            return await _context.Services
+                .Where(s => s.Price < price)
                 .ToListAsync();
         }
 
-        public async Task<List<Part>> SearchByNameAsync(string keyword)
+        public async Task<List<Service>> SearchByNameAsync(string keyword)
         {
-            return await _context.Parts
-                .Where(p => p.Name.Contains(keyword))
+            return await _context.Services
+                .Where(s => s.Name.Contains(keyword))
                 .ToListAsync();
         }
     }

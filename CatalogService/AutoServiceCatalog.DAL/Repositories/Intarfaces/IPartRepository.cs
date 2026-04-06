@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.DAL.Repositories.Intarfaces
 {
-    public interface IPartRepository : IGenericRepository<Part>
+    public interface IServiceRepository : IGenericRepository<Service>
     {
-        Task<List<Part>> GetPartsAbovePriceAsync(decimal price);
-        Task<List<Part>> GetPartsBelowPriceAsync(decimal price);
-        Task<List<Part>> SearchByNameAsync(string keyword);
+        Task<List<Service>> GetServicesAbovePriceAsync(decimal price);
+        Task<List<Service>> GetServicesBelowPriceAsync(decimal price);
+        Task<List<Service>> SearchByNameAsync(string keyword);
 
-        Task<PagedResult<Part>> GetPartsAsync(PartQueryParameters parameters);
+        Task<PagedResult<Service>> GetServicesAsync(PartQueryParameters parameters);
     }
 }

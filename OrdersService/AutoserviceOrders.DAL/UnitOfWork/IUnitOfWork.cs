@@ -11,7 +11,6 @@ namespace AutoserviceOrders.DAL.UnitOfWork
     {
         ICustomerRepository Customers { get; }
         IOrderRepository Orders { get; }
-        IProductRepository Products { get; }
         IOrderDetailsRepository OrderDetails { get; }
         IOrderItemRepository OrderItems { get; }
 

@@ -53,7 +53,7 @@ namespace AutoServiceCatalog.API.Controllers
             try
             {
                 await _categoryService.UpdateAsync(id, dto);
-                return NoContent(); 
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -61,16 +61,16 @@ namespace AutoServiceCatalog.API.Controllers
             }
         }
 
-        [HttpGet("parts/byName")]
-        public async Task<IActionResult> GetPartsByCategoryName([FromQuery] string categoryName)
+        [HttpGet("services/byName")]
+        public async Task<IActionResult> GetServicesByCategoryName([FromQuery] string categoryName)
         {
             if (string.IsNullOrWhiteSpace(categoryName))
                 return BadRequest("Не вказано назву категорії");
 
             try
             {
-                var parts = await _categoryService.GetPartsByCategoryNameAsync(categoryName);
-                return Ok(parts);
+                var services = await _categoryService.GetServicesByCategoryNameAsync(categoryName);
+                return Ok(services);
             }
             catch (Exception ex)
             {

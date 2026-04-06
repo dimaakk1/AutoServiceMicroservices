@@ -14,11 +14,11 @@ namespace AutoServiceCatalog.DAL.Repositories
     {
         public CategoryRepository(CarServiceContext context) : base(context) { }
 
-        public async Task<List<Part>> GetPartsByCategoryNameAsync(string categoryName)
+        public async Task<List<Service>> GetServicesByCategoryNameAsync(string categoryName)
         {
             return await _context.Categories
                 .Where(c => c.Name == categoryName)
-                .SelectMany(c => c.Parts) 
+                .SelectMany(c => c.Services)
                 .ToListAsync();
         }
     }

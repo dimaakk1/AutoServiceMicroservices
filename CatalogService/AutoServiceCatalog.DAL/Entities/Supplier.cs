@@ -12,6 +12,6 @@ namespace AutoServiceCatalog.DAL.Entities
         public string Name { get; set; } = null!;
         public string Phone { get; set; }
 
-        public ICollection<PartSupplier> PartSuppliers { get; set; }
+        public ICollection<ServiceSupplier> ServiceSuppliers { get; set; }
     }
 }

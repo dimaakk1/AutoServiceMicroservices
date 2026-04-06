@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.DAL.Entities
 {
-    public class PartDetail
+    public class ServiceDetail
     {
-        public int PartDetailId { get; set; }
+        public int ServiceDetailId { get; set; }
         public string Manufacturer { get; set; } = null!;
         public string Warranty { get; set; }
 
-        public int PartId { get; set; }
-        public Part Part { get; set; }
+        public int ServiceId { get; set; }
+        public Service Service { get; set; }
     }
 }

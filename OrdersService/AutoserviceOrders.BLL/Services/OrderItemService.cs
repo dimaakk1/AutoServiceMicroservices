@@ -1,13 +1,15 @@
-﻿using System;
+﻿using AutoMapper;
+using AutoserviceOrders.BLL.DTO;
+using AutoserviceOrders.BLL.Services.Interfaces;
+using AutoserviceOrders.DAL.Models;
+using AutoserviceOrders.DAL.UnitOfWork;
+using Grpc.Core;
+using Part;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
-using AutoserviceOrders.BLL.DTO;
-using AutoserviceOrders.DAL.Models;
-using AutoserviceOrders.DAL.UnitOfWork;
-using AutoserviceOrders.BLL.Services.Interfaces;
 
 namespace AutoserviceOrders.BLL.Services
 {
@@ -15,11 +17,13 @@ namespace AutoserviceOrders.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly PartService.PartServiceClient _partGrpcClient;
 
-        public OrderItemService(IUnitOfWork unitOfWork, IMapper mapper)
+        public OrderItemService(IUnitOfWork unitOfWork, IMapper mapper, PartService.PartServiceClient partGrpcClient)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _partGrpcClient = partGrpcClient;
         }
 
         public async Task<IEnumerable<OrderItemDto>> GetAllAsync()
@@ -42,18 +46,30 @@ namespace AutoserviceOrders.BLL.Services
 
         public async Task AddOrderItemAsync(OrderItemDto dto)
         {
-            var entity = _mapper.Map<DAL.Models.OrderItem>(dto);
-
-            await _unitOfWork.BeginTransactionAsync();
             try
             {
-                await _unitOfWork.OrderItems.AddAsync(entity);
-                await _unitOfWork.CommitAsync();
+                // 🔹 Викликаємо існуючий gRPC метод
+                var part = await _partGrpcClient.GetPartAsync(new GetPartRequest { Id = dto.ProductId });
+
+                // part існує → можна додавати
+                var entity = _mapper.Map<DAL.Models.OrderItem>(dto);
+
+                await _unitOfWork.BeginTransactionAsync();
+                try
+                {
+                    await _unitOfWork.OrderItems.AddAsync(entity);
+                    await _unitOfWork.CommitAsync();
+                }
+                catch
+                {
+                    await _unitOfWork.RollbackAsync();
+                    throw;
+                }
             }
-            catch
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
             {
-                await _unitOfWork.RollbackAsync();
-                throw;
+                // Якщо gRPC кинув NotFound → сервіс не існує
+                throw new Exception($"Service (Product) with id {dto.ProductId} not found");
             }
         }
 
@@ -95,7 +111,41 @@ namespace AutoserviceOrders.BLL.Services
             var result = await _unitOfWork.OrderItems.GetOrderItemsWithProductAsync();
             await _unitOfWork.CommitAsync();
 
-            return _mapper.Map<IEnumerable<OrderItemWithProductDto>>(result);
+            var dtoList = new List<OrderItemWithProductDto>();
+
+            foreach (var item in result)
+            {
+                try
+                {
+                    var part = await _partGrpcClient.GetPartAsync(new GetPartRequest { Id = item.ProductId });
+                    dtoList.Add(new OrderItemWithProductDto
+                    {
+                        OrderItemId = item.OrderItemId,
+                        OrderId = item.OrderId,
+                        ProductId = item.ProductId,
+                        ProductName = part.Name,
+                        Price = Convert.ToDecimal(part.Price),
+                        Quantity = item.Quantity,
+                        TotalPrice = Convert.ToDecimal(part.Price) * item.Quantity
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle error - if part not found, skip or use cached data
+                    dtoList.Add(new OrderItemWithProductDto
+                    {
+                        OrderItemId = item.OrderItemId,
+                        OrderId = item.OrderId,
+                        ProductId = item.ProductId,
+                        ProductName = item.ProductName,
+                        Price = item.Price,
+                        Quantity = item.Quantity,
+                        TotalPrice = item.Price * item.Quantity
+                    });
+                }
+            }
+
+            return dtoList;
         }
     }
 }

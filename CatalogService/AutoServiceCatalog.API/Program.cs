@@ -1,4 +1,3 @@
-
 using AutoServiceCatalog.DAL.Db;
 using AutoServiceCatalog.DAL.Repositories.Intarfaces;
 using AutoServiceCatalog.DAL.Repositories;
@@ -19,6 +18,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi.Models;
+using AutoServiceCatalog.API.Grpc;
+using Grpc.AspNetCore.Server;
+
 namespace AutoServiceCatalog.API
 {
     public class Program
@@ -27,16 +29,17 @@ namespace AutoServiceCatalog.API
         {
             var builder = WebApplication.CreateBuilder(args);
             builder.Logging.AddConsole();
+            builder.Services.AddGrpc();
 
             builder.Services.AddMemoryCache();
-            
+
             builder.AddServiceDefaults();
             builder.Services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = builder.Configuration.GetConnectionString("Redis");
             });
             builder.Services.AddScoped(typeof(TwoLevelCacheService<>));
-            
+
 
             // Add services to the container.
             var sqlConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__SqlServer");
@@ -45,24 +48,23 @@ namespace AutoServiceCatalog.API
                 options.UseSqlServer(sqlConnectionString));
 
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            builder.Services.AddScoped<IPartRepository, PartRepository>();
+            builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
             builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
             builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
-            builder.Services.AddScoped<IPartDetailRepository, PartDetailRepository>();
-            builder.Services.AddScoped<IPartSupplierRepository, PartSupplierRepository>();
+            builder.Services.AddScoped<IServiceDetailRepository, ServiceDetailRepository>();
+            builder.Services.AddScoped<IServiceSupplierRepository, ServiceSupplierRepository>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
-            builder.Services.AddScoped<IPartService, PartService>();
+            builder.Services.AddScoped<IServiceService, ServiceService>();
             builder.Services.AddScoped<ISupplierService, SupplierService>();
-            builder.Services.AddScoped<IPartDetailService, PartDetailService>();
-            builder.Services.AddScoped<IPartSupplierService, PartSupplierService>();
+            builder.Services.AddScoped<IServiceDetailService, ServiceDetailService>();
+            builder.Services.AddScoped<IServiceSupplierService, ServiceSupplierService>();
 
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
             builder.Services.AddFluentValidationAutoValidation();
-            builder.Services.AddScoped<IValidator<CategoryDto>, CategoryCreateDtoValidator>();
-            builder.Services.AddScoped<IValidator<PartCreateDto>, PartCreateDtoValidator>();
-            builder.Services.AddScoped<IValidator<PartDetailCreateDto>, PartDetailCreateDtoValidator>();
-            builder.Services.AddScoped<IValidator<PartSupplierDto>, PartSupplierCreateDtoValidator>();
+            builder.Services.AddValidatorsFromAssemblyContaining<ServiceCreateDtoValidator>();
+            builder.Services.AddScoped<IValidator<ServiceCreateDto>, ServiceCreateDtoValidator>();
+            builder.Services.AddScoped<IValidator<ServiceDetailCreateDto>, ServiceDetailCreateDtoValidator>();
+            builder.Services.AddScoped<IValidator<ServiceSupplierDto>, ServiceSupplierCreateDtoValidator>();
             builder.Services.AddScoped<IValidator<SupplierCreateDto>, SupplierCreateDtoValidator>();
 
 
@@ -137,10 +139,6 @@ namespace AutoServiceCatalog.API
 
             var app = builder.Build();
 
-
-            
-
-
             app.UseMiddleware<GlobalExceptionMiddleware>();
 
             using (var scope = app.Services.CreateScope())
@@ -162,7 +160,7 @@ namespace AutoServiceCatalog.API
             app.UseAuthentication();
             app.UseAuthorization();
 
-
+            app.MapGrpcService<PartServiceGrpcImpl>();
             app.MapControllers();
 
             app.Run();

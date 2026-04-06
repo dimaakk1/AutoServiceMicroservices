@@ -8,28 +8,28 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.DAL.Specefication
 {
-    public class PartSpecification : Specification<Part>
+    public class ServiceSpecification : Specification<Service>
     {
-        public PartSpecification(PartQueryParameters parameters)
+        public ServiceSpecification(PartQueryParameters parameters)
         {
-            Criteria = p =>
+            Criteria = s =>
                 (string.IsNullOrEmpty(parameters.Search) ||
-                    p.Name.Contains(parameters.Search)) &&
+                    s.Name.Contains(parameters.Search)) &&
                 (!parameters.CategoryId.HasValue ||
-                    p.CategoryId == parameters.CategoryId.Value);
+                    s.CategoryId == parameters.CategoryId.Value);
 
             // Include залежностей
-            Includes.Add(p => p.Category);
-            Includes.Add(p => p.PartDetail);
-            Includes.Add(p => p.PartSuppliers);
+            Includes.Add(s => s.Category);
+            Includes.Add(s => s.ServiceDetail);
+            Includes.Add(s => s.ServiceSuppliers);
 
             // Сортування
             if (!string.IsNullOrEmpty(parameters.SortBy))
             {
                 OrderBy = parameters.SortBy switch
                 {
-                    "name" => q => q.OrderBy(p => p.Name),
-                    "price" => q => q.OrderBy(p => p.Price),
+                    "name" => q => q.OrderBy(s => s.Name),
+                    "price" => q => q.OrderBy(s => s.Price),
                     _ => OrderBy
                 };
 
@@ -37,8 +37,8 @@ namespace AutoServiceCatalog.DAL.Specefication
                 {
                     OrderByDescending = parameters.SortBy switch
                     {
-                        "name" => q => q.OrderByDescending(p => p.Name),
-                        "price" => q => q.OrderByDescending(p => p.Price),
+                        "name" => q => q.OrderByDescending(s => s.Name),
+                        "price" => q => q.OrderByDescending(s => s.Price),
                         _ => OrderByDescending
                     };
                 }

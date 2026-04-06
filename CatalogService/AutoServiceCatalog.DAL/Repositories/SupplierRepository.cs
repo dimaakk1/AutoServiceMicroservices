@@ -13,11 +13,11 @@ namespace AutoServiceCatalog.DAL.Repositories
     public class SupplierRepository : GenericRepository<Supplier>, ISupplierRepository
     {
         public SupplierRepository(CarServiceContext context) : base(context) { }
-        public async Task<Supplier?> GetSupplierWithPartsAsync(int id)
+        public async Task<Supplier?> GetSupplierWithServicesAsync(int id)
         {
             return await _context.Suppliers
-                .Include(s => s.PartSuppliers)
-                .ThenInclude(ps => ps.Part)
+                .Include(s => s.ServiceSuppliers)
+                .ThenInclude(ss => ss.Service)
                 .FirstOrDefaultAsync(s => s.SupplierId == id);
         }
         public async Task<List<Supplier>> SearchByNameAsync(string keyword)

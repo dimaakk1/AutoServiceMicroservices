@@ -13,7 +13,7 @@ namespace AutoServiceCatalog.BLL.Services.Interfaces
         Task<CategoryDto> AddCategoryAsync(CategoryDto categoryDto);
         Task DeleteAsync(int id);
         Task UpdateAsync(int id, CategoryDto dto);
-        Task<List<PartDto>> GetPartsByCategoryNameAsync(string categoryName);
+        Task<List<ServiceDto>> GetServicesByCategoryNameAsync(string categoryName);
 
     }
 }

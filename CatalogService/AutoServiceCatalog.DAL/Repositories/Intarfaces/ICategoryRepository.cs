@@ -9,6 +9,6 @@ namespace AutoServiceCatalog.DAL.Repositories.Intarfaces
 {
     public interface ICategoryRepository : IGenericRepository<Category>
     {
-        Task<List<Part>> GetPartsByCategoryNameAsync(string categoryName);
+        Task<List<Service>> GetServicesByCategoryNameAsync(string categoryName);
     }
 }

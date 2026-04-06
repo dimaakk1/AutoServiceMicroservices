@@ -12,26 +12,26 @@ namespace AutoServiceCatalog.DAL.UOW
     {
         private readonly CarServiceContext _context;
 
-        public IPartRepository Parts { get; }
+        public IServiceRepository Services { get; }
         public ICategoryRepository Categories { get; }
         public ISupplierRepository Suppliers { get; }
-        public IPartDetailRepository PartDetail { get; }
-        public IPartSupplierRepository PartSupplier { get; }
+        public IServiceDetailRepository ServiceDetail { get; }
+        public IServiceSupplierRepository ServiceSupplier { get; }
 
         public UnitOfWork(
             CarServiceContext context,
-            IPartRepository partRepository,
+            IServiceRepository serviceRepository,
             ICategoryRepository categoryRepository,
             ISupplierRepository supplierRepository,
-            IPartSupplierRepository partSupplierRepository,
-            IPartDetailRepository partDetailRepository)
+            IServiceSupplierRepository serviceSupplierRepository,
+            IServiceDetailRepository serviceDetailRepository)
         {
             _context = context;
-            Parts = partRepository;
+            Services = serviceRepository;
             Categories = categoryRepository;
             Suppliers = supplierRepository;
-            PartDetail = partDetailRepository;
-            PartSupplier = partSupplierRepository;
+            ServiceDetail = serviceDetailRepository;
+            ServiceSupplier = serviceSupplierRepository;
         }
 
         public async Task<int> SaveChangesAsync()

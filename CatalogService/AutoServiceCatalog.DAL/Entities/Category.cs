@@ -11,6 +11,6 @@ namespace AutoServiceCatalog.DAL.Entities
         public int CategoryId { get; set; }
         public string Name { get; set; } = null!;
 
-        public ICollection<Part> Parts { get; set; }
+        public ICollection<Service> Services { get; set; }
     }
 }

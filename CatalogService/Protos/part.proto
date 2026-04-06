@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+option csharp_namespace = "Part";
+
+package part;
+
+service PartService {
+  rpc GetPart (GetPartRequest) returns (PartReply);
+  rpc GetPartsByIds (GetPartsByIdsRequest) returns (GetPartsByIdsReply);
+}
+
+message GetPartRequest {
+  int32 id = 1;
+}
+
+message GetPartsByIdsRequest {
+  repeated int32 ids = 1;
+}
+
+message PartReply {
+  int32 id = 1;
+  string name = 2;
+  double price = 3;
+  int32 categoryId = 4;
+}
+
+message GetPartsByIdsReply {
+  repeated PartReply parts = 1;
+}

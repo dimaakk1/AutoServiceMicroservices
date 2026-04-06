@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.DAL.Repositories.Intarfaces
 {
-    public interface IPartSupplierRepository : IGenericRepository<PartSupplier>
+    public interface IServiceSupplierRepository : IGenericRepository<ServiceSupplier>
     {
-        Task<List<Supplier>> GetSuppliersByPartIdAsync(int partId);
-        Task<List<Part>> GetPartsBySupplierIdAsync(int supplierId);
+        Task<List<Supplier>> GetSuppliersByServiceIdAsync(int serviceId);
+        Task<List<Service>> GetServicesBySupplierIdAsync(int supplierId);
     }
 }

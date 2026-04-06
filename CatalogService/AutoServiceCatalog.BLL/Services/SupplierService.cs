@@ -18,20 +18,18 @@ namespace AutoServiceCatalog.BLL.Services
         private readonly IMapper _mapper;
         private readonly TwoLevelCacheService<List<SupplierDto>> _suppliersCache;
 
-        public SupplierService(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            TwoLevelCacheService<List<SupplierDto>> suppliersCache)
+        public SupplierService(IUnitOfWork unitOfWork, IMapper mapper, TwoLevelCacheService<List<SupplierDto>> suppliersCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _suppliersCache = suppliersCache;
         }
 
-        public async Task<IEnumerable<SupplierDto>> GetAllAsync()
+        public async Task<List<SupplierDto>> GetAllAsync()
         {
+            var key = "suppliers:all";
             return await _suppliersCache.GetOrCreateAsync(
-                key: "suppliers:all",
+                key: key,
                 factory: async () =>
                 {
                     var suppliers = await _unitOfWork.Suppliers.GetAllAsync();
@@ -117,14 +115,14 @@ namespace AutoServiceCatalog.BLL.Services
             ) ?? new List<SupplierDto>();
         }
 
-        public async Task<SupplierDto> GetSupplierWithPartsAsync(int id)
+        public async Task<SupplierDto> GetSupplierWithServicesAsync(int id)
         {
-            var key = $"supplier:withParts:{id}";
+            var key = $"supplier:withServices:{id}";
             return await _suppliersCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var supplier = await _unitOfWork.Suppliers.GetSupplierWithPartsAsync(id);
+                    var supplier = await _unitOfWork.Suppliers.GetSupplierWithServicesAsync(id);
                     if (supplier == null) return null;
                     return new List<SupplierDto> { _mapper.Map<SupplierDto>(supplier) };
                 },

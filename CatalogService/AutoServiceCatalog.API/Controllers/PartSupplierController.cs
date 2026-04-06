@@ -9,11 +9,11 @@ namespace AutoServiceCatalog.API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/Catalog/[controller]")]
     [ApiController]
-    public class PartSupplierController : ControllerBase
+    public class ServiceSupplierController : ControllerBase
     {
-        private readonly IPartSupplierService _service;
+        private readonly IServiceSupplierService _service;
 
-        public PartSupplierController(IPartSupplierService service)
+        public ServiceSupplierController(IServiceSupplierService service)
         {
             _service = service;
         }
@@ -25,10 +25,10 @@ namespace AutoServiceCatalog.API.Controllers
             return Ok(links);
         }
 
-        [HttpGet("{partId}/{supplierId}")]
-        public async Task<IActionResult> GetByIds(int partId, int supplierId)
+        [HttpGet("{serviceId}/{supplierId}")]
+        public async Task<IActionResult> GetByIds(int serviceId, int supplierId)
         {
-            var link = await _service.GetByIdsAsync(partId, supplierId);
+            var link = await _service.GetByIdsAsync(serviceId, supplierId);
             if (link == null)
                 return NotFound();
 
@@ -36,18 +36,18 @@ namespace AutoServiceCatalog.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] PartSupplierDto dto)
+        public async Task<IActionResult> Create([FromBody] ServiceSupplierDto dto)
         {
             var created = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetByIds), new { partId = created.PartId, supplierId = created.SupplierId }, created);
+            return CreatedAtAction(nameof(GetByIds), new { serviceId = created.ServiceId, supplierId = created.SupplierId }, created);
         }
 
-        [HttpDelete("{partId}/{supplierId}")]
-        public async Task<IActionResult> Delete(int partId, int supplierId)
+        [HttpDelete("{serviceId}/{supplierId}")]
+        public async Task<IActionResult> Delete(int serviceId, int supplierId)
         {
             try
             {
-                await _service.DeleteAsync(partId, supplierId);
+                await _service.DeleteAsync(serviceId, supplierId);
                 return NoContent();
             }
             catch (Exception ex)
@@ -55,18 +55,18 @@ namespace AutoServiceCatalog.API.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
-        [HttpGet("part/{partId}/suppliers")]
-        public async Task<IActionResult> GetSuppliersByPart(int partId)
+        [HttpGet("service/{serviceId}/suppliers")]
+        public async Task<IActionResult> GetSuppliersByService(int serviceId)
         {
-            var suppliers = await _service.GetSuppliersByPartIdAsync(partId);
+            var suppliers = await _service.GetSuppliersByServiceIdAsync(serviceId);
             return Ok(suppliers);
         }
 
-        [HttpGet("supplier/{supplierId}/parts")]
-        public async Task<IActionResult> GetPartsBySupplier(int supplierId)
+        [HttpGet("supplier/{supplierId}/services")]
+        public async Task<IActionResult> GetServicesBySupplier(int supplierId)
         {
-            var parts = await _service.GetPartsBySupplierIdAsync(supplierId);
-            return Ok(parts);
+            var services = await _service.GetServicesBySupplierIdAsync(supplierId);
+            return Ok(services);
         }
 
     }

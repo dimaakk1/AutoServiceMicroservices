@@ -7,7 +7,7 @@ using AutoServiceCatalog.BLL.DTO;
 using FluentValidation;
 
 namespace AutoServiceCatalog.BLL.Validation
-{ 
+{
     public class CategoryCreateDtoValidator : AbstractValidator<CategoryDto>
     {
         public CategoryCreateDtoValidator()

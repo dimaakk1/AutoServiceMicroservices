@@ -9,11 +9,11 @@ namespace AutoServiceCatalog.API.Controllers
     [Authorize(Roles = "Admin")]
     [Route("api/Catalog/[controller]")]
     [ApiController]
-    public class PartDetailController : ControllerBase
+    public class ServiceDetailController : ControllerBase
     {
-        private readonly IPartDetailService _service;
+        private readonly IServiceDetailService _service;
 
-        public PartDetailController(IPartDetailService service)
+        public ServiceDetailController(IServiceDetailService service)
         {
             _service = service;
         }
@@ -36,14 +36,14 @@ namespace AutoServiceCatalog.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] PartDetailCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] ServiceDetailCreateDto dto)
         {
             var created = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.PartDetailId }, created);
+            return CreatedAtAction(nameof(GetById), new { id = created.ServiceDetailId }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] PartDetailCreateDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] ServiceDetailCreateDto dto)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace AutoServiceCatalog.API.Controllers
         {
             var result = await _service.GetByManufacturerAsync(manufacturer);
             if (result == null || result.Count == 0)
-                return NotFound("No parts found for this manufacturer.");
+                return NotFound("No services found for this manufacturer.");
             return Ok(result);
         }
     }

@@ -9,7 +9,7 @@ namespace AutoServiceCatalog.DAL.Repositories.Intarfaces
 {
     public interface ISupplierRepository : IGenericRepository<Supplier>
     {
-        Task<Supplier?> GetSupplierWithPartsAsync(int id);
+        Task<Supplier?> GetSupplierWithServicesAsync(int id);
         Task<List<Supplier>> SearchByNameAsync(string keyword);
     }
 }

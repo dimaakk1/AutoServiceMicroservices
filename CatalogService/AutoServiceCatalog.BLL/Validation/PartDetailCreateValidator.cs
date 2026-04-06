@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.Validation
 {
-    public class PartDetailCreateDtoValidator : AbstractValidator<PartDetailCreateDto>
+    public class ServiceDetailCreateDtoValidator : AbstractValidator<ServiceDetailCreateDto>
     {
-        public PartDetailCreateDtoValidator()
+        public ServiceDetailCreateDtoValidator()
         {
-            RuleFor(pd => pd.PartId)
-                .GreaterThan(0).WithMessage("PartId must be valid");
+            RuleFor(sd => sd.ServiceId)
+                .GreaterThan(0).WithMessage("ServiceId must be valid");
         }
     }
 }

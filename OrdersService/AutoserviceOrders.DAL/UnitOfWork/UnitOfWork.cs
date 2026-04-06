@@ -17,7 +17,6 @@ namespace AutoserviceOrders.DAL.UnitOfWork
 
         public ICustomerRepository Customers { get; private set; }
         public IOrderRepository Orders { get; private set; }
-        public IProductRepository Products { get; private set; }
         public IOrderDetailsRepository OrderDetails { get; private set; }
         public IOrderItemRepository OrderItems { get; private set; }
 
@@ -43,7 +42,6 @@ namespace AutoserviceOrders.DAL.UnitOfWork
 
             Customers = new CustomerRepository(_connection, _transaction);
             Orders = new OrderRepository(_connection, _transaction);
-            Products = new ProductRepository(_connection, _transaction);
             OrderDetails = new OrderDetailsRepository(_connection, _transaction);
             OrderItems = new OrderItemRepository(_connection, _transaction);
         }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.DTO
 {
-    public class PartDetailCreateDto
+    public class ServiceDetailCreateDto
     {
-        public int PartId { get; set; }
+        public int ServiceId { get; set; }
         public string Manufacturer { get; set; }
         public string Warranty { get; set; }
     }

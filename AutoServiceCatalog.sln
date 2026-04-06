@@ -49,6 +49,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "proto", "proto", "{A80E7CCD
 	ProjectSection(SolutionItems) = preProject
 		Orders.proto = Orders.proto
 		Reviews.proto = Reviews.proto
+		Service.proto = Service.proto
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user-service", "user-service", "{BF429BEA-F2CD-4C84-BCCD-F54E795B1BD4}"

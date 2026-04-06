@@ -14,153 +14,150 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.Services
 {
-    public class PartService : IPartService
+    public class ServiceService : IServiceService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly TwoLevelCacheService<List<PartDto>> _partsCache;
+        private readonly TwoLevelCacheService<List<ServiceDto>> _servicesCache;
 
-        public PartService(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            TwoLevelCacheService<List<PartDto>> partsCache)
+        public ServiceService(IUnitOfWork unitOfWork, IMapper mapper, TwoLevelCacheService<List<ServiceDto>> servicesCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _partsCache = partsCache;
+            _servicesCache = servicesCache;
         }
 
-        public async Task<PagedResult<Part>> GetPartsAsync(PartQueryParameters parameters)
+        public async Task<List<ServiceDto>> GetAllAsync()
         {
-            // Під цей метод кешування складніше, залишаємо без кешу
-            return await _unitOfWork.Parts.GetPartsAsync(parameters);
-        }
-
-        public async Task<IEnumerable<PartDto>> GetAllAsync()
-        {
-            return await _partsCache.GetOrCreateAsync(
-                key: "parts:all",
-                factory: async () =>
-                {
-                    var parts = await _unitOfWork.Parts.GetAllAsync();
-                    return _mapper.Map<List<PartDto>>(parts);
-                },
-                l1Ttl: TimeSpan.FromSeconds(30),
-                l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<PartDto>();
-        }
-
-        public async Task<PartDto> GetByIdAsync(int id)
-        {
-            var key = $"part:{id}";
-            return await _partsCache.GetOrCreateAsync(
+            var key = "services:all";
+            return await _servicesCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var part = await _unitOfWork.Parts.GetByIdAsync(id);
-                    if (part == null)
+                    var services = await _unitOfWork.Services.GetAllAsync();
+                    return _mapper.Map<List<ServiceDto>>(services);
+                },
+                l1Ttl: TimeSpan.FromSeconds(30),
+                l2Ttl: TimeSpan.FromMinutes(5)
+            ) ?? new List<ServiceDto>();
+        }
+
+        public async Task<ServiceDto> GetByIdAsync(int id)
+        {
+            var key = $"service:{id}";
+            return await _servicesCache.GetOrCreateAsync(
+                key: key,
+                factory: async () =>
+                {
+                    var service = await _unitOfWork.Services.GetByIdAsync(id);
+                    if (service == null)
                         return null;
-                    return new List<PartDto> { _mapper.Map<PartDto>(part) };
+                    return new List<ServiceDto> { _mapper.Map<ServiceDto>(service) };
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
             ).ContinueWith(t => t.Result?.FirstOrDefault()) ?? null!;
         }
 
-        public async Task<PartDto> CreateAsync(PartCreateDto dto)
+        public async Task<ServiceDto> CreateAsync(ServiceCreateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
-                throw new ArgumentException("Назва запчастини не може бути порожньою!");
+                throw new ArgumentException("Назва послуги не може бути порожньою!");
 
             if (dto.Price <= 0)
                 throw new ArgumentException("Ціна повинна бути більшою за 0!");
 
-            var part = _mapper.Map<Part>(dto);
-            await _unitOfWork.Parts.AddAsync(part);
+            var service = _mapper.Map<Service>(dto);
+            await _unitOfWork.Services.AddAsync(service);
             await _unitOfWork.SaveChangesAsync();
 
             // Інвалідація кешу
-            await _partsCache.InvalidateAsync("parts:all");
-            await _partsCache.InvalidateAsync($"part:{part.PartId}");
+            await _servicesCache.InvalidateAsync("services:all");
+            await _servicesCache.InvalidateAsync($"service:{service.ServiceId}");
 
-            return _mapper.Map<PartDto>(part);
+            return _mapper.Map<ServiceDto>(service);
         }
 
-        public async Task UpdateAsync(int id, PartCreateDto dto)
+        public async Task UpdateAsync(int id, ServiceCreateDto dto)
         {
-            var existing = await _unitOfWork.Parts.GetByIdAsync(id);
+            var existing = await _unitOfWork.Services.GetByIdAsync(id);
             if (existing == null)
-                throw new Exception("Запчастину не знайдено");
+                throw new Exception("Послугу не знайдено");
 
             existing.Name = dto.Name;
             existing.Price = dto.Price;
             existing.CategoryId = dto.CategoryId;
 
-            _unitOfWork.Parts.UpdateAsync(existing);
+            _unitOfWork.Services.UpdateAsync(existing);
             await _unitOfWork.SaveChangesAsync();
 
             // Інвалідація кешу
-            await _partsCache.InvalidateAsync("parts:all");
-            await _partsCache.InvalidateAsync($"part:{id}");
+            await _servicesCache.InvalidateAsync("services:all");
+            await _servicesCache.InvalidateAsync($"service:{id}");
         }
 
         public async Task DeleteAsync(int id)
         {
-            var existing = await _unitOfWork.Parts.GetByIdAsync(id);
+            var existing = await _unitOfWork.Services.GetByIdAsync(id);
             if (existing == null)
-                throw new Exception("Запчастину не знайдено");
+                throw new Exception("Послугу не знайдено");
 
-            _unitOfWork.Parts.DeleteAsync(existing);
+            _unitOfWork.Services.DeleteAsync(existing);
             await _unitOfWork.SaveChangesAsync();
 
             // Інвалідація кешу
-            await _partsCache.InvalidateAsync("parts:all");
-            await _partsCache.InvalidateAsync($"part:{id}");
+            await _servicesCache.InvalidateAsync("services:all");
+            await _servicesCache.InvalidateAsync($"service:{id}");
         }
 
-        public async Task<List<PartDto>> SearchByNameAsync(string keyword)
+        public async Task<List<ServiceDto>> SearchByNameAsync(string keyword)
         {
-            var key = $"parts:search:{keyword}";
-            return await _partsCache.GetOrCreateAsync(
+            var key = $"services:search:{keyword}";
+            return await _servicesCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var result = await _unitOfWork.Parts.SearchByNameAsync(keyword);
-                    return _mapper.Map<List<PartDto>>(result);
+                    var result = await _unitOfWork.Services.SearchByNameAsync(keyword);
+                    return _mapper.Map<List<ServiceDto>>(result);
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<PartDto>();
+            ) ?? new List<ServiceDto>();
         }
 
-        public async Task<List<PartDto>> GetPartsAbovePriceAsync(decimal price)
+        public async Task<List<ServiceDto>> GetServicesAbovePriceAsync(decimal price)
         {
-            var key = $"parts:above:{price}";
-            return await _partsCache.GetOrCreateAsync(
+            var key = $"services:above:{price}";
+            return await _servicesCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var parts = await _unitOfWork.Parts.GetPartsAbovePriceAsync(price);
-                    return _mapper.Map<List<PartDto>>(parts);
+                    var services = await _unitOfWork.Services.GetServicesAbovePriceAsync(price);
+                    return _mapper.Map<List<ServiceDto>>(services);
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<PartDto>();
+            ) ?? new List<ServiceDto>();
         }
 
-        public async Task<List<PartDto>> GetPartsBelowPriceAsync(decimal price)
+        public async Task<List<ServiceDto>> GetServicesBelowPriceAsync(decimal price)
         {
-            var key = $"parts:below:{price}";
-            return await _partsCache.GetOrCreateAsync(
+            var key = $"services:below:{price}";
+            return await _servicesCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var parts = await _unitOfWork.Parts.GetPartsBelowPriceAsync(price);
-                    return _mapper.Map<List<PartDto>>(parts);
+                    var services = await _unitOfWork.Services.GetServicesBelowPriceAsync(price);
+                    return _mapper.Map<List<ServiceDto>>(services);
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<PartDto>();
+            ) ?? new List<ServiceDto>();
+        }
+
+        public async Task<PagedResult<Service>> GetServicesAsync(PartQueryParameters parameters)
+        {
+            return await _unitOfWork.Services.GetServicesAsync(parameters);
         }
     }
 

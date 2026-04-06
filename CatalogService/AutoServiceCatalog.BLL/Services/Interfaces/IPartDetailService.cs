@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.Services.Interfaces
 {
-    public interface IPartDetailService
+    public interface IServiceDetailService
     {
-        Task<List<PartDetailDto>> GetAllAsync();
-        Task<PartDetailDto?> GetByIdAsync(int id);
-        Task<PartDetailDto> CreateAsync(PartDetailCreateDto dto);
-        Task UpdateAsync(int id, PartDetailCreateDto dto);
+        Task<List<ServiceDetailDto>> GetAllAsync();
+        Task<ServiceDetailDto?> GetByIdAsync(int id);
+        Task<ServiceDetailDto> CreateAsync(ServiceDetailCreateDto dto);
+        Task UpdateAsync(int id, ServiceDetailCreateDto dto);
         Task DeleteAsync(int id);
-        Task<List<PartDetailDto>> GetByManufacturerAsync(string manufacturer);
+        Task<List<ServiceDetailDto>> GetByManufacturerAsync(string manufacturer);
     }
 }

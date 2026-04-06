@@ -21,10 +21,10 @@ namespace AutoServiceCatalog.DAL.Db
             // ----------------- Categories -----------------
             var categories = new List<Category>
             {
-                new Category { Name = "Engine" },
-                new Category { Name = "Brakes" },
-                new Category { Name = "Electrical" },
-                new Category { Name = "Suspension" }
+                new Category { Name = "Діагностика" },
+                new Category { Name = "ТО" },
+                new Category { Name = "Ремонт двигуна" },
+                new Category { Name = "Кузовні роботи" }
             };
             await context.Categories.AddRangeAsync(categories);
             await context.SaveChangesAsync();
@@ -38,62 +38,61 @@ namespace AutoServiceCatalog.DAL.Db
             await context.Suppliers.AddRangeAsync(suppliers);
             await context.SaveChangesAsync();
 
-            // ----------------- Parts -----------------
-            var carPartsNames = new[]
+            // ----------------- Services -----------------
+            var serviceNames = new[]
             {
-                "Brake Pads","Brake Discs","Oil Filter","Air Filter","Fuel Filter",
-                "Spark Plug","Battery","Radiator","Shock Absorber","Starter Motor",
-                "Alternator","Control Arm Bushing","Ball Joint","Thermostat",
-                "Turbocharger","Headlight (Low Beam)","Headlight (High Beam)",
-                "ABS Sensor","Timing Belt","Serpentine Belt"
+                "Діагностика двигуна", "Заміна масла", "Заміна фільтрів", "Регулювання розвалу-схождення",
+                "Ремонт тормозів", "Заміна гальмівних колодок", "Заміна шин", "Балансування коліс",
+                "Переди диагностика", "Чистка інжектора", "Заміна свічок займання",
+                "Прошивка ЕБУ", "Полірування кузова", "Антикорозійна обробка", "Химчистка салону"
             };
 
-            var parts = new Faker<Part>()
-                .RuleFor(p => p.Name, f => f.PickRandom(carPartsNames))
-                .RuleFor(p => p.Price, f => Math.Round(f.Random.Decimal(20, 500), 2))
-                .RuleFor(p => p.CategoryId, f => f.PickRandom(categories).CategoryId)
+            var services = new Faker<Service>()
+                .RuleFor(s => s.Name, f => f.PickRandom(serviceNames))
+                .RuleFor(s => s.Price, f => Math.Round(f.Random.Decimal(50, 1500), 2))
+                .RuleFor(s => s.CategoryId, f => f.PickRandom(categories).CategoryId)
                 .Generate(10);
 
-            await context.Parts.AddRangeAsync(parts);
-            await context.SaveChangesAsync(); // тут PartId автоматично присвоїться
+            await context.Services.AddRangeAsync(services);
+            await context.SaveChangesAsync(); // тут ServiceId автоматично присвоїться
 
-            // ----------------- PartDetails (1:1) -----------------
+            // ----------------- ServiceDetails (1:1) -----------------
             var manufacturers = new[] { "Bosch", "Valeo", "Denso", "Delphi", "NGK", "Hella", "Magneti Marelli", "Philips" };
-            var warranties = new[] { "6 months", "12 months", "24 months" };
+            var warranties = new[] { "6 місяців", "12 місяців", "24 місяці" };
 
-            var details = parts.Select(p => new PartDetail
+            var details = services.Select(s => new ServiceDetail
             {
                 Manufacturer = faker.PickRandom(manufacturers),
                 Warranty = faker.PickRandom(warranties),
-                PartId = p.PartId, // FK автоматично
-                Part = p
+                ServiceId = s.ServiceId, // FK автоматично
+                Service = s
             }).ToList();
 
-            await context.PartDetails.AddRangeAsync(details);
+            await context.ServiceDetails.AddRangeAsync(details);
             await context.SaveChangesAsync();
 
-            // ----------------- PartSuppliers (M:N) -----------------
+            // ----------------- ServiceSuppliers (M:N) -----------------
             var random = new Random();
-            var partSuppliers = new List<PartSupplier>();
+            var serviceSuppliers = new List<ServiceSupplier>();
 
-            foreach (var part in parts)
+            foreach (var service in services)
             {
                 var selectedSuppliers = suppliers
                     .OrderBy(s => random.Next())
-                    .Take(random.Next(1, 4)) // 1-3 suppliers per part
+                    .Take(random.Next(1, 4)) // 1-3 suppliers per service
                     .ToList();
 
                 foreach (var supplier in selectedSuppliers)
                 {
-                    partSuppliers.Add(new PartSupplier
+                    serviceSuppliers.Add(new ServiceSupplier
                     {
-                        PartId = part.PartId,
+                        ServiceId = service.ServiceId,
                         SupplierId = supplier.SupplierId
                     });
                 }
             }
 
-            await context.Set<PartSupplier>().AddRangeAsync(partSuppliers);
+            await context.Set<ServiceSupplier>().AddRangeAsync(serviceSuppliers);
             await context.SaveChangesAsync();
         }
     }

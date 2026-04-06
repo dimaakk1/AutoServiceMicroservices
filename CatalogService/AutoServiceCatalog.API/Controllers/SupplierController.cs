@@ -62,18 +62,25 @@ namespace AutoServiceCatalog.API.Controllers
             return NoContent();
         }
 
-        [HttpGet("{id}/with-parts")]
-        public async Task<IActionResult> GetSupplierWithParts(int id)
+        [HttpGet("{id}/with-services")]
+        public async Task<IActionResult> GetSupplierWithServices(int id)
         {
             try
             {
-                var supplier = await _supplierService.GetSupplierWithPartsAsync(id);
+                var supplier = await _supplierService.GetSupplierWithServicesAsync(id);
                 return Ok(supplier);
             }
             catch (Exception ex)
             {
                 return NotFound(ex.Message);
             }
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string keyword)
+        {
+            var suppliers = await _supplierService.SearchByNameAsync(keyword);
+            return Ok(suppliers);
         }
     }
 }

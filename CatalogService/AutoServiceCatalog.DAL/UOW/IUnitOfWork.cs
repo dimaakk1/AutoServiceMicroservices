@@ -9,11 +9,11 @@ namespace AutoServiceCatalog.DAL.UOW
 {
     public interface IUnitOfWork : IDisposable
     {
-        IPartRepository Parts { get; }
+        IServiceRepository Services { get; }
         ICategoryRepository Categories { get; }
         ISupplierRepository Suppliers { get; }
-        IPartDetailRepository PartDetail { get; }
-        IPartSupplierRepository PartSupplier { get; }
+        IServiceDetailRepository ServiceDetail { get; }
+        IServiceSupplierRepository ServiceSupplier { get; }
 
         Task<int> SaveChangesAsync();
     }

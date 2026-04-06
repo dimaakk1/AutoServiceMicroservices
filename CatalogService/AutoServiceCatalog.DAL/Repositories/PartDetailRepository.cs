@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.DAL.Repositories
 {
-    public class PartDetailRepository : GenericRepository<PartDetail>, IPartDetailRepository
+    public class ServiceDetailRepository : GenericRepository<ServiceDetail>, IServiceDetailRepository
     {
-        public PartDetailRepository(CarServiceContext context) : base(context) { }
-        public async Task<List<PartDetail>> GetByManufacturerAsync(string manufacturer)
+        public ServiceDetailRepository(CarServiceContext context) : base(context) { }
+        public async Task<List<ServiceDetail>> GetByManufacturerAsync(string manufacturer)
         {
-            return await _context.PartDetails
-                .Where(pd => pd.Manufacturer.ToLower().Contains(manufacturer.ToLower()))
-                .Include(pd => pd.Part)
+            return await _context.ServiceDetails
+                .Where(sd => sd.Manufacturer.ToLower().Contains(manufacturer.ToLower()))
+                .Include(sd => sd.Service)
                 .ToListAsync();
         }
     }

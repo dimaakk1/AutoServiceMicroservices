@@ -11,43 +11,47 @@ namespace AutoServiceCatalog.DAL.Db
     public class CarServiceContext : DbContext
     {
         public CarServiceContext(DbContextOptions<CarServiceContext> options) : base(options) { }
-        public DbSet<Part> Parts { get; set; }
-        public DbSet<PartDetail> PartDetails { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<ServiceDetail> ServiceDetails { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
-        public DbSet<PartSupplier> PartSupplier { get; set; }
+        public DbSet<ServiceSupplier> ServiceSupplier { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Part>()
-                .HasOne(p => p.PartDetail)
-                .WithOne(d => d.Part)
-                .HasForeignKey<PartDetail>(d => d.PartId);
+            modelBuilder.Entity<Service>()
+                .Property(s => s.Price)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Service>()
+                .HasOne(s => s.ServiceDetail)
+                .WithOne(d => d.Service)
+                .HasForeignKey<ServiceDetail>(d => d.ServiceId);
 
             modelBuilder.Entity<Category>()
-                .HasMany(c => c.Parts)
-                .WithOne(p => p.Category)
-                .HasForeignKey(p => p.CategoryId);
+                .HasMany(c => c.Services)
+                .WithOne(s => s.Category)
+                .HasForeignKey(s => s.CategoryId);
 
-            modelBuilder.Entity<PartSupplier>()
-                .HasKey(ps => new { ps.PartId, ps.SupplierId });
+            modelBuilder.Entity<ServiceSupplier>()
+                .HasKey(ss => new { ss.ServiceId, ss.SupplierId });
 
-            modelBuilder.Entity<PartSupplier>()
-                .HasOne(ps => ps.Part)
-                .WithMany(p => p.PartSuppliers)
-                .HasForeignKey(ps => ps.PartId);
+            modelBuilder.Entity<ServiceSupplier>()
+                .HasOne(ss => ss.Service)
+                .WithMany(s => s.ServiceSuppliers)
+                .HasForeignKey(ss => ss.ServiceId);
 
-            modelBuilder.Entity<PartSupplier>()
-                .HasOne(ps => ps.Supplier)
-                .WithMany(s => s.PartSuppliers)
-                .HasForeignKey(ps => ps.SupplierId);
+            modelBuilder.Entity<ServiceSupplier>()
+                .HasOne(ss => ss.Supplier)
+                .WithMany(sup => sup.ServiceSuppliers)
+                .HasForeignKey(ss => ss.SupplierId);
 
             modelBuilder.Entity<Category>()
                 .HasIndex(c => c.Name)
                 .IsUnique();
 
-            modelBuilder.Entity<Part>()
-                .HasIndex(p => p.Name);
+            modelBuilder.Entity<Service>()
+                .HasIndex(s => s.Name);
         }
     }
 }

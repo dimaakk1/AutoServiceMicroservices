@@ -17,18 +17,18 @@ namespace AutoServiceCatalog.BLL.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly TwoLevelCacheService<List<CategoryDto>> _categoryCache;
-        private readonly TwoLevelCacheService<List<PartDto>> _partsCache;
+        private readonly TwoLevelCacheService<List<ServiceDto>> _servicesCache;
 
         public CategoryService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             TwoLevelCacheService<List<CategoryDto>> categoryCache,
-            TwoLevelCacheService<List<PartDto>> partsCache)
+            TwoLevelCacheService<List<ServiceDto>> servicesCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _categoryCache = categoryCache;
-            _partsCache = partsCache;
+            _servicesCache = servicesCache;
         }
 
         public async Task<List<CategoryDto>> GetAllCategoriesAsync()
@@ -45,19 +45,19 @@ namespace AutoServiceCatalog.BLL.Services
             ) ?? new List<CategoryDto>();
         }
 
-        public async Task<List<PartDto>> GetPartsByCategoryNameAsync(string categoryName)
+        public async Task<List<ServiceDto>> GetServicesByCategoryNameAsync(string categoryName)
         {
-            var key = $"parts:byCategory:{categoryName}";
-            return await _partsCache.GetOrCreateAsync(
+            var key = $"services:byCategory:{categoryName}";
+            return await _servicesCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
-                    var parts = await _unitOfWork.Categories.GetPartsByCategoryNameAsync(categoryName);
-                    return _mapper.Map<List<PartDto>>(parts);
+                    var services = await _unitOfWork.Categories.GetServicesByCategoryNameAsync(categoryName);
+                    return _mapper.Map<List<ServiceDto>>(services);
                 },
                 l1Ttl: TimeSpan.FromSeconds(30),
                 l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<PartDto>();
+            ) ?? new List<ServiceDto>();
         }
 
         public async Task<CategoryDto> AddCategoryAsync(CategoryDto categoryDto)
@@ -85,7 +85,7 @@ namespace AutoServiceCatalog.BLL.Services
 
                 // Інвалідуємо кеш
                 await _categoryCache.InvalidateAsync("categories:all");
-                await _partsCache.InvalidateAsync($"parts:byCategory:{entity.Name}");
+                await _servicesCache.InvalidateAsync($"services:byCategory:{entity.Name}");
             }
         }
 
@@ -111,8 +111,8 @@ namespace AutoServiceCatalog.BLL.Services
 
             // Інвалідуємо кеш
             await _categoryCache.InvalidateAsync("categories:all");
-            await _partsCache.InvalidateAsync($"parts:byCategory:{oldName}");
-            await _partsCache.InvalidateAsync($"parts:byCategory:{dto.Name}");
+            await _servicesCache.InvalidateAsync($"services:byCategory:{oldName}");
+            await _servicesCache.InvalidateAsync($"services:byCategory:{dto.Name}");
         }
     }
 }

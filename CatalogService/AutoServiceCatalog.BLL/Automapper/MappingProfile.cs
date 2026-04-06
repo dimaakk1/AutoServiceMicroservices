@@ -13,16 +13,15 @@ namespace AutoServiceCatalog.BLL.Automapper
     {
         public MappingProfile()
         {
-
             CreateMap<Category, CategoryDto>().ReverseMap();
-            CreateMap<Part, PartDto>().ReverseMap();
-            CreateMap<Part, PartCreateDto>().ReverseMap();
-            CreateMap<PartCreateDto, Part>();
+            CreateMap<Service, ServiceDto>().ReverseMap();
+            CreateMap<Service, ServiceCreateDto>().ReverseMap();
+            CreateMap<ServiceCreateDto, Service>();
             CreateMap<Supplier, SupplierDto>().ReverseMap();
             CreateMap<Supplier, SupplierCreateDto>().ReverseMap();
-            CreateMap<PartDetail, PartDetailDto>().ReverseMap();
-            CreateMap<PartDetailCreateDto, PartDetail>().ReverseMap();
-            CreateMap<PartSupplier, PartSupplierDto>().ReverseMap();
+            CreateMap<ServiceDetail, ServiceDetailDto>().ReverseMap();
+            CreateMap<ServiceDetailCreateDto, ServiceDetail>().ReverseMap();
+            CreateMap<ServiceSupplier, ServiceSupplierDto>().ReverseMap();
         }
 
     }
