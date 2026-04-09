@@ -130,6 +130,17 @@ namespace AutoServiceCatalog.API
                      { jwtSecurityScheme, Array.Empty<string>() }
                 });
             });
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    policy =>
+                    {
+                        policy
+                            .WithOrigins("http://localhost:5173")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+            });
 
 
             builder.Services.AddControllers();
@@ -156,7 +167,7 @@ namespace AutoServiceCatalog.API
             }
 
             app.UseHttpsRedirection();
-
+            app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
 

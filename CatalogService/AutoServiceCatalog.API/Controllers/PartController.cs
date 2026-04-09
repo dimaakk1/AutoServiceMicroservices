@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AutoServiceCatalog.API.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [Route("api/Catalog/[controller]")]
     [ApiController]
     public class ServiceController : ControllerBase
