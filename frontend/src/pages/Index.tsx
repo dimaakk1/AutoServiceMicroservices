@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Star, Clock, Shield, Wrench } from "lucide-react";
-import heroImage from "../assets/hero-workshop.jpg";
+import heroImage from "../assets/photo.jpg";
 
 const features = [
   { icon: Wrench, title: "Професійний ремонт", desc: "Досвідчені майстри з сертифікатами" },

@@ -32,7 +32,7 @@ namespace AutoServiceUsers.BLL.Services
             {
                 UserName = dto.Username,
                 Email = dto.Email,
-                EmailConfirmed = false
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
@@ -45,15 +45,15 @@ namespace AutoServiceUsers.BLL.Services
 
             
 
-            await _emailService.SendEmailAsync(
+            /*await _emailService.SendEmailAsync(
                 user.Email!,
                 "Verify your email",
                 $"userId={user.Id}&token={Uri.EscapeDataString(token)}"
-            );
+            );*/
 
             return new
             {
-                message = "User registered. Please verify your email."
+                message = "User registered"
             };
         }
 

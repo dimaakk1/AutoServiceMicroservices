@@ -55,7 +55,7 @@ namespace AutoServiceCatalog.API.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ServiceCreateDto dto)
         {
@@ -69,6 +69,7 @@ namespace AutoServiceCatalog.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ServiceCreateDto dto)
         {
@@ -82,7 +83,7 @@ namespace AutoServiceCatalog.API.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
-
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

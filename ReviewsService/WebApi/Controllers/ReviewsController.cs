@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebApi.Controllers
 {
-    [Authorize]
+    
     [Route("api/[controller]")]
     [ApiController]
     public class ReviewsController : ControllerBase
@@ -41,21 +41,21 @@ namespace WebApi.Controllers
             var reviews = await _mediator.Send(new GetReviewsByOrderIdQuery { OrderId = orderId});
             return Ok(reviews);
         }
-
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateReviewCommand command)
         {
             var result = await _mediator.Send(command);
             return CreatedAtAction(nameof(GetAll), new { id = result }, result);
         }
-
+        [Authorize]
         [HttpDelete("{id:length(24)}")]
         public async Task<IActionResult> Delete(string id)
         {
             await _mediator.Send(new DeleteReviewCommand(id));
             return NoContent();
         }
-
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateReviewCommand command)
         {
