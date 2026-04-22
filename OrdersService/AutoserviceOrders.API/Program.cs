@@ -49,7 +49,6 @@ namespace AutoserviceOrders.API
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
             builder.Services.AddScoped<IOrderService, BLL.Services.OrderService>();
-            builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<IOrderDetailsService, OrderDetailsService>();
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 

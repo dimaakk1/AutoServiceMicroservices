@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AutoServiceCatalog.BLL.Cache
 {
-    public class TwoLevelCacheService<T>
+    public class TwoLevelCacheService<T> : ITwoLevelCacheService<T>
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IDistributedCache _distributedCache;

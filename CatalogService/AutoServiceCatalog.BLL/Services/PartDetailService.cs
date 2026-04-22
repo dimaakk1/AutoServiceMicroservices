@@ -16,9 +16,9 @@ namespace AutoServiceCatalog.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly TwoLevelCacheService<List<ServiceDetailDto>> _serviceDetailCache;
+        private readonly ITwoLevelCacheService<List<ServiceDetailDto>> _serviceDetailCache;
 
-        public ServiceDetailService(IUnitOfWork unitOfWork, IMapper mapper, TwoLevelCacheService<List<ServiceDetailDto>> serviceDetailCache)
+        public ServiceDetailService(IUnitOfWork unitOfWork, IMapper mapper, ITwoLevelCacheService<List<ServiceDetailDto>> serviceDetailCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

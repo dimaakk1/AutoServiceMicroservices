@@ -26,8 +26,11 @@ namespace AutoserviceOrders.API.Controllers
             if (orderDto == null)
                 return BadRequest();
 
-            await _orderService.CreateOrderAsync(orderDto);
-            return CreatedAtAction(nameof(GetById), new { id = orderDto.OrderId }, orderDto);
+            var id = await _orderService.CreateOrderAsync(orderDto);
+
+            orderDto.OrderId = id;
+
+            return CreatedAtAction(nameof(GetById), new { id }, orderDto);
         }
 
         [HttpGet("{id}")]
@@ -44,13 +47,6 @@ namespace AutoserviceOrders.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var orders = await _orderService.GetAllOrdersAsync();
-            return Ok(orders);
-        }
-
-        [HttpGet("customer/{customerId}")]
-        public async Task<IActionResult> GetByCustomer(int customerId)
-        {
-            var orders = await _orderService.GetOrdersByCustomerAsync(customerId);
             return Ok(orders);
         }
 

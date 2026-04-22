@@ -16,9 +16,9 @@ namespace AutoServiceCatalog.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly TwoLevelCacheService<List<SupplierDto>> _suppliersCache;
+        private readonly ITwoLevelCacheService<List<SupplierDto>> _suppliersCache;
 
-        public SupplierService(IUnitOfWork unitOfWork, IMapper mapper, TwoLevelCacheService<List<SupplierDto>> suppliersCache)
+        public SupplierService(IUnitOfWork unitOfWork, IMapper mapper, ITwoLevelCacheService<List<SupplierDto>> suppliersCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

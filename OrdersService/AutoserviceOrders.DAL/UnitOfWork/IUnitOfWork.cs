@@ -9,7 +9,6 @@ namespace AutoserviceOrders.DAL.UnitOfWork
 {
     public interface IUnitOfWork : IAsyncDisposable
     {
-        ICustomerRepository Customers { get; }
         IOrderRepository Orders { get; }
         IOrderDetailsRepository OrderDetails { get; }
         IOrderItemRepository OrderItems { get; }

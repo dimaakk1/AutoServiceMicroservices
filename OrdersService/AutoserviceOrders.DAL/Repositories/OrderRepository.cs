@@ -27,17 +27,17 @@ namespace AutoserviceOrders.DAL.Repositories
         public async Task<int> AddAsync(Order order)
         {
             const string sql = @"
-                INSERT INTO Orders (CustomerId, OrderDate, Status)
-                VALUES (@CustomerId, @OrderDate, @Status);
-                SELECT CAST(SCOPE_IDENTITY() AS INT);";
+        INSERT INTO Orders (OrderDate, Status)
+        VALUES (@OrderDate, @Status);
+        SELECT SCOPE_IDENTITY();";
 
             await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
-            cmd.Parameters.AddWithValue("@CustomerId", order.CustomerId);
+
             cmd.Parameters.AddWithValue("@OrderDate", order.OrderDate);
             cmd.Parameters.AddWithValue("@Status", order.Status);
 
-            object? result = await cmd.ExecuteScalarAsync();
-            return result != null ? Convert.ToInt32(result) : 0;
+            var result = await cmd.ExecuteScalarAsync();
+            return Convert.ToInt32(result);
         }
 
         public async Task<Order?> GetByIdAsync(int orderId)
@@ -53,7 +53,6 @@ namespace AutoserviceOrders.DAL.Repositories
                 return new Order
                 {
                     OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
-                    CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                     OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
                     Status = reader["Status"]?.ToString() ?? string.Empty
                 };
@@ -75,7 +74,6 @@ namespace AutoserviceOrders.DAL.Repositories
                 orders.Add(new Order
                 {
                     OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
-                    CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
                     OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
                     Status = reader["Status"]?.ToString() ?? string.Empty
                 });
@@ -88,13 +86,11 @@ namespace AutoserviceOrders.DAL.Repositories
         {
             const string sql = @"
                 UPDATE Orders
-                SET CustomerId = @CustomerId,
-                    OrderDate = @OrderDate,
+                SET OrderDate = @OrderDate,
                     Status = @Status
                 WHERE OrderId = @OrderId";
 
             await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
-            cmd.Parameters.AddWithValue("@CustomerId", order.CustomerId);
             cmd.Parameters.AddWithValue("@OrderDate", order.OrderDate);
             cmd.Parameters.AddWithValue("@Status", order.Status);
             cmd.Parameters.AddWithValue("@OrderId", order.OrderId);
@@ -110,29 +106,6 @@ namespace AutoserviceOrders.DAL.Repositories
             cmd.Parameters.AddWithValue("@OrderId", orderId);
 
             return await cmd.ExecuteNonQueryAsync();
-        }
-
-        public async Task<List<Order>> GetOrdersByCustomerAsync(int customerId)
-        {
-            const string sql = "SELECT * FROM Orders WHERE CustomerId = @CustomerId";
-            var orders = new List<Order>();
-
-            await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
-            cmd.Parameters.AddWithValue("@CustomerId", customerId);
-
-            await using var reader = await cmd.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                orders.Add(new Order
-                {
-                    OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
-                    CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-                    OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
-                    Status = reader["Status"]?.ToString() ?? string.Empty
-                });
-            }
-
-            return orders;
         }
     }
 }

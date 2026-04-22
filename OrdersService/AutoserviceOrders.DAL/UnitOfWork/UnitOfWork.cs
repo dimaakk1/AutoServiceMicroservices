@@ -15,7 +15,6 @@ namespace AutoserviceOrders.DAL.UnitOfWork
         private readonly IDbConnection _connection;
         private IDbTransaction _transaction;
 
-        public ICustomerRepository Customers { get; private set; }
         public IOrderRepository Orders { get; private set; }
         public IOrderDetailsRepository OrderDetails { get; private set; }
         public IOrderItemRepository OrderItems { get; private set; }
@@ -40,7 +39,7 @@ namespace AutoserviceOrders.DAL.UnitOfWork
 
             _transaction = _connection.BeginTransaction();
 
-            Customers = new CustomerRepository(_connection, _transaction);
+            
             Orders = new OrderRepository(_connection, _transaction);
             OrderDetails = new OrderDetailsRepository(_connection, _transaction);
             OrderItems = new OrderItemRepository(_connection, _transaction);

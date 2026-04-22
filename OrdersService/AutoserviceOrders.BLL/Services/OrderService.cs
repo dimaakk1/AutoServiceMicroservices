@@ -35,13 +35,14 @@ namespace AutoserviceOrders.BLL.Services
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                int newId = await _unitOfWork.Orders.AddAsync(order);
+                var newId = await _unitOfWork.Orders.AddAsync(order);
                 await _unitOfWork.CommitAsync();
+                order.OrderId = newId;
 
                 // Інвалідація кешу після створення нового замовлення
                 await _ordersCache.InvalidateAsync("orders:all");
-                await _ordersCache.InvalidateAsync($"orders:customer:{order.CustomerId}");
-                await _ordersCache.InvalidateAsync($"order:{newId}");
+                await _ordersCache.InvalidateAsync($"order:{order.OrderId}");
+
 
                 return newId;
             }
@@ -87,23 +88,7 @@ namespace AutoserviceOrders.BLL.Services
             ) ?? new List<OrderDto>();
         }
 
-        public async Task<IEnumerable<OrderDto>> GetOrdersByCustomerAsync(int customerId)
-        {
-            var key = $"orders:customer:{customerId}";
-            return await _ordersCache.GetOrCreateAsync(
-                key: key,
-                factory: async () =>
-                {
-                    await _unitOfWork.BeginTransactionAsync();
-                    var orders = await _unitOfWork.Orders.GetOrdersByCustomerAsync(customerId);
-                    await _unitOfWork.CommitAsync();
-
-                    return _mapper.Map<List<OrderDto>>(orders);
-                },
-                l1Ttl: TimeSpan.FromSeconds(30),
-                l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? new List<OrderDto>();
-        }
+        
 
         public async Task<bool> UpdateOrderAsync(OrderDto orderDto)
         {
@@ -117,7 +102,6 @@ namespace AutoserviceOrders.BLL.Services
 
                 // Інвалідуємо кеш
                 await _ordersCache.InvalidateAsync("orders:all");
-                await _ordersCache.InvalidateAsync($"orders:customer:{order.CustomerId}");
                 await _ordersCache.InvalidateAsync($"order:{order.OrderId}");
 
                 return affected > 0;
@@ -146,7 +130,6 @@ namespace AutoserviceOrders.BLL.Services
 
                 // Інвалідуємо кеш
                 await _ordersCache.InvalidateAsync("orders:all");
-                await _ordersCache.InvalidateAsync($"orders:customer:{order.CustomerId}");
                 await _ordersCache.InvalidateAsync($"order:{orderId}");
 
                 return affected > 0;
@@ -176,7 +159,6 @@ namespace AutoserviceOrders.BLL.Services
 
                 // Інвалідуємо кеш
                 await _ordersCache.InvalidateAsync("orders:all");
-                await _ordersCache.InvalidateAsync($"orders:customer:{order.CustomerId}");
                 await _ordersCache.InvalidateAsync($"order:{orderId}");
 
                 return true;

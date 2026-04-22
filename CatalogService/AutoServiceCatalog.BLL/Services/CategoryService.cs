@@ -16,14 +16,14 @@ namespace AutoServiceCatalog.BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly TwoLevelCacheService<List<CategoryDto>> _categoryCache;
-        private readonly TwoLevelCacheService<List<ServiceDto>> _servicesCache;
+        private readonly ITwoLevelCacheService<List<CategoryDto>> _categoryCache;
+        private readonly ITwoLevelCacheService<List<ServiceDto>> _servicesCache;
 
         public CategoryService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            TwoLevelCacheService<List<CategoryDto>> categoryCache,
-            TwoLevelCacheService<List<ServiceDto>> servicesCache)
+            ITwoLevelCacheService<List<CategoryDto>> categoryCache,
+            ITwoLevelCacheService<List<ServiceDto>> servicesCache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

@@ -32,21 +32,12 @@ namespace AutoserviceOrders.DAL.db
 
 
             var createTablesScript = @"
-        IF OBJECT_ID('Customers') IS NULL
-        CREATE TABLE Customers (
-            CustomerId INT IDENTITY(1,1) PRIMARY KEY,
-            FullName NVARCHAR(100) NOT NULL,
-            Phone NVARCHAR(20),
-            Email NVARCHAR(100)
-        );
 
         IF OBJECT_ID('Orders') IS NULL
         CREATE TABLE Orders (
             OrderId INT IDENTITY(1,1) PRIMARY KEY,
-            CustomerId INT NOT NULL,
             OrderDate DATETIME DEFAULT GETDATE(),
             Status NVARCHAR(50),
-            FOREIGN KEY (CustomerId) REFERENCES Customers(CustomerId)
         );
 
         IF OBJECT_ID('OrderDetails') IS NULL

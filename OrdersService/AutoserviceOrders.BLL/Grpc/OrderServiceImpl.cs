@@ -23,7 +23,6 @@ namespace AutoserviceOrders.BLL.Grpc
             return new OrderResponse
             {
                 OrderId = order.OrderId,
-                CustomerId = order.CustomerId,
                 Status = order.Status,
                 OrderDate = order.OrderDate.ToString("O")
             };

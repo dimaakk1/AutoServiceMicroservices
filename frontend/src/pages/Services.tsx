@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Clock } from "lucide-react";
-import { api } from "../api/api";
+import  api  from "../api/api";
 
 export default function Services() {
   const [services, setServices] = useState([]);

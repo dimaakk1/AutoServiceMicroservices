@@ -4,6 +4,7 @@ import { AuthProvider } from "./lib/auth-context";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
 import Auth from "./pages/Auth";
+import Booking from "./pages/Booking"
 import Layout from "./components/Layout";
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/" element={<Index />} />
             <Route path="/services" element={<Services />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/booking" element={<Booking />} />
           </Routes>
       </Layout>
 

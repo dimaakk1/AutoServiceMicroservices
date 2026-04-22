@@ -1,25 +1,26 @@
-using AutoServiceCatalog.DAL.Db;
-using AutoServiceCatalog.DAL.Repositories.Intarfaces;
-using AutoServiceCatalog.DAL.Repositories;
-using Microsoft.EntityFrameworkCore;
-using System;
-using AutoServiceCatalog.BLL.Automapper;
-using Microsoft.Extensions.DependencyInjection;
-using AutoServiceCatalog.BLL.Services.Interfaces;
-using AutoServiceCatalog.BLL.Services;
-using AutoServiceCatalog.DAL.UOW;
-using FluentValidation.AspNetCore;
-using FluentValidation;
-using AutoServiceCatalog.BLL.DTO;
-using AutoServiceCatalog.BLL.Validation;
-using AutoServiceCatalog.API.Middleware;
-using AutoServiceCatalog.BLL.Cache;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.OpenApi.Models;
 using AutoServiceCatalog.API.Grpc;
+using AutoServiceCatalog.API.Middleware;
+using AutoServiceCatalog.BLL.Automapper;
+using AutoServiceCatalog.BLL.Cache;
+using AutoServiceCatalog.BLL.DTO;
+using AutoServiceCatalog.BLL.Services;
+using AutoServiceCatalog.BLL.Services.Interfaces;
+using AutoServiceCatalog.BLL.Validation;
+using AutoServiceCatalog.DAL.Db;
+using AutoServiceCatalog.DAL.Entities;
+using AutoServiceCatalog.DAL.Repositories;
+using AutoServiceCatalog.DAL.Repositories.Intarfaces;
+using AutoServiceCatalog.DAL.UOW;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Grpc.AspNetCore.Server;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System;
+using System.Text;
 
 namespace AutoServiceCatalog.API
 {
@@ -67,6 +68,7 @@ namespace AutoServiceCatalog.API
             builder.Services.AddScoped<IValidator<ServiceSupplierDto>, ServiceSupplierCreateDtoValidator>();
             builder.Services.AddScoped<IValidator<SupplierCreateDto>, SupplierCreateDtoValidator>();
 
+            builder.Services.AddScoped(typeof(ITwoLevelCacheService<>), typeof(TwoLevelCacheService<>));
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 

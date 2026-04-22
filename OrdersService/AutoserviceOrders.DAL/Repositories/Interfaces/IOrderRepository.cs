@@ -14,6 +14,5 @@ namespace AutoserviceOrders.DAL.Repositories.Interfaces
         Task<List<Order>> GetAllAsync();
         Task<int> UpdateAsync(Order order);
         Task<int> DeleteAsync(int orderId);
-        Task<List<Order>> GetOrdersByCustomerAsync(int customerId);
     }
 }
