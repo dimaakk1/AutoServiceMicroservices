@@ -133,16 +133,17 @@ export default function Auth() {
 
             {/* BUTTON */}
             <Button
-              type="submit"
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
-              disabled={loading}
-            >
-              {loading
-                ? "Зачекайте..."
-                : isLogin
-                ? "Увійти"
-                : "Зареєструватися"}
-            </Button>
+  type="submit"
+  variant="accent"
+  className="w-full"
+  disabled={loading}
+>
+  {loading
+    ? "Зачекайте..."
+    : isLogin
+    ? "Увійти"
+    : "Зареєструватися"}
+</Button>
 
           </form>
 

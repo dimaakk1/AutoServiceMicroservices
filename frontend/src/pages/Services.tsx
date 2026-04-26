@@ -61,7 +61,7 @@ export default function Services() {
           className="border px-3 py-2 rounded"
         />
 
-        <Button onClick={handleSearch}>
+        <Button variant="accent" onClick={handleSearch}>
           Пошук
         </Button>
 
@@ -73,11 +73,11 @@ export default function Services() {
           className="border px-3 py-2 rounded"
         />
 
-        <Button onClick={handleAbove}>
+        <Button variant="accent" onClick={handleAbove}>
           Дорожче
         </Button>
 
-        <Button onClick={handleBelow}>
+        <Button variant="accent" onClick={handleBelow}>
           Дешевше
         </Button>
 
@@ -114,7 +114,7 @@ export default function Services() {
             </div>
 
             <Link to={`/booking?service=${service.serviceId}`}>
-              <Button className="w-full">
+              <Button variant="accent" className="w-full">
                 Записатися
               </Button>
             </Link>

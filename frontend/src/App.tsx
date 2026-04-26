@@ -6,6 +6,7 @@ import Services from "./pages/Services";
 import Auth from "./pages/Auth";
 import Booking from "./pages/Booking"
 import Layout from "./components/Layout";
+import Profile from "./pages/Profile"
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/booking" element={<Booking />} />
+            <Route path="/profile" element={<Profile />} />
           </Routes>
       </Layout>
 

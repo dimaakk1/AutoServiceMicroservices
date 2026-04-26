@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
+import api from "../api/api";
 
 type User = {
   id: string;
@@ -9,8 +10,9 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  login: (accessToken: string, refreshToken: string) => void;
+  login: (accessToken: string, refreshToken: string) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -18,7 +20,8 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  const decode = (token: string): User => {
+  // 🔹 decode fallback (тільки для id)
+  const decodeToken = (token: string) => {
     const d: any = jwtDecode(token);
 
     return {
@@ -28,26 +31,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
-  const login = (accessToken: string, refreshToken: string) => {
+  // 🔥 ГОЛОВНЕ: завантаження актуального user з бекенду
+  const refreshUser = async () => {
+    try {
+      const res = await api.get("/users/me");
+
+      setUser({
+        id: "",
+        name: res.data.userName,
+        role: user?.role || "User",
+      });
+    } catch (e) {
+      console.error("refreshUser failed", e);
+    }
+  };
+
+  // 🔹 login
+  const login = async (accessToken: string, refreshToken: string) => {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
 
-    setUser(decode(accessToken));
+    // тимчасово з токена
+    const decoded = decodeToken(accessToken);
+
+    setUser(decoded);
+
+    // 🔥 потім оновлюємо з БД
+    await refreshUser();
   };
 
+  // 🔹 logout
   const logout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setUser(null);
   };
 
+  // 🔹 init
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    if (token) setUser(decode(token));
+
+    if (!token) return;
+
+    setUser(decodeToken(token));
+
+    // 🔥 підтягнути актуальні дані
+    refreshUser();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

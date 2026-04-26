@@ -167,9 +167,9 @@ namespace AutoServiceCatalog.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.UseCors("AllowFrontend");
 
             app.UseHttpsRedirection();
-            app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
 
