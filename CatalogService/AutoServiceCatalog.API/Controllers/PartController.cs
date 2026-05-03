@@ -45,15 +45,12 @@ namespace AutoServiceCatalog.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var service = await _serviceService.GetByIdAsync(id);
-                return Ok(service);
-            }
-            catch (Exception ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
+            var service = await _serviceService.GetByIdAsync(id);
+
+            if (service == null)
+                return NotFound(new { message = "Service not found" });
+
+            return Ok(service);
         }
         [Authorize]
         [HttpPost]

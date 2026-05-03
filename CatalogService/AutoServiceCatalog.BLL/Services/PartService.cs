@@ -42,21 +42,21 @@ namespace AutoServiceCatalog.BLL.Services
             ) ?? new List<ServiceDto>();
         }
 
-        public async Task<ServiceDto> GetByIdAsync(int id)
+        public async Task<ServiceDto?> GetByIdAsync(int id)
         {
             var key = $"service:{id}";
-            return await _servicesCache.GetOrCreateAsync(
+
+            var result = await _servicesCache.GetOrCreateAsync(
                 key: key,
                 factory: async () =>
                 {
                     var service = await _unitOfWork.Services.GetByIdAsync(id);
-                    if (service == null)
-                        return null;
-                    return new List<ServiceDto> { _mapper.Map<ServiceDto>(service) };
-                },
-                l1Ttl: TimeSpan.FromSeconds(30),
-                l2Ttl: TimeSpan.FromMinutes(5)
-            ).ContinueWith(t => t.Result?.FirstOrDefault()) ?? null!;
+                    return service == null
+                        ? null
+                        : new List<ServiceDto> { _mapper.Map<ServiceDto>(service) };
+                });
+
+            return result?.FirstOrDefault();
         }
 
         public async Task<ServiceDto> CreateAsync(ServiceCreateDto dto)

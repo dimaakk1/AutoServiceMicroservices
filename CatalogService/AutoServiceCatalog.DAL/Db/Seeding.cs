@@ -1,6 +1,7 @@
 ﻿using AutoServiceCatalog.DAL.Entities;
 using Bogus;
 using Bogus.DataSets;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,12 @@ namespace AutoServiceCatalog.DAL.Db
     {
         public static async Task SeedAsync(CarServiceContext context)
         {
-            if (context.Categories.Any())
-                return; // БД вже заповнена
+            // 🔥 ОБОВ'ЯЗКОВО: гарантуємо що БД створена
+            await context.Database.EnsureCreatedAsync();
+
+            // 🔥 НЕ використовуємо Any() ДО створення БД
+            if (await context.Categories.AnyAsync())
+                return;
 
             var faker = new Faker();
 

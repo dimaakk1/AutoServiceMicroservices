@@ -58,7 +58,7 @@ namespace AutoserviceCatalog.Tests.API
         public async Task GetById_NotFound_ReturnsNotFound()
         {
             _serviceMock.Setup(s => s.GetByIdAsync(999))
-                .ThrowsAsync(new Exception("Not found"));
+                .ReturnsAsync((ServiceDto?)null);
 
             var result = await _sut.GetById(999);
 

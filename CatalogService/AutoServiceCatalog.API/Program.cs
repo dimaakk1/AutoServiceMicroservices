@@ -45,8 +45,12 @@ namespace AutoServiceCatalog.API
             // Add services to the container.
             var sqlConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__SqlServer");
 
-            builder.Services.AddDbContext<CarServiceContext>(options =>
+            
+            if (!builder.Environment.IsEnvironment("Testing"))
+            {
+                builder.Services.AddDbContext<CarServiceContext>(options =>
                 options.UseSqlServer(sqlConnectionString));
+            }
 
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
@@ -72,38 +76,43 @@ namespace AutoServiceCatalog.API
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-            builder.Services.AddAuthentication(options =>
+           
+
+            if (!builder.Environment.IsEnvironment("Testing"))
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = new TokenValidationParameters
+                builder.Services.AddAuthentication(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                    ValidAudience = builder.Configuration["Jwt:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
-                };
-                options.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = ctx =>
-                    {
-                        Console.WriteLine("RAW TOKEN: " + ctx.Token);
-                        return Task.CompletedTask;
-                    },
-                    OnAuthenticationFailed = ctx =>
-                    {
-                        Console.WriteLine("JWT FAILED: " + ctx.Exception);
-                        return Task.CompletedTask;
-                    }
-                };
-            });
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+              .AddJwtBearer(options =>
+              {
+                  options.TokenValidationParameters = new TokenValidationParameters
+                  {
+                      ValidateIssuer = true,
+                      ValidateAudience = true,
+                      ValidateLifetime = true,
+                      ValidateIssuerSigningKey = true,
+                      ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                      ValidAudience = builder.Configuration["Jwt:Audience"],
+                      IssuerSigningKey = new SymmetricSecurityKey(
+                          Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                  };
+                  options.Events = new JwtBearerEvents
+                  {
+                      OnMessageReceived = ctx =>
+                      {
+                          Console.WriteLine("RAW TOKEN: " + ctx.Token);
+                          return Task.CompletedTask;
+                      },
+                      OnAuthenticationFailed = ctx =>
+                      {
+                          Console.WriteLine("JWT FAILED: " + ctx.Exception);
+                          return Task.CompletedTask;
+                      }
+                  };
+              });
+            }
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -157,7 +166,12 @@ namespace AutoServiceCatalog.API
             using (var scope = app.Services.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<CarServiceContext>();
-                context.Database.Migrate();
+
+                if (!app.Environment.IsEnvironment("Testing"))
+                {
+                    context.Database.Migrate();
+                }
+
                 Seeding.SeedAsync(context).GetAwaiter().GetResult();
             }
 
@@ -180,3 +194,4 @@ namespace AutoServiceCatalog.API
         }
     }
 }
+public partial class Program { }
