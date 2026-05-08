@@ -29,11 +29,6 @@ namespace Infrastructure.Repositories
             return await _reviews.Find(_ => true).ToListAsync();
         }
 
-        public async Task<IEnumerable<Review>> GetByCustomerIdAsync(int customerId)
-        {
-            return await _reviews.Find(r => r.CustomerId == customerId).ToListAsync();
-        }
-
         public async Task<IEnumerable<Review>> GetByOrderIdAsync(int orderId)
         {
             return await _reviews.Find(r => r.OrderId == orderId).ToListAsync();

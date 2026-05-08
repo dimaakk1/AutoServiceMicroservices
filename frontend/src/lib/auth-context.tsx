@@ -17,46 +17,52 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// 🔹 decode JWT (fallback)
+const decodeToken = (token: string): User => {
+  const d: any = jwtDecode(token);
+
+  return {
+    id:
+      d[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+      ],
+    name:
+      d["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
+    role:
+      d["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
+  };
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // 🔹 decode fallback (тільки для id)
-  const decodeToken = (token: string) => {
-    const d: any = jwtDecode(token);
-
-    return {
-      id: d["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"],
-      name: d["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-      role: d["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
-    };
-  };
-
-  // 🔥 ГОЛОВНЕ: завантаження актуального user з бекенду
+  // 🔥 беремо АКТУАЛЬНОГО юзера з бекенду
   const refreshUser = async () => {
-    try {
-      const res = await api.get("/users/me");
+  try {
+    const res = await api.get("/users/me");
 
-      setUser({
-        id: "",
+    setUser(prev => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
         name: res.data.userName,
-        role: user?.role || "User",
-      });
-    } catch (e) {
-      console.error("refreshUser failed", e);
-    }
-  };
+        // ❌ role НЕ чіпаємо
+      };
+    });
+  } catch (e) {}
+};
 
   // 🔹 login
   const login = async (accessToken: string, refreshToken: string) => {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
 
-    // тимчасово з токена
+    // тимчасово з токена (швидкий UI)
     const decoded = decodeToken(accessToken);
-
     setUser(decoded);
 
-    // 🔥 потім оновлюємо з БД
+    // потім оновлюємо з БД (істина)
     await refreshUser();
   };
 
@@ -67,20 +73,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
-  // 🔹 init
+  // 🔹 init при старті сайту
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-
     if (!token) return;
 
     setUser(decodeToken(token));
-
-    // 🔥 підтягнути актуальні дані
     refreshUser();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -88,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  if (!ctx)
+    throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 };

@@ -62,18 +62,28 @@ namespace AutoServiceCatalog.BLL.Services
         public async Task<ServiceDto> CreateAsync(ServiceCreateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
-                throw new ArgumentException("Назва послуги не може бути порожньою!");
+                throw new ArgumentException("Назва послуги обов'язкова");
 
-            if (dto.Price <= 0)
-                throw new ArgumentException("Ціна повинна бути більшою за 0!");
+            var category = await _unitOfWork.Categories
+    .GetByNameAsync(dto.CategoryName);
 
-            var service = _mapper.Map<Service>(dto);
+            if (category == null)
+                throw new Exception("Категорію не знайдено");
+
+            var service = new Service
+            {
+                Name = dto.Name,
+                Price = dto.Price,
+                CategoryId = category.CategoryId
+            };
+
             await _unitOfWork.Services.AddAsync(service);
+
             await _unitOfWork.SaveChangesAsync();
 
-            // Інвалідація кешу
+            service.Category = category;
+
             await _servicesCache.InvalidateAsync("services:all");
-            await _servicesCache.InvalidateAsync($"service:{service.ServiceId}");
 
             return _mapper.Map<ServiceDto>(service);
         }
@@ -81,17 +91,24 @@ namespace AutoServiceCatalog.BLL.Services
         public async Task UpdateAsync(int id, ServiceCreateDto dto)
         {
             var existing = await _unitOfWork.Services.GetByIdAsync(id);
+
             if (existing == null)
                 throw new Exception("Послугу не знайдено");
 
+            var category = await _unitOfWork.Categories
+    .GetByNameAsync(dto.CategoryName);
+
+            if (category == null)
+                throw new Exception("Категорію не знайдено");
+
             existing.Name = dto.Name;
             existing.Price = dto.Price;
-            existing.CategoryId = dto.CategoryId;
+            existing.CategoryId = category.CategoryId;
 
             _unitOfWork.Services.UpdateAsync(existing);
+
             await _unitOfWork.SaveChangesAsync();
 
-            // Інвалідація кешу
             await _servicesCache.InvalidateAsync("services:all");
             await _servicesCache.InvalidateAsync($"service:{id}");
         }
@@ -155,9 +172,19 @@ namespace AutoServiceCatalog.BLL.Services
             ) ?? new List<ServiceDto>();
         }
 
-        public async Task<PagedResult<Service>> GetServicesAsync(PartQueryParameters parameters)
+        public async Task<PagedResult<ServiceDto>> GetServicesAsync(
+    PartQueryParameters parameters)
         {
-            return await _unitOfWork.Services.GetServicesAsync(parameters);
+            var services = await _unitOfWork.Services
+                .GetServicesAsync(parameters);
+
+            var mapped = _mapper.Map<List<ServiceDto>>(services.Items);
+
+            return new PagedResult<ServiceDto>(
+                mapped,
+                services.TotalCount,
+                parameters.PageSize
+            );
         }
     }
 

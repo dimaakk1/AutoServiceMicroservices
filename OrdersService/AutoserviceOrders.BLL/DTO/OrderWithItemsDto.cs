@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace AutoserviceOrders.BLL.DTO
 {
-    public class OrderDto
+    public class OrderWithItemsDto
     {
         public int OrderId { get; set; }
         public DateTime OrderDate { get; set; }
-        public string Status { get; set; } = string.Empty;
-        public string UserId { get; set; } = string.Empty;
+        public string Status { get; set; } = "";
 
+        public List<OrderItemWithProductDto> Items { get; set; } = new();
     }
 }

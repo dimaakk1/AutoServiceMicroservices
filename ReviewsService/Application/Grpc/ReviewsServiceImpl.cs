@@ -26,7 +26,6 @@ namespace Application.Grpc
                 await responseStream.WriteAsync(new ReviewResponse
                 {
                     Id = r.Id,
-                    CustomerId = r.CustomerId,
                     OrderId = r.OrderId,
                     Rating = r.Rating,
                     Comment = r.Comment,

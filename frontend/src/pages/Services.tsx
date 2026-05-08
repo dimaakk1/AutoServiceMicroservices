@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
-import { Clock } from "lucide-react";
-import  api  from "../api/api";
+import api from "../api/api";
+
+type Service = {
+  serviceId: number;
+  name: string;
+  price: number;
+  categoryName: string;
+};
 
 export default function Services() {
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [keyword, setKeyword] = useState("");
   const [price, setPrice] = useState("");
 
@@ -19,7 +25,6 @@ export default function Services() {
       .catch(err => console.error(err));
   };
 
-  // 🔍 пошук
   const handleSearch = () => {
     if (!keyword) return loadAll();
 
@@ -28,7 +33,6 @@ export default function Services() {
       .catch(err => console.error(err));
   };
 
-  // 💰 більше ніж
   const handleAbove = () => {
     if (!price) return;
 
@@ -37,7 +41,6 @@ export default function Services() {
       .catch(err => console.error(err));
   };
 
-  // 💰 менше ніж
   const handleBelow = () => {
     if (!price) return;
 
@@ -48,9 +51,13 @@ export default function Services() {
 
   return (
     <div className="container py-12">
-      <h1 className="text-3xl font-bold mb-6">Наші послуги</h1>
-
-      {/* 🔍 ФІЛЬТРИ */}
+      <h1 className="text-3xl font-bold mb-6">
+        Наші послуги
+      </h1>
+<p className="text-muted-foreground mb-10 max-w-lg">
+        Повний спектр послуг для вашого автомобіля — від діагностики до капітального ремонту.
+      </p>
+      {/* 🔍 FILTERS */}
       <div className="flex flex-wrap gap-3 mb-8">
 
         <input
@@ -61,7 +68,7 @@ export default function Services() {
           className="border px-3 py-2 rounded"
         />
 
-        <Button variant="accent" onClick={handleSearch}>
+        <Button onClick={handleSearch}>
           Пошук
         </Button>
 
@@ -73,11 +80,11 @@ export default function Services() {
           className="border px-3 py-2 rounded"
         />
 
-        <Button variant="accent" onClick={handleAbove}>
+        <Button onClick={handleAbove}>
           Дорожче
         </Button>
 
-        <Button variant="accent" onClick={handleBelow}>
+        <Button onClick={handleBelow}>
           Дешевше
         </Button>
 
@@ -87,8 +94,9 @@ export default function Services() {
 
       </div>
 
-      {/* 📦 СПИСОК */}
+      {/* 📦 LIST */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
         {services.map(service => (
           <div
             key={service.serviceId}
@@ -98,28 +106,25 @@ export default function Services() {
               {service.name}
             </h3>
 
-            <p className="text-sm text-muted-foreground mb-4">
-              Категорія: {service.categoryId}
+            {/* ✅ CATEGORY NAME FIXED */}
+            <p className="text-sm text-orange-600 font-medium mb-3">
+              {service.categoryName}
             </p>
 
             <div className="flex justify-between mb-4">
               <span className="font-bold">
                 {service.price} грн
               </span>
-
-              <span className="flex items-center gap-1 text-sm">
-                <Clock className="h-4 w-4" />
-                —
-              </span>
             </div>
 
             <Link to={`/booking?service=${service.serviceId}`}>
-              <Button variant="accent" className="w-full">
+              <Button className="w-full bg-orange-500 hover:bg-orange-600">
                 Записатися
               </Button>
             </Link>
           </div>
         ))}
+
       </div>
     </div>
   );

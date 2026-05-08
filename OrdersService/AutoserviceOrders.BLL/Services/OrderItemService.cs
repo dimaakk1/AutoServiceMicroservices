@@ -105,20 +105,38 @@ namespace AutoserviceOrders.BLL.Services
             }
         }
 
-        public async Task<IEnumerable<OrderItemWithProductDto>> GetOrderItemsWithProductAsync()
+
+        public async Task<IEnumerable<OrderWithItemsDto>> GetOrdersWithItemsAsync(string userId)
         {
             await _unitOfWork.BeginTransactionAsync();
-            var result = await _unitOfWork.OrderItems.GetOrderItemsWithProductAsync();
+
+            // 🔥 тільки мої замовлення
+            var orders = await _unitOfWork.Orders.GetByUserIdAsync(userId);
+            var items = await _unitOfWork.OrderItems.GetAllAsync();
+
             await _unitOfWork.CommitAsync();
 
-            var dtoList = new List<OrderItemWithProductDto>();
+            var result = new List<OrderWithItemsDto>();
 
-            foreach (var item in result)
+            foreach (var order in orders)
             {
-                try
+                var orderDto = new OrderWithItemsDto
                 {
-                    var part = await _partGrpcClient.GetPartAsync(new GetPartRequest { Id = item.ProductId });
-                    dtoList.Add(new OrderItemWithProductDto
+                    OrderId = order.OrderId,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status,
+                    Items = new List<OrderItemWithProductDto>()
+                };
+
+                var orderItems = items.Where(i => i.OrderId == order.OrderId);
+
+                foreach (var item in orderItems)
+                {
+                    var part = await _partGrpcClient.GetPartAsync(
+                        new GetPartRequest { Id = item.ProductId }
+                    );
+
+                    orderDto.Items.Add(new OrderItemWithProductDto
                     {
                         OrderItemId = item.OrderItemId,
                         OrderId = item.OrderId,
@@ -129,23 +147,71 @@ namespace AutoserviceOrders.BLL.Services
                         TotalPrice = Convert.ToDecimal(part.Price) * item.Quantity
                     });
                 }
-                catch (Exception ex)
+
+                result.Add(orderDto);
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<OrderWithItemsDto>> GetAllOrdersWithItemsAsync(
+    OrderFilterDto filter)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            var orders = await _unitOfWork.Orders.GetAllAsync();
+            var items = await _unitOfWork.OrderItems.GetAllAsync();
+
+            await _unitOfWork.CommitAsync();
+
+            var result = new List<OrderWithItemsDto>();
+
+            foreach (var order in orders)
+            {
+                // 🔎 фільтри
+                if (!string.IsNullOrEmpty(filter.Status) && order.Status != filter.Status)
+                    continue;
+
+                if (filter.FromDate.HasValue && order.OrderDate < filter.FromDate)
+                    continue;
+
+                if (filter.ToDate.HasValue && order.OrderDate > filter.ToDate)
+                    continue;
+
+                var dto = new OrderWithItemsDto
                 {
-                    // Log or handle error - if part not found, skip or use cached data
-                    dtoList.Add(new OrderItemWithProductDto
+                    OrderId = order.OrderId,
+                    OrderDate = order.OrderDate,
+                    Status = order.Status,
+                    Items = new List<OrderItemWithProductDto>()
+                };
+
+                var orderItems = items.Where(i => i.OrderId == order.OrderId);
+
+                foreach (var item in orderItems)
+                {
+                    var part = await _partGrpcClient.GetPartAsync(
+                        new GetPartRequest { Id = item.ProductId }
+                    );
+
+                    dto.Items.Add(new OrderItemWithProductDto
                     {
                         OrderItemId = item.OrderItemId,
                         OrderId = item.OrderId,
                         ProductId = item.ProductId,
-                        ProductName = item.ProductName,
-                        Price = item.Price,
+                        ProductName = part.Name,
+                        Price = Convert.ToDecimal(part.Price),
                         Quantity = item.Quantity,
-                        TotalPrice = item.Price * item.Quantity
+                        TotalPrice = Convert.ToDecimal(part.Price) * item.Quantity
                     });
                 }
+
+                result.Add(dto);
             }
 
-            return dtoList;
+            return result;
         }
+
+
     }
 }

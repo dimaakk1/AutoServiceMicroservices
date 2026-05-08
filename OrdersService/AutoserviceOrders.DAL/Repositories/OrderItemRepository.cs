@@ -22,21 +22,5 @@ namespace AutoserviceOrders.DAL.Repositories
             string sql = "SELECT * FROM OrderItems WHERE OrderId = @OrderId";
             return await _connection.QueryAsync<OrderItem>(sql, new { OrderId = orderId }, transaction: _transaction);
         }
-
-        public async Task<IEnumerable<OrderItemProductInfo>> GetOrderItemsWithProductAsync()
-        {
-            string sql = @"
-            SELECT 
-            oi.OrderItemId,
-            oi.OrderId,
-            oi.ProductId,
-            oi.Quantity,
-            p.Name,
-            p.Price
-            FROM OrderItems oi
-            INNER JOIN Products p ON oi.ProductId = p.ProductId";
-
-            return await _connection.QueryAsync<OrderItemProductInfo>(sql, transaction: _transaction);
-        }
     }
 }

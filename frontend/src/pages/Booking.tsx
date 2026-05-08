@@ -3,8 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
 
 import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
 import { Calendar } from "../components/ui/calendar";
 
 import { createOrder, addOrderItem } from "../api/order";
@@ -14,95 +12,75 @@ import { Check, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
 
-const timeSlots = [
-  "09:00", "10:00", "11:00",
-  "12:00", "14:00", "15:00",
-  "16:00", "17:00"
-];
+type Service = {
+  serviceId: number;
+  name: string;
+  price: number;
+  categoryName: string;
+};
 
-const steps = ["Послуга", "Дата і час", "Підтвердження"];
+const steps = ["Послуга", "Дата", "Підтвердження"];
+
+const timeSlots = [
+  "09:00","10:00","11:00",
+  "12:00","14:00","15:00",
+  "16:00","17:00"
+];
 
 export default function Booking() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const preselectedId = searchParams.get("service");
+  const preselected = searchParams.get("service");
 
-  const [step, setStep] = useState(preselectedId ? 1 : 0);
+  const [step, setStep] = useState(preselected ? 1 : 0);
 
-  const [services, setServices] = useState<any[]>([]);
-  const [loadingServices, setLoadingServices] = useState(true);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedServiceId, setSelectedServiceId] = useState<string>(
-    preselectedId || ""
+  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
+    preselected ? Number(preselected) : null
   );
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
-  const [vehicleInfo, setVehicleInfo] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const [loading, setLoading] = useState(false);
-
-  // ======================
-  // LOAD SERVICES FROM API
-  // ======================
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await getServices();
-        setServices(res.data);
-      } catch (err) {
-        console.error("Services error:", err);
-        toast.error("Не вдалося завантажити послуги");
-      } finally {
-        setLoadingServices(false);
-      }
-    };
-
-    load();
+    getServices()
+      .then(res => setServices(res.data))
+      .catch(() => toast.error("Помилка завантаження"))
+      .finally(() => setLoading(false));
   }, []);
 
-  // ======================
-  // SELECTED SERVICE
-  // ======================
   const selectedService = useMemo(() => {
-    return services.find(
-      (s) => String(s.serviceId) === String(selectedServiceId)
-    );
+    return services.find(s => s.serviceId === selectedServiceId);
   }, [selectedServiceId, services]);
 
-  // ======================
-  // AUTH CHECK
-  // ======================
   if (!user) {
     return (
       <div className="container py-20 text-center">
-        <h2 className="text-2xl font-bold mb-4">
-          Для запису потрібно увійти
+        <h2 className="text-2xl font-bold text-orange-600 mb-4">
+          Увійдіть для запису
         </h2>
-        <Button onClick={() => navigate("/auth")}>
+        <Button onClick={() => navigate("/auth")} className="bg-orange-500">
           Увійти
         </Button>
       </div>
     );
   }
 
-  // ======================
-  // CREATE ORDER
-  // ======================
   const handleConfirm = async () => {
     if (!selectedService || !selectedDate || !selectedTime) return;
 
-    if (loading) return;
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       const dateTime = new Date(
         selectedDate.toDateString() + " " + selectedTime
       ).toISOString();
 
-      // 1. CREATE ORDER
       const orderRes = await createOrder({
         orderDate: dateTime,
         status: "Pending",
@@ -110,72 +88,61 @@ export default function Booking() {
 
       const orderId = orderRes.data?.orderId;
 
-      if (!orderId) {
-        toast.error("Order не створено");
-        return;
-      }
-
-      // 2. ADD ITEM
       await addOrderItem({
         orderId,
-        productId: selectedService.serviceId, // 🔥 ВАЖЛИВО
+        productId: selectedService.serviceId,
         quantity: 1,
       });
 
-      toast.success("Запис створено!");
+      toast.success("Запис створено");
       navigate("/my-bookings");
-
-    } catch (err: any) {
-      console.error(err);
-
-      toast.error(
-        err.response?.data?.message || "Помилка створення запису"
-      );
+    } catch {
+      toast.error("Помилка створення");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  // ======================
-  // LOADING SERVICES
-  // ======================
-  if (loadingServices) {
+  if (loading) {
     return (
-      <div className="container py-20 text-center">
-        Завантаження послуг...
+      <div className="container py-20 text-center text-orange-500">
+        Завантаження...
       </div>
     );
   }
 
   return (
-    <div className="container py-12 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-8">
+    <div className="container py-10 max-w-4xl">
+
+      {/* HEADER */}
+      <h1 className="text-3xl font-bold text-orange-600 mb-8">
         Запис на сервіс
       </h1>
 
       {/* STEPPER */}
-      <div className="flex items-center mb-10">
+      <div className="flex items-center gap-3 mb-10">
         {steps.map((s, i) => (
           <div key={s} className="flex items-center">
+
             <div
               className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
+                "w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition",
                 i < step
                   ? "bg-green-500 text-white"
                   : i === step
-                  ? "bg-accent text-accent-foreground"
-                  : "bg-muted text-muted-foreground"
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200"
               )}
             >
-              {i < step ? <Check className="h-4 w-4" /> : i + 1}
+              {i < step ? <Check size={14} /> : i + 1}
             </div>
 
-            <span className="ml-2 text-sm hidden sm:inline">
+            <span className="ml-2 text-sm font-medium">
               {s}
             </span>
 
             {i < steps.length - 1 && (
-              <ChevronRight className="mx-3 h-4 w-4 text-muted-foreground" />
+              <ChevronRight className="mx-3 text-gray-300" />
             )}
           </div>
         ))}
@@ -184,25 +151,34 @@ export default function Booking() {
       {/* STEP 1 */}
       {step === 0 && (
         <div>
-          <h2 className="text-xl mb-4">Оберіть послугу</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Оберіть послугу
+          </h2>
 
-          <div className="grid sm:grid-cols-2 gap-3">
-            {services.map((service) => (
+          <div className="grid sm:grid-cols-2 gap-4">
+            {services.map(s => (
               <button
-                key={service.serviceId}
+                key={s.serviceId}
                 onClick={() => {
-                  setSelectedServiceId(service.serviceId);
+                  setSelectedServiceId(s.serviceId);
                   setStep(1);
                 }}
                 className={cn(
-                  "border rounded-lg p-4 text-left",
-                  selectedServiceId == service.serviceId &&
-                    "border-accent bg-accent/10"
+                  "border rounded-xl p-5 text-left transition shadow-sm hover:shadow-md hover:border-orange-400",
+                  selectedServiceId === s.serviceId &&
+                    "border-orange-500 bg-orange-50"
                 )}
               >
-                <p className="font-medium">{service.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {service.price} грн
+                <h3 className="font-semibold text-lg">
+                  {s.name}
+                </h3>
+
+                <p className="text-sm text-orange-600 mt-1">
+                  {s.categoryName}
+                </p>
+
+                <p className="mt-3 font-bold">
+                  {s.price} ₴
                 </p>
               </button>
             ))}
@@ -213,33 +189,56 @@ export default function Booking() {
       {/* STEP 2 */}
       {step === 1 && (
         <div>
-          <h2 className="text-xl mb-4">Дата і час</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Оберіть дату і час
+          </h2>
 
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-          />
+          <div className="grid md:grid-cols-2 gap-6">
 
-          <div className="grid grid-cols-3 gap-2 mt-4">
-            {timeSlots.map((t) => (
-              <button
-                key={t}
-                onClick={() => setSelectedTime(t)}
-                className={cn(
-                  "border rounded p-2",
-                  selectedTime === t && "bg-accent text-white"
-                )}
-              >
-                {t}
-              </button>
-            ))}
+            {/* DATE */}
+            <div className="border rounded-xl p-4 shadow-sm bg-white">
+              <p className="text-orange-600 font-medium mb-3">
+                Дата
+              </p>
+
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                weekStartsOn={1}
+              />
+            </div>
+
+            {/* TIME */}
+            <div className="border rounded-xl p-4 shadow-sm bg-white">
+              <p className="text-orange-600 font-medium mb-3">
+                Час
+              </p>
+
+              <div className="grid grid-cols-2 gap-2">
+                {timeSlots.map(t => (
+                  <button
+                    key={t}
+                    onClick={() => setSelectedTime(t)}
+                    className={cn(
+                      "border rounded-lg p-2 text-sm transition",
+                      selectedTime === t
+                        ? "bg-orange-500 text-white border-orange-500"
+                        : "hover:border-orange-400"
+                    )}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
           </div>
 
           <Button
-            className="mt-4"
-            onClick={() => setStep(2)}
+            className="mt-6 bg-orange-500 hover:bg-orange-600"
             disabled={!selectedDate || !selectedTime}
+            onClick={() => setStep(2)}
           >
             Далі
           </Button>
@@ -249,28 +248,29 @@ export default function Booking() {
       {/* STEP 3 */}
       {step === 2 && (
         <div>
-          <h2 className="text-xl mb-4">Підтвердження</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            Підтвердження
+          </h2>
 
-          <div className="space-y-2 mb-4">
+          <div className="border rounded-xl p-5 bg-orange-50 space-y-2">
             <p><b>Послуга:</b> {selectedService?.name}</p>
-            <p><b>Дата:</b> {selectedDate?.toLocaleDateString()}</p>
+            <p><b>Категорія:</b> {selectedService?.categoryName}</p>
+            <p><b>Дата:</b> {selectedDate?.toLocaleDateString("uk-UA")}</p>
             <p><b>Час:</b> {selectedTime}</p>
-            <p><b>Клієнт:</b> {user.name}</p>
+            <p><b>Ціна:</b> {selectedService?.price} ₴</p>
           </div>
 
-          <Label>Авто</Label>
-          <Input
-            value={vehicleInfo}
-            onChange={(e) => setVehicleInfo(e.target.value)}
-          />
-
-          <div className="flex gap-3 mt-4">
+          <div className="flex gap-3 mt-6">
             <Button variant="outline" onClick={() => setStep(1)}>
               Назад
             </Button>
 
-            <Button onClick={handleConfirm} disabled={loading}>
-              {loading ? "Створення..." : "Підтвердити"}
+            <Button
+              className="bg-orange-500 hover:bg-orange-600"
+              onClick={handleConfirm}
+              disabled={submitting}
+            >
+              {submitting ? "Створення..." : "Підтвердити"}
             </Button>
           </div>
         </div>

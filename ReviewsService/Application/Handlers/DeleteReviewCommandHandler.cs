@@ -36,7 +36,6 @@ namespace Application.Handlers
             var result = await _repository.DeleteAsync(request.Id);
 
             await _reviewListCache.InvalidateAsync("reviews:all");
-            await _reviewListCache.InvalidateAsync($"reviews:customer:{review.CustomerId}");
             await _reviewListCache.InvalidateAsync($"reviews:order:{review.OrderId}");
             await _orderCache.InvalidateAsync($"orderwithreview:{review.OrderId}");
 

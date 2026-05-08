@@ -169,6 +169,21 @@ namespace AutoserviceOrders.BLL.Services
                 throw;
             }
         }
+
+        public async Task<IEnumerable<OrderDto>> GetMyOrdersAsync(string userId)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            var orders = await _unitOfWork.Orders.GetByUserIdAsync(userId);
+
+            await _unitOfWork.CommitAsync();
+
+            return _mapper.Map<List<OrderDto>>(orders);
+        }
+
+
+
+
     }
 
 }

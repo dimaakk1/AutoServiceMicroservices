@@ -4,6 +4,7 @@ using AutoserviceOrders.BLL.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AutoserviceOrders.API.Controllers
 {
@@ -34,6 +35,8 @@ namespace AutoserviceOrders.API.Controllers
             return Ok(items);
         }
 
+
+
         [HttpPost]
         public async Task<IActionResult> AddOrderItem([FromBody] OrderItemDto dto)
         {
@@ -61,11 +64,26 @@ namespace AutoserviceOrders.API.Controllers
             return Ok("Order item successfully deleted.");
         }
 
-        [HttpGet("with-products")]
-        public async Task<IActionResult> GetOrderItemsWithProducts()
+        [HttpGet("with-items")]
+        public async Task<IActionResult> GetWithItems()
         {
-            var result = await _orderItemService.GetOrderItemsWithProductAsync();
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            var result = await _orderItemService.GetOrdersWithItemsAsync(userId);
+
             return Ok(result);
         }
+
+        [HttpGet("admin-with-items")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllOrdersWithItems(
+        [FromQuery] OrderFilterDto filter)
+        {
+            var result = await _orderItemService.GetAllOrdersWithItemsAsync(filter);
+
+            return Ok(result);
+        }
+
+
     }
 }

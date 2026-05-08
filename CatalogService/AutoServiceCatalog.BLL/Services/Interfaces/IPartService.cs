@@ -20,6 +20,6 @@ namespace AutoServiceCatalog.BLL.Services.Interfaces
         Task<List<ServiceDto>> SearchByNameAsync(string keyword);
         Task<List<ServiceDto>> GetServicesAbovePriceAsync(decimal price);
         Task<List<ServiceDto>> GetServicesBelowPriceAsync(decimal price);
-        Task<PagedResult<Service>> GetServicesAsync(PartQueryParameters parameters);
+        Task<PagedResult<ServiceDto>> GetServicesAsync(PartQueryParameters parameters);
     }
 }

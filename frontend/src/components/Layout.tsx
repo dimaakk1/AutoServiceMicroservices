@@ -167,6 +167,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1">{children}</main>
+
+      <footer className="border-t bg-primary text-primary-foreground">
+        <div className="container py-8 text-center text-sm opacity-80">
+          © 2026 АвтоПро — Професійний автосервіс. Усі права захищено.
+        </div>
+      </footer>
     </div>
   );
 }

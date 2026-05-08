@@ -20,19 +20,13 @@ namespace AutoServiceCatalog.API.Controllers
         }
 
         [HttpGet("services")]
-        public async Task<IActionResult> GetServices([FromQuery] PartQueryParameters parameters)
+        public async Task<IActionResult> GetServices(
+    [FromQuery] PartQueryParameters parameters)
         {
-            var services = await _serviceService.GetServicesAsync(parameters);
+            var result = await _serviceService
+                .GetServicesAsync(parameters);
 
-            var result = services.Items.Select(s => new ServiceDto
-            {
-                ServiceId = s.ServiceId,
-                Name = s.Name,
-                Price = s.Price,
-                CategoryId = s.Category.CategoryId
-            });
-
-            return Ok(new PagedResult<ServiceDto>(result, services.TotalCount, parameters.PageSize));
+            return Ok(result);
         }
 
         [HttpGet]

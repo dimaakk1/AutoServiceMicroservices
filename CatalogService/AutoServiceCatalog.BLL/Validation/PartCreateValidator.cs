@@ -19,8 +19,8 @@ namespace AutoServiceCatalog.BLL.Validation
             RuleFor(s => s.Price)
                 .GreaterThanOrEqualTo(0).WithMessage("Price must be non-negative");
 
-            RuleFor(s => s.CategoryId)
-                .GreaterThan(0).WithMessage("CategoryId must be valid");
+            RuleFor(s => s.CategoryName)
+                .NotEmpty().WithMessage("Category name is required");
         }
     }
 }

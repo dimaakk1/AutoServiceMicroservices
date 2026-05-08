@@ -1,9 +1,6 @@
 import * as React from "react";
 import { DayPicker } from "react-day-picker";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
 import { cn } from "../../lib/utils";
-import { buttonVariants } from "../../components/ui/button";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -14,60 +11,56 @@ export function Calendar({
 }: CalendarProps) {
   return (
     <DayPicker
-      mode="single"
-      weekStartsOn={1}
-      className={cn("p-3 w-full", className)}
+      className={cn(
+        "p-4 bg-white rounded-xl border shadow-sm",
+        className
+      )}
       classNames={{
-        months: "w-full flex flex-col",
-        month: "w-full space-y-4",
+        root: "w-full",
+        months: "w-full",
+        month: "w-full",
 
-        caption:
-          "flex justify-center relative items-center mb-4 font-medium",
+        /* HEADER */
+        month_caption:
+          "flex items-center justify-center mb-3 gap-3",
 
+        caption_label:
+          "text-sm font-semibold text-orange-600",
+
+        /* ❗ FIX: прибрали absolute */
         nav: "flex items-center gap-2",
-        nav_button: cn(
-          buttonVariants({ variant: "outline", size: "icon" }),
-          "h-8 w-8"
-        ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
 
-        table: "w-full border-collapse",
+        button_previous:
+          "h-8 w-8 flex items-center justify-center rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 transition",
 
-        /* 🔥 ГОЛОВНЕ ВИПРАВЛЕННЯ */
-        head_row: "grid grid-cols-7 w-full",
-        head_cell:
-          "text-muted-foreground text-xs text-center py-2 font-medium",
+        button_next:
+          "h-8 w-8 flex items-center justify-center rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 transition",
 
-        row: "grid grid-cols-7 w-full",
-        cell: "flex items-center justify-center aspect-square",
+        /* GRID */
+        month_grid: "w-full",
 
-        day: cn(
-          buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal"
-        ),
+        weekdays:
+          "flex justify-between text-xs text-muted-foreground mb-1",
 
-        day_selected:
-          "bg-accent text-accent-foreground hover:bg-accent/90",
+        weekday: "w-10 text-center font-medium",
 
-        day_today: "bg-primary text-primary-foreground",
+        week: "flex justify-between",
 
-        day_outside: "text-muted-foreground opacity-40",
+        day: "w-10 h-10 flex items-center justify-center",
 
-        day_disabled: "opacity-40",
+        day_button:
+          "w-10 h-10 rounded-lg flex items-center justify-center text-sm transition hover:bg-orange-100",
 
-        day_hidden: "invisible",
+        selected:
+          "bg-orange-500 text-white rounded-lg hover:bg-orange-600",
+
+        today:
+          "bg-orange-100 text-orange-700 font-semibold rounded-lg",
+
+        outside: "opacity-40",
+        disabled: "opacity-30 cursor-not-allowed",
 
         ...classNames,
-      }}
-
-      components={{
-        Chevron: ({ orientation }) =>
-          orientation === "left" ? (
-            <ChevronLeft className="h-4 w-4" />
-          ) : (
-            <ChevronRight className="h-4 w-4" />
-          ),
       }}
       {...props}
     />

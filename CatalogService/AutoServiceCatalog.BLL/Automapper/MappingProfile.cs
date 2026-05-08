@@ -14,7 +14,11 @@ namespace AutoServiceCatalog.BLL.Automapper
         public MappingProfile()
         {
             CreateMap<Category, CategoryDto>().ReverseMap();
-            CreateMap<Service, ServiceDto>().ReverseMap();
+            CreateMap<Service, ServiceDto>()
+    .ForMember(
+        dest => dest.CategoryName,
+        opt => opt.MapFrom(src => src.Category.Name)
+    );
             CreateMap<Service, ServiceCreateDto>().ReverseMap();
             CreateMap<ServiceCreateDto, Service>();
             CreateMap<Supplier, SupplierDto>().ReverseMap();

@@ -47,7 +47,7 @@ namespace Application.Handlers
             }
 
             var review = new Review(
-                order.CustomerId,
+                
                 request.OrderId,
                 new Rating(request.Rating),
                 request.Comment

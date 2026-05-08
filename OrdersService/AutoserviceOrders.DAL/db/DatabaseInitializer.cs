@@ -38,6 +38,7 @@ namespace AutoserviceOrders.DAL.db
             OrderId INT IDENTITY(1,1) PRIMARY KEY,
             OrderDate DATETIME DEFAULT GETDATE(),
             Status NVARCHAR(50),
+            UserId NVARCHAR(450)
         );
 
         IF OBJECT_ID('OrderDetails') IS NULL

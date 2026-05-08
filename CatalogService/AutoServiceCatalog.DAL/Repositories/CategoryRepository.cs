@@ -21,5 +21,11 @@ namespace AutoServiceCatalog.DAL.Repositories
                 .SelectMany(c => c.Services)
                 .ToListAsync();
         }
+        public async Task<Category?> GetByNameAsync(string name)
+        {
+            return await _context.Categories
+                .FirstOrDefaultAsync(c =>
+                    c.Name.ToLower() == name.ToLower());
+        }
     }
 }

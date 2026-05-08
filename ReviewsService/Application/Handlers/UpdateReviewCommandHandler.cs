@@ -38,7 +38,6 @@ namespace Application.Handlers
 
             // 🔥 Інвалідація ВСЬОГО, що повʼязано з цим відгуком
             await _reviewListCache.InvalidateAsync("reviews:all");
-            await _reviewListCache.InvalidateAsync($"reviews:customer:{review.CustomerId}");
             await _reviewListCache.InvalidateAsync($"reviews:order:{review.OrderId}");
             await _orderCache.InvalidateAsync($"orderwithreview:{review.OrderId}");
 

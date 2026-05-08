@@ -1,5 +1,9 @@
 import api from "./api";
 
+export const getOrdersWithItems = () => {
+  return api.get("/Orders/OrderItem/with-items");
+};
+
 // створити замовлення
 export const createOrder = (data: {
   orderDate: string;
@@ -23,5 +27,17 @@ export const addOrderItem = (data: {
     orderId: data.orderId,
     productId: data.productId,
     quantity: data.quantity,
+  });
+};
+
+export const updateOrder = (data: {
+  orderId: number;
+  orderDate: string;
+  status: string;
+}) => {
+  return api.put("/Orders/Order", {
+    orderId: data.orderId,
+    orderDate: data.orderDate,
+    status: data.status,
   });
 };

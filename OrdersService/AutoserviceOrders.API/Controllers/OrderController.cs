@@ -4,6 +4,7 @@ using AutoserviceOrders.DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AutoserviceOrders.API.Controllers
 {
@@ -26,11 +27,48 @@ namespace AutoserviceOrders.API.Controllers
             if (orderDto == null)
                 return BadRequest();
 
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+                return Unauthorized();
+
+            orderDto.UserId = userId; // 🔥 додаємо
+
             var id = await _orderService.CreateOrderAsync(orderDto);
 
             orderDto.OrderId = id;
 
             return CreatedAtAction(nameof(GetById), new { id }, orderDto);
+        }
+
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyOrders()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+                return Unauthorized();
+
+            var orders = await _orderService.GetMyOrdersAsync(userId);
+
+            return Ok(orders);
+        }
+
+        [HttpPut("{id}/cancel")]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            var order = await _orderService.GetOrderByIdAsync(id);
+
+            if (order == null || order.UserId != userId)
+                return NotFound();
+
+            order.Status = "Cancelled";
+
+            await _orderService.UpdateOrderAsync(order);
+
+            return Ok(new { message = "Замовлення скасовано" });
         }
 
         [HttpGet("{id}")]

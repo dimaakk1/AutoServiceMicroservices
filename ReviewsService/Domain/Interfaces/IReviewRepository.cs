@@ -11,7 +11,6 @@ namespace Domain.Interfaces
     {
         Task AddAsync(Review review);
         Task<IEnumerable<Review>> GetAllAsync();
-        Task<IEnumerable<Review>> GetByCustomerIdAsync(int customerId);
         Task<IEnumerable<Review>> GetByOrderIdAsync(int orderId);
         Task<bool> DeleteAsync(string id);
         Task<Review> GetByIdAsync(string id);
