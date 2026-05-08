@@ -1,17 +1,19 @@
 
-using AutoServiceUsers.BLL.Services.Interfaces;
+using AutoServiceUsers.BLL.Grpc;
 using AutoServiceUsers.BLL.Services;
+using AutoServiceUsers.BLL.Services.Interfaces;
 using AutoServiceUsers.DAL.DB;
 using AutoServiceUsers.DAL.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using Microsoft.OpenApi.Models;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
+builder.Services.AddGrpc();
 
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -33,6 +35,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<AutoServiceUsers.BLL.Services.Interfaces.IUserService, AutoServiceUsers.BLL.Services.UserService>();
 
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
 {
@@ -121,8 +124,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.MapGrpcService<UserGrpcService>();
 app.UseCors("AllowFrontend");
-
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseAuthentication();

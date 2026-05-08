@@ -34,68 +34,218 @@ namespace AggregatorService.Services
     {
         private readonly OrderService.OrderServiceClient _orderClient;
         private readonly ReviewService.ReviewServiceClient _reviewClient;
-        private readonly TwoLevelCacheService<OrderWithReviewDto> _cache;
+        private readonly UserService.UserServiceClient _userClient;
 
         public AggregationService(
             OrderService.OrderServiceClient orderClient,
             ReviewService.ReviewServiceClient reviewClient,
-            TwoLevelCacheService<OrderWithReviewDto> cache)
+            UserService.UserServiceClient userClient)
         {
             _orderClient = orderClient;
             _reviewClient = reviewClient;
-            _cache = cache;
+            _userClient = userClient;
         }
 
+        // ======================================================
+        // ONE ORDER
+        // ======================================================
         public async Task<OrderWithReviewDto> GetOrderWithReviewAsync(int orderId)
         {
-            var key = $"orderwithreview:{orderId}";
+            var order = await _orderClient.GetOrderAsync(
+                new OrderRequest { OrderId = orderId });
 
-            return await _cache.GetOrCreateAsync(
-                key: key,
-                factory: async () =>
+            var user = await _userClient.GetUserAsync(
+                new UserRequest { UserId = order.UserId });
+
+            var review = await GetReview(orderId);
+
+            return new OrderWithReviewDto
+            {
+                OrderId = order.OrderId,
+                UserId = order.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Status = order.Status,
+                OrderDate = DateTime.Parse(order.OrderDate),
+
+                Items = order.Items.Select(i => new OrderItemDto
                 {
-                    var orderResponse = await _orderClient.GetOrderAsync(new OrderRequest { OrderId = orderId });
+                    ProductId = i.ProductId,
+                    ProductName = i.ProductName, // 🔥 FIX
+                    Quantity = i.Quantity,
+                    Price = (decimal)i.Price
+                }).ToList(),
 
-                    ReviewDto? review = null;
-                    using var call = _reviewClient.GetReviewsByOrderId(new ReviewRequest { OrderId = orderId });
-                    await foreach (var r in call.ResponseStream.ReadAllAsync())
-                    {
-                        review = new ReviewDto
-                        {
-                            Id = r.Id,
-                            CustomerId = r.CustomerId,
-                            OrderId = r.OrderId,
-                            Rating = r.Rating,
-                            Comment = r.Comment,
-                            CreatedAt = DateTime.Parse(r.CreatedAt)
-                        };
-                        break;
-                    }
-
-                    return new OrderWithReviewDto
-                    {
-                        OrderId = orderResponse.OrderId,
-                        CustomerId = orderResponse.CustomerId,
-                        Status = orderResponse.Status,
-                        OrderDate = DateTime.Parse(orderResponse.OrderDate),
-                        Items = orderResponse.Items.Select(i => new OrderItemDto
-                        {
-                            ProductId = i.ProductId,
-                            Quantity = i.Quantity,
-                            Price = (decimal)i.Price
-                        }).ToList(),
-                        Review = review
-                    };
-                },
-                l1Ttl: TimeSpan.FromSeconds(30),
-                l2Ttl: TimeSpan.FromMinutes(5)
-            ) ?? throw new Exception("Order with review not found");
+                Review = review
+            };
         }
 
-        public async Task InvalidateOrderCacheAsync(int orderId)
+        // ======================================================
+        // ALL ORDERS
+        // ======================================================
+        public async Task<List<OrderWithReviewDto>> GetAllOrdersWithReviewAsync(string? userId)
         {
-            await _cache.InvalidateAsync($"orderwithreview:{orderId}");
+            var ordersResponse = await _orderClient.GetAllOrdersAsync(
+                new OrderFilterRequest
+                {
+                    UserId = userId ?? "",
+                    Status = ""
+                });
+
+            var result = new List<OrderWithReviewDto>();
+
+            foreach (var order in ordersResponse.Orders)
+            {
+                var user = await _userClient.GetUserAsync(
+                    new UserRequest { UserId = order.UserId });
+
+                var review = await GetReview(order.OrderId);
+
+                result.Add(new OrderWithReviewDto
+                {
+                    OrderId = order.OrderId,
+                    UserId = order.UserId,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Status = order.Status,
+                    OrderDate = DateTime.Parse(order.OrderDate),
+
+                    Items = order.Items.Select(i => new OrderItemDto
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.ProductName, // 🔥 FIX
+                        Quantity = i.Quantity,
+                        Price = (decimal)i.Price
+                    }).ToList(),
+
+                    Review = review
+                });
+            }
+
+            return result;
+        }
+
+        // ======================================================
+        // ONLY REVIEWED ORDERS
+        // ======================================================
+        public async Task<List<OrderWithReviewDto>> GetOrdersWithReviewsOnlyAsync()
+        {
+            var ordersResponse = await _orderClient.GetAllOrdersAsync(
+                new OrderFilterRequest
+                {
+                    UserId = "",
+                    Status = ""
+                });
+
+            var result = new List<OrderWithReviewDto>();
+
+            foreach (var order in ordersResponse.Orders)
+            {
+                var review = await GetReview(order.OrderId);
+
+                if (review == null)
+                    continue;
+
+                var user = await _userClient.GetUserAsync(
+                    new UserRequest { UserId = order.UserId });
+
+                result.Add(new OrderWithReviewDto
+                {
+                    OrderId = order.OrderId,
+                    UserId = order.UserId,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Status = order.Status,
+                    OrderDate = DateTime.Parse(order.OrderDate),
+
+                    Items = order.Items.Select(i => new OrderItemDto
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.ProductName, // 🔥 FIX
+                        Quantity = i.Quantity,
+                        Price = (decimal)i.Price
+                    }).ToList(),
+
+                    Review = review
+                });
+            }
+
+            return result;
+        }
+
+        // ======================================================
+        // MY ORDERS
+        // ======================================================
+        public async Task<List<OrderWithReviewDto>> GetMyOrdersWithReviewAsync(string userId)
+        {
+            var ordersResponse = await _orderClient.GetAllOrdersAsync(
+                new OrderFilterRequest
+                {
+                    UserId = userId,
+                    Status = ""
+                });
+
+            var result = new List<OrderWithReviewDto>();
+
+            foreach (var order in ordersResponse.Orders)
+            {
+                var user = await _userClient.GetUserAsync(
+                    new UserRequest { UserId = order.UserId });
+
+                var review = await GetReview(order.OrderId);
+
+                result.Add(new OrderWithReviewDto
+                {
+                    OrderId = order.OrderId,
+                    UserId = order.UserId,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Status = order.Status,
+                    OrderDate = DateTime.Parse(order.OrderDate),
+
+                    Items = order.Items.Select(i => new OrderItemDto
+                    {
+                        ProductId = i.ProductId,
+                        ProductName = i.ProductName, // 🔥 FIX
+                        Quantity = i.Quantity,
+                        Price = (decimal)i.Price
+                    }).ToList(),
+
+                    Review = review
+                });
+            }
+
+            return result;
+        }
+
+        // ======================================================
+        // REVIEW HELPER
+        // ======================================================
+        private async Task<ReviewDto?> GetReview(int orderId)
+        {
+            try
+            {
+                using var call = _reviewClient.GetReviewsByOrderId(
+                    new ReviewRequest { OrderId = orderId });
+
+                await foreach (var r in call.ResponseStream.ReadAllAsync())
+                {
+                    return new ReviewDto
+                    {
+                        Id = r.Id,
+                        OrderId = r.OrderId,
+                        Rating = r.Rating,
+                        Comment = r.Comment,
+                        CreatedAt = DateTime.Parse(r.CreatedAt)
+                    };
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
-
 }

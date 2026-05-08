@@ -3,7 +3,11 @@
     public class OrderWithReviewDto
     {
         public int OrderId { get; set; }
-        public int CustomerId { get; set; }
+        public string UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
+        public string Email { get; set; }      
+
+
         public DateTime OrderDate { get; set; }
         public string Status { get; set; }
 

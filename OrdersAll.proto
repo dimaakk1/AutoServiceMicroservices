@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+
+message OrderFilterRequest {
+  string userId = 1;
+  string status = 2;
+}
+
+message OrderListResponse {
+  repeated OrderResponse orders = 1;
+}
+
+service OrderService {
+  rpc GetOrder(OrderRequest) returns (OrderResponse);
+
+  //  новий метод
+  rpc GetAllOrders(OrderFilterRequest) returns (OrderListResponse);
+}

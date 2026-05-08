@@ -15,12 +15,14 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
 	<ItemGroup>
 		<Protobuf Include="..\Orders.proto" GrpcServices="Client" />
 		<Protobuf Include="..\Reviews.proto" GrpcServices="Client" />
+		<Protobuf Include="..\User.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 </Project>

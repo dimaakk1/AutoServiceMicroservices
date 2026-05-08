@@ -1,6 +1,7 @@
 ﻿using AggregatorService.Services;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace AggregatorService.Controllers
 {
@@ -15,10 +16,50 @@ namespace AggregatorService.Controllers
             _service = service;
         }
 
+        // ======================================================
+        // GET SINGLE ORDER WITH REVIEW
+        // ======================================================
         [HttpGet("order/{orderId}")]
         public async Task<IActionResult> GetFullOrder(int orderId)
         {
             var result = await _service.GetOrderWithReviewAsync(orderId);
+
+            if (result == null)
+                return NotFound();
+
+            return Ok(result);
+        }
+
+        // ======================================================
+        // GET ALL ORDERS WITH REVIEW
+        // ======================================================
+        [HttpGet("orders")]
+        public async Task<IActionResult> GetAllOrders([FromQuery] string? userId)
+        {
+            var result = await _service.GetAllOrdersWithReviewAsync(userId);
+
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpGet("my-orders")]
+        public async Task<IActionResult> GetMyOrders()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                          ?? User.FindFirst("sub")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var result = await _service.GetMyOrdersWithReviewAsync(userId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("orderswith-reviews")]
+        public async Task<IActionResult> GetOrdersWithReviewsOnly()
+        {
+            var result = await _service.GetOrdersWithReviewsOnlyAsync();
+
             return Ok(result);
         }
     }

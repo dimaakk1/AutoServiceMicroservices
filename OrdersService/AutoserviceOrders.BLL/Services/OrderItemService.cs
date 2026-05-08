@@ -155,7 +155,7 @@ namespace AutoserviceOrders.BLL.Services
         }
 
         public async Task<IEnumerable<OrderWithItemsDto>> GetAllOrdersWithItemsAsync(
-    OrderFilterDto filter)
+     OrderFilterDto filter)
         {
             await _unitOfWork.BeginTransactionAsync();
 
@@ -168,19 +168,27 @@ namespace AutoserviceOrders.BLL.Services
 
             foreach (var order in orders)
             {
-                // 🔎 фільтри
-                if (!string.IsNullOrEmpty(filter.Status) && order.Status != filter.Status)
+                // 🔎 FILTERS
+                if (!string.IsNullOrEmpty(filter.Status) &&
+                    order.Status != filter.Status)
                     continue;
 
-                if (filter.FromDate.HasValue && order.OrderDate < filter.FromDate)
+                if (filter.FromDate.HasValue &&
+                    order.OrderDate < filter.FromDate.Value)
                     continue;
 
-                if (filter.ToDate.HasValue && order.OrderDate > filter.ToDate)
+                if (filter.ToDate.HasValue &&
+                    order.OrderDate > filter.ToDate.Value)
+                    continue;
+
+                if (!string.IsNullOrEmpty(filter.UserId) &&
+                    order.UserId != filter.UserId)
                     continue;
 
                 var dto = new OrderWithItemsDto
                 {
                     OrderId = order.OrderId,
+                    UserId = order.UserId, // 🔥 FIX
                     OrderDate = order.OrderDate,
                     Status = order.Status,
                     Items = new List<OrderItemWithProductDto>()

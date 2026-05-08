@@ -49,13 +49,15 @@ SELECT SCOPE_IDENTITY();";
             cmd.Parameters.AddWithValue("@OrderId", orderId);
 
             await using var reader = await cmd.ExecuteReaderAsync();
+
             if (await reader.ReadAsync())
             {
                 return new Order
                 {
                     OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
                     OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
-                    Status = reader["Status"]?.ToString() ?? string.Empty
+                    Status = reader["Status"]?.ToString() ?? "",
+                    UserId = reader["UserId"]?.ToString() ?? "" // 🔥 ВАЖЛИВО
                 };
             }
 
@@ -76,7 +78,8 @@ SELECT SCOPE_IDENTITY();";
                 {
                     OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
                     OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
-                    Status = reader["Status"]?.ToString() ?? string.Empty
+                    Status = reader["Status"]?.ToString() ?? string.Empty,
+                    UserId = reader["UserId"]?.ToString() ?? string.Empty   // 🔥 FIX
                 });
             }
 
