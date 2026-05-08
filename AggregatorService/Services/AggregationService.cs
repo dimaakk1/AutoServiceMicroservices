@@ -83,19 +83,28 @@ namespace AggregatorService.Services
         // ======================================================
         // ALL ORDERS
         // ======================================================
-        public async Task<List<OrderWithReviewDto>> GetAllOrdersWithReviewAsync(string? userId)
+        public async Task<List<OrderWithReviewDto>> GetAllOrdersWithReviewAsync(OrderAggregationFilterRequest filter)
         {
             var ordersResponse = await _orderClient.GetAllOrdersAsync(
                 new OrderFilterRequest
                 {
-                    UserId = userId ?? "",
-                    Status = ""
+                    UserId = filter.UserId ?? "",
+                    Status = filter.Status ?? ""
                 });
 
             var result = new List<OrderWithReviewDto>();
 
             foreach (var order in ordersResponse.Orders)
             {
+                var orderDate = DateTime.Parse(order.OrderDate);
+
+                // 🔥 DATE FILTER (ВАЖЛИВО)
+                if (filter.FromDate.HasValue && orderDate < filter.FromDate.Value)
+                    continue;
+
+                if (filter.ToDate.HasValue && orderDate > filter.ToDate.Value)
+                    continue;
+
                 var user = await _userClient.GetUserAsync(
                     new UserRequest { UserId = order.UserId });
 
@@ -108,12 +117,12 @@ namespace AggregatorService.Services
                     Username = user.Username,
                     Email = user.Email,
                     Status = order.Status,
-                    OrderDate = DateTime.Parse(order.OrderDate),
+                    OrderDate = orderDate,
 
                     Items = order.Items.Select(i => new OrderItemDto
                     {
                         ProductId = i.ProductId,
-                        ProductName = i.ProductName, // 🔥 FIX
+                        ProductName = i.ProductName,
                         Quantity = i.Quantity,
                         Price = (decimal)i.Price
                     }).ToList(),

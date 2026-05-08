@@ -10,5 +10,9 @@ namespace AutoServiceUsers.BLL.Services.Interfaces
     public interface IUserService
     {
         Task<UserDto> GetByIdAsync(string userId);
+        Task<List<UserDto>> GetAllAsync();
+        Task DeleteAsync(string userId);
+        Task BlockUserAsync(string userId);
+        Task UnblockUserAsync(string userId);
     }
 }

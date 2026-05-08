@@ -38,14 +38,13 @@ export default function Auth() {
         const refreshToken = res.data?.refreshToken;
 
         if (!accessToken || !refreshToken) {
-          toast.error("Сервер не повернув токени");
+          toast.error("Сервер не повернув токени авторизації");
           return;
         }
 
-        // 🔥 через context
         login(accessToken, refreshToken);
 
-        toast.success("Вхід виконано успішно!");
+        toast.success("Вхід виконано успішно");
 
         setUsername("");
         setPassword("");
@@ -59,7 +58,7 @@ export default function Auth() {
       else {
         await registerUser(username, email, password);
 
-        toast.success("Реєстрація успішна!");
+        toast.success("Реєстрація успішна");
 
         setIsLogin(true);
 
@@ -72,8 +71,18 @@ export default function Auth() {
 
       const message =
         err?.response?.data?.message ||
-        err?.response?.data ||
-        "Помилка авторизації";
+        err?.response?.data?.title ||
+        err?.response?.data?.error ||
+        (typeof err?.response?.data === "string"
+          ? err.response.data
+          : null) ||
+        (err?.response?.status === 401
+          ? "Невірний логін або пароль"
+          : null) ||
+        (err?.response?.status === 403
+          ? "Доступ заборонено. Можливо, користувача заблоковано"
+          : null) ||
+        "Сталася помилка під час входу";
 
       toast.error(message);
     } finally {
@@ -84,7 +93,7 @@ export default function Auth() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
       <Card className="w-full max-w-md">
-        
+
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-display">
             {isLogin ? "Вхід" : "Реєстрація"}
@@ -96,16 +105,16 @@ export default function Auth() {
 
             {/* USERNAME */}
             <div className="space-y-2">
-              <Label>Username</Label>
+              <Label>Ім’я користувача</Label>
               <Input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                placeholder="Username"
+                placeholder="Введіть ім’я користувача"
               />
             </div>
 
-            {/* EMAIL (тільки register) */}
+            {/* EMAIL */}
             {!isLogin && (
               <div className="space-y-2">
                 <Label>Email</Label>
@@ -114,7 +123,7 @@ export default function Auth() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="email@example.com"
+                  placeholder="example@email.com"
                 />
               </div>
             )}
@@ -133,21 +142,21 @@ export default function Auth() {
 
             {/* BUTTON */}
             <Button
-  type="submit"
-  variant="accent"
-  className="w-full"
-  disabled={loading}
->
-  {loading
-    ? "Зачекайте..."
-    : isLogin
-    ? "Увійти"
-    : "Зареєструватися"}
-</Button>
+              type="submit"
+              variant="accent"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading
+                ? "Зачекайте..."
+                : isLogin
+                ? "Увійти"
+                : "Зареєструватися"}
+            </Button>
 
           </form>
 
-          {/* SWITCH MODE */}
+          {/* SWITCH */}
           <div className="mt-4 text-center text-sm">
             <span className="text-muted-foreground">
               {isLogin ? "Немає акаунту?" : "Вже маєте акаунт?"}{" "}
@@ -155,7 +164,7 @@ export default function Auth() {
 
             <button
               type="button"
-              onClick={() => setIsLogin(prev => !prev)}
+              onClick={() => setIsLogin((prev) => !prev)}
               className="text-accent hover:underline font-medium"
             >
               {isLogin ? "Зареєструватися" : "Увійти"}

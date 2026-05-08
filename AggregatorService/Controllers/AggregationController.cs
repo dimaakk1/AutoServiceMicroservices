@@ -1,4 +1,5 @@
-﻿using AggregatorService.Services;
+﻿using AggregatorService.DTO;
+using AggregatorService.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -34,10 +35,9 @@ namespace AggregatorService.Controllers
         // GET ALL ORDERS WITH REVIEW
         // ======================================================
         [HttpGet("orders")]
-        public async Task<IActionResult> GetAllOrders([FromQuery] string? userId)
+        public async Task<IActionResult> GetAllOrders([FromQuery] OrderAggregationFilterRequest filter)
         {
-            var result = await _service.GetAllOrdersWithReviewAsync(userId);
-
+            var result = await _service.GetAllOrdersWithReviewAsync(filter);
             return Ok(result);
         }
         [Authorize]

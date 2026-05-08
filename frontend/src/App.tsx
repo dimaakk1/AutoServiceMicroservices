@@ -17,6 +17,8 @@ import Reviews from "./pages/Reviews";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminServices from "./pages/admin/AdminServices";
+import AdminReviews from "./pages/admin/AdminReviews";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 
 
@@ -99,6 +101,22 @@ export default function App() {
               element={
                 <ProtectedRoute role="Admin">
                   <AdminServices />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reviews"
+              element={
+                <ProtectedRoute role="Admin">
+                  <AdminReviews />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute role="Admin">
+                  <AdminUsers />
                 </ProtectedRoute>
               }
             />

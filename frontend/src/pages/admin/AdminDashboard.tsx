@@ -33,28 +33,29 @@ export default function AdminDashboard() {
   }, []);
 
   const loadDashboard = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const [ordersRes, servicesRes, reviewsRes] =
-        await Promise.all([
-          api.get("/Orders/Order"),
-          api.get("/Catalog/Service"),
-          api.get("/Reviews"),
-        ]);
+    const [ordersRes, servicesRes, reviewsRes, usersRes] =
+      await Promise.all([
+        api.get("/Orders/Order"),
+        api.get("/Catalog/Service"),
+        api.get("/Reviews"),
+        api.get("/users"),
+      ]);
 
-      setStats({
-        orders: ordersRes.data.length || 0,
-        services: servicesRes.data.length || 0,
-        reviews: reviewsRes.data.length || 0,
-        users: 0,
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setStats({
+      orders: ordersRes.data.length || 0,
+      services: servicesRes.data.length || 0,
+      reviews: reviewsRes.data.length || 0,
+      users: usersRes.data.length || 0, 
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const cards = [
     {

@@ -70,6 +70,12 @@ namespace AutoServiceUsers.BLL.Services
             if (!await _userManager.CheckPasswordAsync(user, dto.Password))
                 throw new Exception("Invalid credentials");
 
+            // 🔥 BLOCK CHECK
+            if (user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow)
+            {
+                throw new Exception("User is blocked");
+            }
+
 
             var roles = await _userManager.GetRolesAsync(user);
             var accessToken = _jwtService.GenerateAccessToken(user, roles);

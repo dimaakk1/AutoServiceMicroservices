@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../lib/auth-context";
+
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import {
@@ -10,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+
 import {
   Table,
   TableBody,
@@ -18,26 +20,39 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+
 import { toast } from "sonner";
 import api from "../../api/api";
 
-// ================= TYPES =================
+/* ================= TYPES ================= */
+
+type Review = {
+  _id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
 type OrderItem = {
-  orderItemId: number;
+  productId: number;
   productName: string;
-  price: number;
   quantity: number;
-  totalPrice: number;
+  price: number;
 };
 
 type Order = {
   orderId: number;
+  userId: string;
+  username: string;
+  email: string;
   orderDate: string;
   status: string;
   items: OrderItem[];
+  review: Review | null;
 };
 
-// ================= PAGE =================
+/* ================= PAGE ================= */
+
 export default function AdminOrders() {
   const { user } = useAuth();
 
@@ -45,22 +60,23 @@ export default function AdminOrders() {
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
-    userId: "",
     status: "",
     fromDate: "",
     toDate: "",
   });
 
-  useEffect(() => {
-    if (user?.role === "Admin") loadOrders();
-  }, [user, filters]);
+  /* ================= LOAD ================= */
 
   const loadOrders = async () => {
     try {
       setLoading(true);
 
-      const res = await api.get("/Orders/OrderItem/admin-with-items", {
-        params: filters,
+      const res = await api.get("/aggregation/orders", {
+        params: {
+          status: filters.status || undefined,
+          fromDate: filters.fromDate || undefined,
+          toDate: filters.toDate || undefined,
+        },
       });
 
       setOrders(res.data);
@@ -70,6 +86,12 @@ export default function AdminOrders() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.role === "Admin") loadOrders();
+  }, [user, filters]);
+
+  /* ================= STATUS UPDATE ================= */
 
   const updateStatus = async (orderId: number, status: string) => {
     try {
@@ -91,6 +113,11 @@ export default function AdminOrders() {
     }
   };
 
+  /* ================= HELPERS ================= */
+
+  const totalPrice = (order: Order) =>
+    order.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
   const statuses = [
     "Pending",
     "Confirmed",
@@ -98,6 +125,8 @@ export default function AdminOrders() {
     "Completed",
     "Cancelled",
   ];
+
+  /* ================= ACCESS ================= */
 
   if (!user || user.role !== "Admin") {
     return (
@@ -111,7 +140,8 @@ export default function AdminOrders() {
     return <div className="container py-10">Завантаження...</div>;
   }
 
-  // ================= UI =================
+  /* ================= UI ================= */
+
   return (
     <div className="container py-8">
 
@@ -130,18 +160,10 @@ export default function AdminOrders() {
         </Badge>
       </div>
 
-      {/* ================= FILTER PANEL ================= */}
+      {/* ================= FILTERS ================= */}
       <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex flex-wrap gap-3">
 
-        <input
-          className="border border-orange-200 p-2 rounded-lg focus:outline-orange-400"
-          placeholder="User ID"
-          value={filters.userId}
-          onChange={(e) =>
-            setFilters({ ...filters, userId: e.target.value })
-          }
-        />
-
+        {/* STATUS */}
         <select
           className="border border-orange-200 p-2 rounded-lg"
           value={filters.status}
@@ -157,6 +179,7 @@ export default function AdminOrders() {
           ))}
         </select>
 
+        {/* FROM DATE */}
         <input
           type="date"
           className="border border-orange-200 p-2 rounded-lg"
@@ -166,6 +189,7 @@ export default function AdminOrders() {
           }
         />
 
+        {/* TO DATE */}
         <input
           type="date"
           className="border border-orange-200 p-2 rounded-lg"
@@ -183,71 +207,95 @@ export default function AdminOrders() {
           <TableHeader className="bg-orange-500">
             <TableRow>
               <TableHead className="text-white">ID</TableHead>
+              <TableHead className="text-white">Користувач</TableHead>
               <TableHead className="text-white">Дата</TableHead>
-              <TableHead className="text-white">Послуги</TableHead>
+              <TableHead className="text-white">Замовлення</TableHead>
               <TableHead className="text-white">Сума</TableHead>
+              <TableHead className="text-white">Відгук</TableHead>
               <TableHead className="text-white">Статус</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {orders.map((order) => {
-              const total = order.items.reduce(
-                (sum, i) => sum + i.totalPrice,
-                0
-              );
+            {orders.map((order) => (
+              <TableRow key={order.orderId} className="hover:bg-orange-50">
 
-              return (
-                <TableRow
-                  key={order.orderId}
-                  className="hover:bg-orange-50 transition"
-                >
-                  <TableCell className="font-bold text-orange-600">
-                    #{order.orderId}
-                  </TableCell>
+                {/* ID */}
+                <TableCell className="font-bold text-orange-600">
+                  #{order.orderId}
+                </TableCell>
 
-                  <TableCell>
-                    {new Date(order.orderDate).toLocaleString()}
-                  </TableCell>
+                {/* USER */}
+                <TableCell>
+                  <div>
+                    <div className="font-medium">
+                      {order.username}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {order.email}
+                    </div>
+                  </div>
+                </TableCell>
 
-                  <TableCell>
-                    {order.items.map((i) => (
-                      <div key={i.orderItemId} className="text-sm">
-                        <span className="font-medium text-orange-600">
-                          {i.productName}
-                        </span>{" "}
-                        × {i.quantity}
+                {/* DATE */}
+                <TableCell>
+                  {new Date(order.orderDate).toLocaleString()}
+                </TableCell>
+
+                {/* ITEMS */}
+                <TableCell>
+                  {order.items.map((i, idx) => (
+                    <div key={idx} className="text-sm">
+                      {i.productName} × {i.quantity}
+                    </div>
+                  ))}
+                </TableCell>
+
+                {/* TOTAL */}
+                <TableCell className="font-semibold">
+                  {totalPrice(order).toFixed(2)} ₴
+                </TableCell>
+
+                {/* REVIEW */}
+                <TableCell>
+                  {order.review ? (
+                    <div className="text-sm">
+                      ⭐ {order.review.rating}
+                      <div className="text-xs text-muted-foreground">
+                        {order.review.comment}
                       </div>
-                    ))}
-                  </TableCell>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      Немає
+                    </span>
+                  )}
+                </TableCell>
 
-                  <TableCell className="font-semibold">
-                    {total.toFixed(2)} ₴
-                  </TableCell>
+                {/* STATUS */}
+                <TableCell>
+                  <Select
+                    value={order.status}
+                    onValueChange={(v) =>
+                      updateStatus(order.orderId, v)
+                    }
+                  >
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue />
+                    </SelectTrigger>
 
-                  <TableCell>
-                    <Select
-                      value={order.status}
-                      onValueChange={(v) =>
-                        updateStatus(order.orderId, v)
-                      }
-                    >
-                      <SelectTrigger className="w-[160px] border-orange-300">
-                        <SelectValue />
-                      </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
 
-                      <SelectContent>
-                        {statuses.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+              </TableRow>
+            ))}
           </TableBody>
 
         </Table>

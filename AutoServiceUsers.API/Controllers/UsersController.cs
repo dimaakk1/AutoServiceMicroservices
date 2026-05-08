@@ -20,7 +20,10 @@ namespace AutoServiceUsers.API.Controllers
             _userManager = userManager;
         }
 
-        // 🔹 GET PROFILE
+        // =========================
+        // 🔹 PROFILE (current user)
+        // =========================
+
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()
         {
@@ -33,13 +36,13 @@ namespace AutoServiceUsers.API.Controllers
 
             return Ok(new
             {
+                user.Id,
                 user.UserName,
                 user.Email,
                 user.FullName
             });
         }
 
-        // 🔹 UPDATE PROFILE (username + fullname)
         [HttpPut("me")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
         {
@@ -50,7 +53,6 @@ namespace AutoServiceUsers.API.Controllers
             if (user == null)
                 return NotFound();
 
-            // USERNAME (Identity way)
             if (!string.IsNullOrWhiteSpace(dto.UserName) &&
                 dto.UserName != user.UserName)
             {
@@ -70,7 +72,6 @@ namespace AutoServiceUsers.API.Controllers
             return Ok(new { message = "Profile updated" });
         }
 
-        // 🔹 CHANGE PASSWORD
         [HttpPost("change-password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
@@ -91,6 +92,97 @@ namespace AutoServiceUsers.API.Controllers
                 return BadRequest(result.Errors);
 
             return Ok(new { message = "Password changed successfully" });
+        }
+
+        // =========================
+        // 🔥 ADMIN PANEL
+        // =========================
+
+        // 🔹 GET ALL USERS
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult GetAll()
+        {
+            var users = _userManager.Users
+                .Select(u => new UserDto
+                {
+                    UserId = u.Id,
+                    Username = u.UserName,
+                    Email = u.Email
+                })
+                .ToList();
+
+            return Ok(users);
+        }
+
+        // 🔹 GET USER BY ID
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                return NotFound();
+
+            return Ok(new UserDto
+            {
+                UserId = user.Id,
+                Username = user.UserName,
+                Email = user.Email
+            });
+        }
+
+        // 🔹 DELETE USER
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                return NotFound();
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "User deleted" });
+        }
+
+        // 🔹 BLOCK USER
+        [HttpPost("block/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Block(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                return NotFound();
+            user.LockoutEnabled = true;
+            user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100);
+
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new { message = "User blocked" });
+        }
+
+        // 🔹 UNBLOCK USER
+        [HttpPost("unblock/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Unblock(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                return NotFound();
+
+            user.LockoutEnd = null;
+
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new { message = "User unblocked" });
         }
     }
 }

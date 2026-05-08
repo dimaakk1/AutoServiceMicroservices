@@ -22,7 +22,7 @@ import api from "../api/api";
 /* ================= TYPES ================= */
 
 type Review = {
-  id: string;
+  _id: string;
   orderId: number;
   rating: number;
   comment: string;
@@ -40,7 +40,7 @@ type Order = {
 
   items: {
     productId: number;
-    productName: string; // 🔥 ВАЖЛИВО
+    productName: string;
     quantity: number;
     price: number;
   }[];
@@ -48,7 +48,7 @@ type Order = {
   review?: Review | null;
 };
 
-/* ================= STAR RATING ================= */
+/* ================= STAR ================= */
 
 function StarRating({
   value,
@@ -88,9 +88,14 @@ export default function Reviews() {
   const [reviewOrders, setReviewOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [mode, setMode] = useState<"all" | "mine">("all");
+
   const [selectedOrderId, setSelectedOrderId] = useState("");
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
+
+  /* 🔥 EDIT STATE */
+  const [editReview, setEditReview] = useState<Review | null>(null);
 
   /* ================= LOAD ================= */
 
@@ -98,17 +103,6 @@ export default function Reviews() {
     loadReviews();
     if (user) loadOrders();
   }, [user]);
-
-  /* ================= MY ORDERS ================= */
-
-  const loadOrders = async () => {
-    try {
-      const res = await api.get("/aggregation/my-orders");
-      setOrders(res.data);
-    } catch {
-      toast.error("Не вдалося завантажити замовлення");
-    }
-  };
 
   /* ================= ALL REVIEWS ================= */
 
@@ -126,6 +120,31 @@ export default function Reviews() {
     }
   };
 
+  /* ================= MY ORDERS ================= */
+
+  const loadMyReviews = async () => {
+    try {
+      setLoading(true);
+
+      const res = await api.get("/aggregation/my-orders");
+
+      setReviewOrders(res.data);
+    } catch {
+      toast.error("Не вдалося завантажити ваші відгуки");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadOrders = async () => {
+    try {
+      const res = await api.get("/aggregation/my-orders");
+      setOrders(res.data);
+    } catch {
+      toast.error("Не вдалося завантажити замовлення");
+    }
+  };
+
   /* ================= CREATE REVIEW ================= */
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,6 +152,11 @@ export default function Reviews() {
 
     if (!selectedOrderId) {
       toast.error("Оберіть замовлення");
+      return;
+    }
+
+    if (!comment.trim()) {
+      toast.error("Напишіть коментар");
       return;
     }
 
@@ -156,6 +180,45 @@ export default function Reviews() {
     }
   };
 
+  /* ================= DELETE REVIEW ================= */
+
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/Reviews/${id}`);
+
+      toast.success("Відгук видалено");
+
+      await loadReviews();
+      await loadOrders();
+    } catch {
+      toast.error("Помилка видалення");
+    }
+  };
+
+  /* ================= UPDATE REVIEW ================= */
+
+  const handleUpdate = async () => {
+  if (!editReview) return;
+
+  try {
+    await api.put(`/Reviews/${editReview._id}`, {
+      id: editReview._id,
+      rating: editReview.rating,
+      comment: editReview.comment,
+    });
+
+    toast.success("Відгук оновлено");
+
+    setEditReview(null);
+
+    await loadReviews();
+    await loadOrders();
+  } catch (err) {
+    console.error(err);
+    toast.error("Помилка оновлення");
+  }
+};
+
   /* ================= DATA ================= */
 
   const reviews = useMemo(() => {
@@ -175,13 +238,10 @@ export default function Reviews() {
 
   const getServiceName = (order: Order) => {
     if (!order.items?.length) return "Послуга";
-
-    return order.items
-      .map((i) => i.productName)
-      .join(", ");
+    return order.items.map((i) => i.productName).join(", ");
   };
 
-  /* ================= LOADING ================= */
+  /* ================= UI ================= */
 
   if (loading) {
     return (
@@ -196,7 +256,7 @@ export default function Reviews() {
       <div className="container py-12 max-w-5xl">
 
         {/* HEADER */}
-        <div className="mb-10">
+        <div className="mb-6">
           <h1 className="text-4xl font-bold text-orange-600 mb-3">
             Відгуки клієнтів
           </h1>
@@ -212,10 +272,34 @@ export default function Reviews() {
           </div>
         </div>
 
+        {/* SWITCH */}
+        <div className="flex gap-2 mb-8">
+          <Button
+            variant={mode === "all" ? "default" : "outline"}
+            onClick={() => {
+              setMode("all");
+              loadReviews();
+            }}
+          >
+            Всі відгуки
+          </Button>
+
+          <Button
+            variant={mode === "mine" ? "default" : "outline"}
+            onClick={() => {
+              setMode("mine");
+              loadMyReviews();
+            }}
+          >
+            Мої відгуки
+          </Button>
+        </div>
+
         {/* FORM */}
         {user && (
           <Card className="border-orange-200 shadow-md mb-10">
             <CardContent className="p-6">
+
               <div className="flex items-center gap-2 mb-6">
                 <MessageSquare className="text-orange-500" />
                 <h2 className="text-xl font-semibold">
@@ -230,18 +314,15 @@ export default function Reviews() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
 
-                  {/* ORDER */}
                   <div>
-                    <Label className="mb-2 block">
-                      Замовлення
-                    </Label>
+                    <Label>Замовлення</Label>
 
                     <Select
                       value={selectedOrderId}
                       onValueChange={setSelectedOrderId}
                     >
-                      <SelectTrigger className="border-orange-200">
-                        <SelectValue placeholder="Оберіть замовлення" />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Оберіть" />
                       </SelectTrigger>
 
                       <SelectContent>
@@ -251,30 +332,23 @@ export default function Reviews() {
                             value={String(o.orderId)}
                           >
                             {getServiceName(o)} •{" "}
-                            {new Date(o.orderDate).toLocaleDateString(
-                              "uk-UA"
-                            )}
+                            {new Date(o.orderDate).toLocaleDateString("uk-UA")}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {/* RATING */}
                   <div>
-                    <Label className="mb-2 block">Оцінка</Label>
+                    <Label>Оцінка</Label>
                     <StarRating value={rating} onChange={setRating} />
                   </div>
 
-                  {/* COMMENT */}
                   <div>
-                    <Label className="mb-2 block">Коментар</Label>
-
+                    <Label>Коментар</Label>
                     <Textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
-                      rows={4}
-                      className="border-orange-200"
                     />
                   </div>
 
@@ -287,21 +361,17 @@ export default function Reviews() {
           </Card>
         )}
 
-        {/* REVIEWS LIST */}
+        {/* LIST */}
         <div className="space-y-5">
           {reviews.map((order) => (
-            <Card
-              key={order.orderId}
-              className="border-orange-100"
-            >
+            <Card key={order.orderId}>
               <CardContent className="p-6">
 
-                {/* TOP */}
                 <div className="flex justify-between mb-3">
                   <div className="flex items-center gap-3">
 
                     <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                      <User className="text-orange-600 h-5 w-5" />
+                      <User className="text-orange-600" />
                     </div>
 
                     <div>
@@ -309,41 +379,107 @@ export default function Reviews() {
                         {order.username || "Користувач"}
                       </p>
 
-                      {/* 🔥 ЗАМІСТЬ orderId */}
                       <p className="text-sm text-muted-foreground">
                         {getServiceName(order)}
                       </p>
 
                       <p className="text-xs text-muted-foreground">
-                        {new Date(
-                          order.review!.createdAt
-                        ).toLocaleDateString("uk-UA")}
+                        {new Date(order.review!.createdAt).toLocaleDateString("uk-UA")}
                       </p>
+
+                      {/* 🔥 ACTIONS ONLY FOR MINE */}
+                      {mode === "mine" && (
+                        <div className="flex gap-2 mt-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() =>
+                              setEditReview(order.review!)
+                            }
+                          >
+                            Редагувати
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() =>
+                              handleDelete(order.review!._id)
+                            }
+                          >
+                            Видалити
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <StarRating value={order.review!.rating} />
                 </div>
 
-                {/* COMMENT */}
                 <p className="text-muted-foreground">
                   {order.review!.comment}
                 </p>
+
               </CardContent>
             </Card>
           ))}
 
           {reviews.length === 0 && (
-            <Card className="border-dashed border-orange-200">
+            <Card>
               <CardContent className="py-12 text-center">
-                <MessageSquare className="mx-auto mb-3 text-orange-300" />
-                <p className="text-muted-foreground">
-                  Відгуків поки немає
-                </p>
+                Відгуків немає
               </CardContent>
             </Card>
           )}
         </div>
+
+        {/* EDIT MODAL */}
+        {editReview && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl w-[420px] space-y-4">
+
+              <h2 className="text-lg font-semibold">
+                Редагування відгуку
+              </h2>
+
+              <StarRating
+                value={editReview.rating}
+                onChange={(v) =>
+                  setEditReview({ ...editReview, rating: v })
+                }
+              />
+
+              <Textarea
+                value={editReview.comment}
+                onChange={(e) =>
+                  setEditReview({
+                    ...editReview,
+                    comment: e.target.value,
+                  })
+                }
+              />
+
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditReview(null)}
+                >
+                  Скасувати
+                </Button>
+
+                <Button
+                  className="bg-orange-500 hover:bg-orange-600"
+                  onClick={handleUpdate}
+                >
+                  Зберегти
+                </Button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
