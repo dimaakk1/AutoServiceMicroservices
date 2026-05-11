@@ -33,12 +33,24 @@ namespace AutoserviceOrders.API.Controllers
                 return Unauthorized();
 
             orderDto.UserId = userId; // 🔥 додаємо
+            orderDto.OrderDate = DateTime.SpecifyKind(orderDto.OrderDate, DateTimeKind.Utc);
+            try
+            {
+                var id = await _orderService.CreateOrderAsync(orderDto);
 
-            var id = await _orderService.CreateOrderAsync(orderDto);
+                orderDto.OrderId = id;
 
-            orderDto.OrderId = id;
+                return CreatedAtAction(nameof(GetById), new { id }, orderDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
 
-            return CreatedAtAction(nameof(GetById), new { id }, orderDto);
+            
         }
 
         [HttpGet("my")]
@@ -110,6 +122,14 @@ namespace AutoserviceOrders.API.Controllers
         {
             bool confirmed = await _orderService.ConfirmOrderAsync(id);
             return confirmed ? Ok(new { Message = "Order confirmed" }) : NotFound();
+        }
+
+        [HttpGet("taken-slots")]
+        public async Task<IActionResult> GetTakenSlots(DateTime date)
+        {
+            var slots = await _orderService.GetTakenSlotsAsync(date);
+
+            return Ok(slots);
         }
     }
 }

@@ -4,10 +4,13 @@ import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
+import { Badge } from "../../components/ui/badge";
+
 import {
+  ArrowLeft,
   Ban,
   CheckCircle,
-  RefreshCcw,
   User,
   Search,
   X,
@@ -127,24 +130,28 @@ export default function UsersAdmin() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white">
+    <div className="container py-8 max-w-6xl">
       <div className="container py-10 max-w-6xl">
+        
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-4xl font-bold text-orange-600">
+        <div className="flex items-center gap-4 mb-6">
+          <Link
+          to="/admin"
+          className="text-muted-foreground hover:text-orange-500 transition"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+ 
+            <h1 className="text-3xl font-bold">
               Користувачі
             </h1>
-            <p className="text-sm text-muted-foreground">
-              Адмін панель керування
-            </p>
-          </div>
+        
+      <Badge className="ml-auto bg-orange-500 text-white">
+          {users.length}
+        </Badge>
 
-          <Button onClick={loadUsers} variant="outline">
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Оновити
-          </Button>
+          
         </div>
 
         {/* SEARCH */}

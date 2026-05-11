@@ -33,29 +33,29 @@ export default function AdminDashboard() {
   }, []);
 
   const loadDashboard = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const [ordersRes, servicesRes, reviewsRes, usersRes] =
-      await Promise.all([
-        api.get("/Orders/Order"),
-        api.get("/Catalog/Service"),
-        api.get("/Reviews"),
-        api.get("/users"),
-      ]);
+      const [ordersRes, servicesRes, reviewsRes, usersRes] =
+        await Promise.all([
+          api.get("/Orders/Order"),
+          api.get("/Catalog/Service"),
+          api.get("/Reviews"),
+          api.get("/users"),
+        ]);
 
-    setStats({
-      orders: ordersRes.data.length || 0,
-      services: servicesRes.data.length || 0,
-      reviews: reviewsRes.data.length || 0,
-      users: usersRes.data.length || 0, 
-    });
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+      setStats({
+        orders: ordersRes.data?.length || 0,
+        services: servicesRes.data?.length || 0,
+        reviews: reviewsRes.data?.length || 0,
+        users: usersRes.data?.length || 0,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const cards = [
     {
@@ -63,49 +63,47 @@ export default function AdminDashboard() {
       value: stats.orders,
       icon: ClipboardList,
       to: "/admin/orders",
-      color: "text-orange-500",
+      accent: "text-orange-500",
     },
-
     {
       title: "Послуги",
       value: stats.services,
       icon: Package,
       to: "/admin/services",
-      color: "text-green-500",
+      accent: "text-green-500",
     },
-
     {
       title: "Відгуки",
       value: stats.reviews,
       icon: Star,
       to: "/admin/reviews",
-      color: "text-yellow-500",
+      accent: "text-yellow-500",
     },
-
     {
       title: "Користувачі",
       value: stats.users,
       icon: Users,
       to: "/admin/users",
-      color: "text-blue-500",
+      accent: "text-blue-500",
     },
   ];
 
   if (loading) {
     return (
-      <div className="container py-20 text-center">
+      <div className="container py-20 text-center text-orange-500">
         Завантаження...
       </div>
     );
   }
 
   return (
-    <div className="container py-8">
+    <div className="container py-10 max-w-6xl">
+
       {/* HEADER */}
       <div className="flex items-center gap-4 mb-8">
         <Link
           to="/"
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-orange-500 transition"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -117,20 +115,20 @@ export default function AdminDashboard() {
 
       {/* STATS */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {cards.map((card) => (
-          <Link key={card.to} to={card.to}>
-            <Card className="hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer">
+        {cards.map((c) => (
+          <Link key={c.to} to={c.to}>
+            <Card className="border hover:shadow-md hover:border-orange-300 transition cursor-pointer">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  {card.title}
+                  {c.title}
                 </CardTitle>
 
-                <card.icon className={`h-5 w-5 ${card.color}`} />
+                <c.icon className={`h-5 w-5 ${c.accent}`} />
               </CardHeader>
 
               <CardContent>
-                <div className="text-3xl font-bold">
-                  {card.value}
+                <div className="text-3xl font-bold text-foreground">
+                  {c.value}
                 </div>
               </CardContent>
             </Card>
@@ -138,51 +136,42 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* INFO */}
-      <div className="mt-10 grid gap-4 md:grid-cols-2">
-        <Card>
+      {/* QUICK ACTIONS + INFO */}
+      <div className="mt-10 grid gap-6 md:grid-cols-2">
+
+        <Card className="border">
           <CardHeader>
-            <CardTitle>
-              Швидкі дії
-            </CardTitle>
+            <CardTitle>Швидкі дії</CardTitle>
           </CardHeader>
 
           <CardContent className="flex flex-wrap gap-3">
             <Link to="/admin/orders">
-              <button className="px-4 py-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/90">
+              <button className="px-4 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 transition">
                 Замовлення
               </button>
             </Link>
 
             <Link to="/admin/services">
-              <button className="px-4 py-2 rounded-md border hover:bg-muted">
+              <button className="px-4 py-2 rounded-md border hover:bg-muted transition">
                 Послуги
               </button>
             </Link>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border">
           <CardHeader>
-            <CardTitle>
-              Статистика
-            </CardTitle>
+            <CardTitle>Статистика</CardTitle>
           </CardHeader>
 
           <CardContent className="space-y-2 text-sm text-muted-foreground">
-            <p>
-              • Замовлень: {stats.orders}
-            </p>
-
-            <p>
-              • Послуг: {stats.services}
-            </p>
-
-            <p>
-              • Відгуків: {stats.reviews}
-            </p>
+            <p>Замовлень: <span className="text-foreground font-medium">{stats.orders}</span></p>
+            <p>Послуг: <span className="text-foreground font-medium">{stats.services}</span></p>
+            <p>Відгуків: <span className="text-foreground font-medium">{stats.reviews}</span></p>
+            <p>Користувачів: <span className="text-foreground font-medium">{stats.users}</span></p>
           </CardContent>
         </Card>
+
       </div>
     </div>
   );

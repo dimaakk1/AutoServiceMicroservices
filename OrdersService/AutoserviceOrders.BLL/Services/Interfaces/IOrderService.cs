@@ -17,5 +17,6 @@ namespace AutoserviceOrders.BLL.Services.Interfaces
         Task<bool> DeleteOrderAsync(int orderId);
         Task<bool> ConfirmOrderAsync(int orderId);
         Task<IEnumerable<OrderDto>> GetMyOrdersAsync(string userId);
+        Task<List<string>> GetTakenSlotsAsync(DateTime date);
     }
 }

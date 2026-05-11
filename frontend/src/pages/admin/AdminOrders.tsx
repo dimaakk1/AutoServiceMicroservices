@@ -1,9 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../lib/auth-context";
 
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
+import { Calendar } from "../../components/ui/calendar";
+
 import {
   Select,
   SelectContent,
@@ -59,11 +61,21 @@ export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+
   const [filters, setFilters] = useState({
     status: "",
     fromDate: "",
     toDate: "",
   });
+
+  const statuses = [
+    "Pending",
+    "Confirmed",
+    "InProgress",
+    "Completed",
+    "Cancelled",
+  ];
 
   /* ================= LOAD ================= */
 
@@ -91,7 +103,7 @@ export default function AdminOrders() {
     if (user?.role === "Admin") loadOrders();
   }, [user, filters]);
 
-  /* ================= STATUS UPDATE ================= */
+  /* ================= UPDATE STATUS ================= */
 
   const updateStatus = async (orderId: number, status: string) => {
     try {
@@ -118,15 +130,14 @@ export default function AdminOrders() {
   const totalPrice = (order: Order) =>
     order.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  const statuses = [
-    "Pending",
-    "Confirmed",
-    "InProgress",
-    "Completed",
-    "Cancelled",
-  ];
+  const filteredByDate = selectedDate
+    ? orders.filter((o) => {
+        const d = new Date(o.orderDate);
+        return d.toDateString() === selectedDate.toDateString();
+      })
+    : [];
 
-  /* ================= ACCESS ================= */
+  /* ================= GUARD ================= */
 
   if (!user || user.role !== "Admin") {
     return (
@@ -137,22 +148,29 @@ export default function AdminOrders() {
   }
 
   if (loading) {
-    return <div className="container py-10">Завантаження...</div>;
+    return (
+      <div className="container py-10 text-center text-orange-500">
+        Завантаження...
+      </div>
+    );
   }
 
   /* ================= UI ================= */
 
   return (
-    <div className="container py-8">
+    <div className="container py-8 max-w-6xl">
 
       {/* HEADER */}
       <div className="flex items-center gap-4 mb-6">
-        <Link to="/admin" className="text-orange-500 hover:text-orange-600">
+        <Link
+          to="/admin"
+          className="text-muted-foreground hover:text-orange-500 transition"
+        >
           <ArrowLeft className="h-5 w-5" />
         </Link>
 
-        <h1 className="text-2xl font-bold text-orange-500">
-          Усі замовлення
+        <h1 className="text-3xl font-bold">
+          Замовлення
         </h1>
 
         <Badge className="ml-auto bg-orange-500 text-white">
@@ -160,12 +178,11 @@ export default function AdminOrders() {
         </Badge>
       </div>
 
-      {/* ================= FILTERS ================= */}
-      <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 flex flex-wrap gap-3">
+      {/* FILTERS */}
+      <div className="bg-card border rounded-xl p-4 mb-6 flex flex-wrap gap-3">
 
-        {/* STATUS */}
         <select
-          className="border border-orange-200 p-2 rounded-lg"
+          className="border rounded-lg px-3 py-2 text-sm"
           value={filters.status}
           onChange={(e) =>
             setFilters({ ...filters, status: e.target.value })
@@ -179,20 +196,18 @@ export default function AdminOrders() {
           ))}
         </select>
 
-        {/* FROM DATE */}
         <input
           type="date"
-          className="border border-orange-200 p-2 rounded-lg"
+          className="border rounded-lg px-3 py-2 text-sm"
           value={filters.fromDate}
           onChange={(e) =>
             setFilters({ ...filters, fromDate: e.target.value })
           }
         />
 
-        {/* TO DATE */}
         <input
           type="date"
-          className="border border-orange-200 p-2 rounded-lg"
+          className="border rounded-lg px-3 py-2 text-sm"
           value={filters.toDate}
           onChange={(e) =>
             setFilters({ ...filters, toDate: e.target.value })
@@ -200,8 +215,97 @@ export default function AdminOrders() {
         />
       </div>
 
-      {/* ================= TABLE ================= */}
-      <div className="rounded-xl border border-orange-200 overflow-hidden shadow-sm">
+      {/* CALENDAR SECTION */}
+      <div className="grid lg:grid-cols-[320px_1fr] gap-6 mb-6">
+
+        {/* CALENDAR */}
+        <div className="border rounded-xl p-4 bg-card">
+          <h2 className="font-semibold mb-3">
+            Календар записів
+          </h2>
+
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            className="rounded-md border"
+          />
+        </div>
+
+        {/* DAY VIEW */}
+<div className="border rounded-xl p-4 bg-card">
+  <h2 className="font-semibold mb-3">
+    Записи на обрану дату
+  </h2>
+
+  {!selectedDate ? (
+    <p className="text-muted-foreground">
+      Оберіть дату
+    </p>
+  ) : filteredByDate.length === 0 ? (
+    <p className="text-muted-foreground">
+      Немає записів
+    </p>
+  ) : (
+    <div className="space-y-3">
+      {filteredByDate.map((o) => (
+        <div
+          key={o.orderId}
+          className="border rounded-lg p-3 flex justify-between items-center"
+        >
+          {/* LEFT INFO */}
+          <div>
+            <div className="font-medium">
+              #{o.orderId} — {o.username}
+            </div>
+
+            <div className="text-sm text-muted-foreground">
+              {o.items.map(i => i.productName).join(", ")}
+            </div>
+          </div>
+
+          {/* RIGHT INFO */}
+          <div className="flex items-center gap-4">
+
+            <div className="text-right">
+              <div className="font-semibold">
+                {new Date(o.orderDate).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </div>
+
+            {/* 🔥 STATUS EDIT */}
+            <Select
+              value={o.status}
+              onValueChange={(v) =>
+                updateStatus(o.orderId, v)
+              }
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+
+              <SelectContent>
+                {statuses.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
+      </div>
+
+      {/* TABLE */}
+      <div className="border rounded-xl overflow-hidden shadow-sm">
 
         <Table>
           <TableHeader className="bg-orange-500">
@@ -209,7 +313,7 @@ export default function AdminOrders() {
               <TableHead className="text-white">ID</TableHead>
               <TableHead className="text-white">Користувач</TableHead>
               <TableHead className="text-white">Дата</TableHead>
-              <TableHead className="text-white">Замовлення</TableHead>
+              <TableHead className="text-white">Послуги</TableHead>
               <TableHead className="text-white">Сума</TableHead>
               <TableHead className="text-white">Відгук</TableHead>
               <TableHead className="text-white">Статус</TableHead>
@@ -218,53 +322,46 @@ export default function AdminOrders() {
 
           <TableBody>
             {orders.map((order) => (
-              <TableRow key={order.orderId} className="hover:bg-orange-50">
+              <TableRow
+                key={order.orderId}
+                className="hover:bg-muted/40 transition"
+              >
 
-                {/* ID */}
-                <TableCell className="font-bold text-orange-600">
+                <TableCell className="font-semibold text-orange-600">
                   #{order.orderId}
                 </TableCell>
 
-                {/* USER */}
                 <TableCell>
-                  <div>
-                    <div className="font-medium">
-                      {order.username}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {order.email}
-                    </div>
+                  <div className="font-medium">{order.username}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {order.email}
                   </div>
                 </TableCell>
 
-                {/* DATE */}
                 <TableCell>
                   {new Date(order.orderDate).toLocaleString()}
                 </TableCell>
 
-                {/* ITEMS */}
-                <TableCell>
-                  {order.items.map((i, idx) => (
-                    <div key={idx} className="text-sm">
+                <TableCell className="text-sm space-y-1">
+                  {order.items.map((i) => (
+                    <div key={i.productId}>
                       {i.productName} × {i.quantity}
                     </div>
                   ))}
                 </TableCell>
 
-                {/* TOTAL */}
                 <TableCell className="font-semibold">
                   {totalPrice(order).toFixed(2)} ₴
                 </TableCell>
 
-                {/* REVIEW */}
-                <TableCell>
+                <TableCell className="text-sm">
                   {order.review ? (
-                    <div className="text-sm">
-                      ⭐ {order.review.rating}
+                    <>
+                      <div>⭐ {order.review.rating}</div>
                       <div className="text-xs text-muted-foreground">
                         {order.review.comment}
                       </div>
-                    </div>
+                    </>
                   ) : (
                     <span className="text-muted-foreground">
                       Немає
@@ -272,7 +369,6 @@ export default function AdminOrders() {
                   )}
                 </TableCell>
 
-                {/* STATUS */}
                 <TableCell>
                   <Select
                     value={order.status}
@@ -280,7 +376,7 @@ export default function AdminOrders() {
                       updateStatus(order.orderId, v)
                     }
                   >
-                    <SelectTrigger className="w-[150px]">
+                    <SelectTrigger className="w-[140px]">
                       <SelectValue />
                     </SelectTrigger>
 
@@ -300,6 +396,7 @@ export default function AdminOrders() {
 
         </Table>
       </div>
+
     </div>
   );
 }

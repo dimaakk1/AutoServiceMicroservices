@@ -98,7 +98,6 @@ namespace AutoServiceUsers.API.Controllers
         // 🔥 ADMIN PANEL
         // =========================
 
-        // 🔹 GET ALL USERS
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public IActionResult GetAll()
@@ -108,7 +107,11 @@ namespace AutoServiceUsers.API.Controllers
                 {
                     UserId = u.Id,
                     Username = u.UserName,
-                    Email = u.Email
+                    Email = u.Email,
+
+                    IsBlocked =
+                        u.LockoutEnd != null &&
+                        u.LockoutEnd > DateTimeOffset.UtcNow
                 })
                 .ToList();
 
@@ -129,7 +132,11 @@ namespace AutoServiceUsers.API.Controllers
             {
                 UserId = user.Id,
                 Username = user.UserName,
-                Email = user.Email
+                Email = user.Email,
+
+                IsBlocked =
+        user.LockoutEnd != null &&
+        user.LockoutEnd > DateTimeOffset.UtcNow
             });
         }
 

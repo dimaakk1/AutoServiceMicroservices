@@ -1,5 +1,10 @@
 import api from "./api";
 
+export const getTakenSlots = (date: string) =>
+  api.get("/Orders/Order/taken-slots", {
+    params: { date },
+  });
+
 export const getOrdersWithItems = () => {
   return api.get("/Orders/OrderItem/with-items");
 };

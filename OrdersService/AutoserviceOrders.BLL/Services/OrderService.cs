@@ -33,16 +33,40 @@ namespace AutoserviceOrders.BLL.Services
             var order = _mapper.Map<Order>(orderDto);
 
             await _unitOfWork.BeginTransactionAsync();
+
             try
             {
+                // =========================
+                // CHECK SLOT
+                // =========================
+
+                var existingOrders = await _unitOfWork.Orders.GetAllAsync();
+
+                var isTaken = existingOrders.Any(o =>
+                    o.Status != "Cancelled" &&
+                    o.OrderDate.Date == order.OrderDate.Date &&
+                    o.OrderDate.Hour == order.OrderDate.Hour &&
+                    o.OrderDate.Minute == order.OrderDate.Minute
+                );
+
+                if (isTaken)
+                {
+                    throw new Exception("Цей час вже зайнятий");
+                }
+
+                // =========================
+                // CREATE
+                // =========================
+
                 var newId = await _unitOfWork.Orders.AddAsync(order);
+
                 await _unitOfWork.CommitAsync();
+
                 order.OrderId = newId;
 
-                // Інвалідація кешу після створення нового замовлення
+                // invalidate cache
                 await _ordersCache.InvalidateAsync("orders:all");
                 await _ordersCache.InvalidateAsync($"order:{order.OrderId}");
-
 
                 return newId;
             }
@@ -181,6 +205,24 @@ namespace AutoserviceOrders.BLL.Services
             return _mapper.Map<List<OrderDto>>(orders);
         }
 
+
+        public async Task<List<string>> GetTakenSlotsAsync(DateTime date)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            var orders = await _unitOfWork.Orders.GetAllAsync();
+
+            await _unitOfWork.CommitAsync();
+
+            return orders
+                .Where(o =>
+                    o.Status != "Cancelled" &&
+                    o.OrderDate.Date == date.Date
+                )
+                .Select(o => o.OrderDate.ToString("HH:mm"))
+                .Distinct()
+                .ToList();
+        }
 
 
 

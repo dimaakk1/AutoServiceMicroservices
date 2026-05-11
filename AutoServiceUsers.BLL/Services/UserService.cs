@@ -33,7 +33,12 @@ namespace AutoServiceUsers.BLL.Services
             {
                 UserId = user.Id,
                 Username = user.UserName,
-                Email = user.Email
+                Email = user.Email,
+
+                // 🔥 BLOCK STATUS
+                IsBlocked =
+                    user.LockoutEnd != null &&
+                    user.LockoutEnd > DateTimeOffset.UtcNow
             };
         }
 
@@ -48,7 +53,13 @@ namespace AutoServiceUsers.BLL.Services
             {
                 UserId = user.Id,
                 Username = user.UserName,
-                Email = user.Email
+                Email = user.Email,
+
+                // 🔥 BLOCK STATUS
+                IsBlocked =
+                    user.LockoutEnd != null &&
+                    user.LockoutEnd > DateTimeOffset.UtcNow
+
             }).ToList();
         }
 
@@ -69,7 +80,7 @@ namespace AutoServiceUsers.BLL.Services
         }
 
         // =======================
-        // BLOCK / UNBLOCK USER (optional but useful)
+        // BLOCK USER
         // =======================
         public async Task BlockUserAsync(string userId)
         {
@@ -78,11 +89,17 @@ namespace AutoServiceUsers.BLL.Services
             if (user == null)
                 throw new Exception("User not found");
 
-            user.LockoutEnd = DateTimeOffset.UtcNow.AddYears(100);
+            user.LockoutEnabled = true;
+
+            user.LockoutEnd =
+                DateTimeOffset.UtcNow.AddYears(100);
 
             await _userManager.UpdateAsync(user);
         }
 
+        // =======================
+        // UNBLOCK USER
+        // =======================
         public async Task UnblockUserAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
