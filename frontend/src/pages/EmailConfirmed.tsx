@@ -19,7 +19,6 @@ export default function EmailConfirmed() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
-  // захист від double render (React StrictMode)
   const hasRun = useRef(false);
 
   useEffect(() => {
@@ -28,8 +27,7 @@ export default function EmailConfirmed() {
 
     const statusFromUrl = params.get("status");
 
-    // 🔥 ВАЖЛИВО: ти тепер НЕ робиш API виклик
-    // backend вже все зробив і просто передав статус
+
 
     if (statusFromUrl === "success") {
       setStatus("success");
@@ -43,7 +41,6 @@ export default function EmailConfirmed() {
 
       <div className="w-full max-w-md">
 
-        {/* ICON */}
         <div className="flex justify-center mb-6">
           <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg">
             <Wrench className="h-8 w-8 text-white" />
@@ -53,7 +50,6 @@ export default function EmailConfirmed() {
         <Card className="rounded-3xl border shadow-xl">
           <CardContent className="p-8 text-center space-y-5">
 
-            {/* LOADING (майже не використовується, але залишаємо UX) */}
             {status === "loading" && (
               <>
                 <Loader2 className="h-10 w-10 animate-spin text-orange-500 mx-auto" />
@@ -68,7 +64,6 @@ export default function EmailConfirmed() {
               </>
             )}
 
-            {/* SUCCESS */}
             {status === "success" && (
               <>
                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
@@ -90,7 +85,6 @@ export default function EmailConfirmed() {
               </>
             )}
 
-            {/* ERROR */}
             {status === "error" && (
               <>
                 <XCircle className="h-12 w-12 text-red-500 mx-auto" />

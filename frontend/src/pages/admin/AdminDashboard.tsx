@@ -99,7 +99,6 @@ export default function AdminDashboard() {
   return (
     <div className="container py-10 max-w-6xl">
 
-      {/* HEADER */}
       <div className="flex items-center gap-4 mb-8">
         <Link
           to="/"
@@ -113,7 +112,6 @@ export default function AdminDashboard() {
         </h1>
       </div>
 
-      {/* STATS */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <Link key={c.to} to={c.to}>
@@ -136,7 +134,6 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* QUICK ACTIONS + INFO */}
       <div className="mt-10 grid gap-6 md:grid-cols-2">
 
         <Card className="border">

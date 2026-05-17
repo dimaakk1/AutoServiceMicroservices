@@ -48,7 +48,6 @@ const timeSlots = [
   "17:00",
 ];
 
-/* ================= PAGE ================= */
 
 export default function Booking() {
   const { user } = useAuth();
@@ -74,7 +73,6 @@ export default function Booking() {
 
   const [submitting, setSubmitting] = useState(false);
 
-  /* ================= LOAD ================= */
 
   useEffect(() => {
     getServices()
@@ -83,7 +81,6 @@ export default function Booking() {
       .finally(() => setLoading(false));
   }, []);
 
-  /* ================= TAKEN SLOTS ================= */
 
 useEffect(() => {
   if (!selectedDate) return;
@@ -103,19 +100,16 @@ useEffect(() => {
   setSelectedTime("");
 }, [selectedDate]);
 
-  /* ================= SELECTED ================= */
 
   const selectedService = useMemo(() => {
     return services.find((s) => s.serviceId === selectedServiceId);
   }, [selectedServiceId, services]);
 
-  /* ================= HELPERS ================= */
 
   const isSlotTaken = (time: string) => {
     return takenSlots.includes(time);
   };
 
-  /* ================= AUTH ================= */
 
   if (!user) {
     return (
@@ -138,7 +132,6 @@ useEffect(() => {
     );
   }
 
-  /* ================= CONFIRM ================= */
 
 const handleConfirm = async () => {
   if (!selectedService || !selectedDate || !selectedTime) return;
@@ -181,7 +174,6 @@ const handleConfirm = async () => {
   }
 };
 
-  /* ================= LOADING ================= */
 
   if (loading) {
     return (
@@ -191,7 +183,6 @@ const handleConfirm = async () => {
     );
   }
 
-  /* ================= UI ================= */
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -212,7 +203,6 @@ const handleConfirm = async () => {
           </p>
         </div>
 
-        {/* STEPPER */}
         <div className="flex items-center gap-3 mb-10 flex-wrap">
           {steps.map((s, i) => (
             <div key={s} className="flex items-center">
@@ -241,7 +231,6 @@ const handleConfirm = async () => {
           ))}
         </div>
 
-        {/* STEP 1 */}
         {step === 0 && (
           <div>
 
@@ -310,14 +299,11 @@ const handleConfirm = async () => {
           </div>
         )}
 
-        {/* STEP 2 */}
         {step === 1 && (
           <div className="grid lg:grid-cols-[1fr_320px] gap-6">
 
-            {/* LEFT */}
             <div className="space-y-6">
 
-              {/* DATE */}
               <Card className="shadow-sm border-orange-100">
                 <CardContent className="p-6">
 
@@ -350,7 +336,6 @@ const handleConfirm = async () => {
                 </CardContent>
               </Card>
 
-              {/* TIME */}
               <Card className="shadow-sm border-orange-100">
                 <CardContent className="p-6">
 
@@ -400,7 +385,6 @@ const handleConfirm = async () => {
 
             </div>
 
-            {/* RIGHT */}
             <div>
               <Card className="shadow-sm border-orange-100 sticky top-24">
                 <CardContent className="p-6">

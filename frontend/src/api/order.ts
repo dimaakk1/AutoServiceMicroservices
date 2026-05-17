@@ -9,7 +9,6 @@ export const getOrdersWithItems = () => {
   return api.get("/Orders/OrderItem/with-items");
 };
 
-// створити замовлення
 export const createOrder = (data: {
   orderDate: string;
   status: string;
@@ -21,7 +20,6 @@ export const createOrder = (data: {
   });
 };
 
-// додати послугу в замовлення
 export const addOrderItem = (data: {
   orderId: number;
   productId: number;

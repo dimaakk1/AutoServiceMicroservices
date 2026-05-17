@@ -36,19 +36,16 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [savingPass, setSavingPass] = useState(false);
 
-  // PROFILE
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [fullName, setFullName] = useState("");
 
-  // PASSWORD
   const [currentPassword, setCurrentPassword] =
     useState("");
 
   const [newPassword, setNewPassword] =
     useState("");
 
-  // LOAD PROFILE
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -73,7 +70,6 @@ export default function Profile() {
     fetchProfile();
   }, [navigate]);
 
-  // SAVE PROFILE
   const handleSave = async (
     e: React.FormEvent
   ) => {
@@ -101,7 +97,6 @@ export default function Profile() {
     }
   };
 
-  // CHANGE PASSWORD
   const handleChangePassword = async (
     e: React.FormEvent
   ) => {
@@ -132,7 +127,6 @@ export default function Profile() {
     }
   };
 
-  // LOADING
   if (loading) {
     return (
       <div className="container py-24 text-center">
@@ -147,7 +141,6 @@ export default function Profile() {
     <div className="min-h-screen bg-muted/30">
       <div className="container max-w-5xl py-12">
 
-        {/* HEADER */}
         <div className="mb-10">
           <h1 className="text-4xl font-bold tracking-tight mb-2">
             Мій профіль
@@ -160,10 +153,8 @@ export default function Profile() {
 
         <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
 
-          {/* LEFT SIDE */}
           <div className="space-y-8">
 
-            {/* PROFILE CARD */}
             <Card className="rounded-2xl border shadow-sm">
               <CardHeader className="border-b bg-muted/30 rounded-t-2xl">
                 <div className="flex items-center gap-3">
@@ -189,7 +180,6 @@ export default function Profile() {
                   className="space-y-5"
                 >
 
-                  {/* EMAIL */}
                   <div className="space-y-2">
                     <Label>Email</Label>
 
@@ -204,7 +194,6 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {/* USERNAME */}
                   <div className="space-y-2">
                     <Label>Username</Label>
 
@@ -224,7 +213,6 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {/* FULLNAME */}
                   <div className="space-y-2">
                     <Label>Повне ім’я</Label>
 
@@ -259,7 +247,6 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            {/* PASSWORD CARD */}
             <Card className="rounded-2xl border shadow-sm">
               <CardHeader className="border-b bg-muted/30 rounded-t-2xl">
                 <div className="flex items-center gap-3">
@@ -285,7 +272,6 @@ export default function Profile() {
                   className="space-y-5"
                 >
 
-                  {/* CURRENT PASSWORD */}
                   <div className="space-y-2">
                     <Label>
                       Поточний пароль
@@ -303,7 +289,6 @@ export default function Profile() {
                     />
                   </div>
 
-                  {/* NEW PASSWORD */}
                   <div className="space-y-2">
                     <Label>
                       Новий пароль
@@ -337,10 +322,8 @@ export default function Profile() {
             </Card>
           </div>
 
-          {/* RIGHT SIDE */}
           <div className="space-y-6">
 
-            {/* USER CARD */}
             <Card className="rounded-2xl border shadow-sm overflow-hidden">
               <div className="h-24 bg-gradient-to-r from-orange-500 to-orange-400" />
 
@@ -372,7 +355,6 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            {/* INFO */}
             <Card className="rounded-2xl border shadow-sm">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-lg mb-4">

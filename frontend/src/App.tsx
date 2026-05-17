@@ -34,7 +34,6 @@ export default function App() {
           />
 
           <Routes>
-            {/* PUBLIC */}
             <Route path="/" element={<Index />} />
 
             <Route
@@ -56,7 +55,6 @@ export default function App() {
               element={<EmailConfirmed />}
             />
 
-            {/* USER */}
             <Route
               path="/booking"
               element={

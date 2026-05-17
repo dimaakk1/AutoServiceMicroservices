@@ -35,7 +35,6 @@ export default function Services() {
     loadAll();
   }, []);
 
-  /* ================= LOAD ================= */
 
   const loadAll = async () => {
     try {
@@ -51,7 +50,6 @@ export default function Services() {
     }
   };
 
-  /* ================= SEARCH ================= */
 
   const handleSearch = async () => {
     try {
@@ -69,7 +67,6 @@ export default function Services() {
     }
   };
 
-  /* ================= PRICE FILTERS ================= */
 
   const handleAbove = async () => {
     try {
@@ -99,7 +96,6 @@ export default function Services() {
     }
   };
 
-  /* ================= UI ================= */
 
   if (loading) {
     return (
@@ -114,7 +110,6 @@ export default function Services() {
 
       <div className="container py-12">
 
-        {/* ================= HEADER ================= */}
         <div className="mb-10">
 
           <h1 className="text-4xl font-bold mb-4">
@@ -128,7 +123,6 @@ export default function Services() {
 
         </div>
 
-        {/* ================= FILTER PANEL ================= */}
         <Card className="mb-10 shadow-sm">
           <CardContent className="p-5">
 
@@ -142,7 +136,6 @@ export default function Services() {
 
             <div className="flex flex-wrap gap-3">
 
-              {/* SEARCH */}
               <div className="relative min-w-[240px] flex-1">
 
                 <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
@@ -162,7 +155,6 @@ export default function Services() {
                 Пошук
               </Button>
 
-              {/* PRICE */}
               <Input
                 type="number"
                 placeholder="Ціна"
@@ -200,7 +192,6 @@ export default function Services() {
           </CardContent>
         </Card>
 
-        {/* ================= SERVICES ================= */}
         {services.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-14 text-center text-muted-foreground">
@@ -217,22 +208,18 @@ export default function Services() {
               >
                 <CardContent className="p-6 flex flex-col h-full">
 
-                  {/* ICON */}
                   <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center mb-5">
                     <Wrench className="h-6 w-6 text-orange-500" />
                   </div>
 
-                  {/* TITLE */}
                   <h3 className="text-xl font-semibold mb-2">
                     {service.name}
                   </h3>
 
-                  {/* CATEGORY */}
                   <p className="text-sm text-muted-foreground mb-4">
                     {service.categoryName}
                   </p>
 
-                  {/* PRICE */}
                   <div className="mt-auto mb-5">
 
                     <p className="text-sm text-muted-foreground mb-1">
@@ -245,7 +232,6 @@ export default function Services() {
 
                   </div>
 
-                  {/* BUTTON */}
                   <Link to={`/booking?service=${service.serviceId}`}>
                     <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
                       Записатися

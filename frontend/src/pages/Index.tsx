@@ -14,7 +14,6 @@ export default function Index() {
   return (
     <div className="bg-background">
 
-      {/* ================= HERO ================= */}
       <section className="relative h-[70vh] min-h-[520px] flex items-center overflow-hidden">
 
         <img
@@ -59,7 +58,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* ================= FEATURES ================= */}
       <section className="py-20">
         <div className="container">
 
@@ -92,7 +90,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* ================= CTA ================= */}
       <section className="bg-primary text-primary-foreground py-16">
         <div className="container text-center">
 

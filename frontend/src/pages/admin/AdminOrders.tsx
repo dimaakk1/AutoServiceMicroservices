@@ -26,7 +26,6 @@ import {
 import { toast } from "sonner";
 import api from "../../api/api";
 
-/* ================= TYPES ================= */
 
 type Review = {
   _id: string;
@@ -53,7 +52,6 @@ type Order = {
   review: Review | null;
 };
 
-/* ================= PAGE ================= */
 
 export default function AdminOrders() {
   const { user } = useAuth();
@@ -77,7 +75,6 @@ export default function AdminOrders() {
     "Cancelled",
   ];
 
-  /* ================= LOAD ================= */
 
   const loadOrders = async () => {
     try {
@@ -103,7 +100,6 @@ export default function AdminOrders() {
     if (user?.role === "Admin") loadOrders();
   }, [user, filters]);
 
-  /* ================= UPDATE STATUS ================= */
 
   const updateStatus = async (orderId: number, status: string) => {
     try {
@@ -125,7 +121,6 @@ export default function AdminOrders() {
     }
   };
 
-  /* ================= HELPERS ================= */
 
   const totalPrice = (order: Order) =>
     order.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -137,7 +132,6 @@ export default function AdminOrders() {
       })
     : [];
 
-  /* ================= GUARD ================= */
 
   if (!user || user.role !== "Admin") {
     return (
@@ -155,12 +149,10 @@ export default function AdminOrders() {
     );
   }
 
-  /* ================= UI ================= */
 
   return (
     <div className="container py-8 max-w-6xl">
 
-      {/* HEADER */}
       <div className="flex items-center gap-4 mb-6">
         <Link
           to="/admin"
@@ -178,7 +170,6 @@ export default function AdminOrders() {
         </Badge>
       </div>
 
-      {/* FILTERS */}
       <div className="bg-card border rounded-xl p-4 mb-6 flex flex-wrap gap-3">
 
         <select
@@ -215,10 +206,8 @@ export default function AdminOrders() {
         />
       </div>
 
-      {/* CALENDAR SECTION */}
       <div className="grid lg:grid-cols-[320px_1fr] gap-6 mb-6">
 
-        {/* CALENDAR */}
         <div className="border rounded-xl p-4 bg-card">
           <h2 className="font-semibold mb-3">
             Календар записів
@@ -232,7 +221,6 @@ export default function AdminOrders() {
           />
         </div>
 
-        {/* DAY VIEW */}
 <div className="border rounded-xl p-4 bg-card">
   <h2 className="font-semibold mb-3">
     Записи на обрану дату
@@ -253,7 +241,6 @@ export default function AdminOrders() {
           key={o.orderId}
           className="border rounded-lg p-3 flex justify-between items-center"
         >
-          {/* LEFT INFO */}
           <div>
             <div className="font-medium">
               #{o.orderId} — {o.username}
@@ -264,7 +251,6 @@ export default function AdminOrders() {
             </div>
           </div>
 
-          {/* RIGHT INFO */}
           <div className="flex items-center gap-4">
 
             <div className="text-right">
@@ -276,7 +262,6 @@ export default function AdminOrders() {
               </div>
             </div>
 
-            {/* 🔥 STATUS EDIT */}
             <Select
               value={o.status}
               onValueChange={(v) =>
@@ -304,7 +289,6 @@ export default function AdminOrders() {
 </div>
       </div>
 
-      {/* TABLE */}
       <div className="border rounded-xl overflow-hidden shadow-sm">
 
         <Table>

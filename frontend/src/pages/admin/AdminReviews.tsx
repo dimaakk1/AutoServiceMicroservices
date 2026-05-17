@@ -9,7 +9,6 @@ import { Input } from "../../components/ui/input";
 import { Star, Trash2, MessageSquare, User, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
-/* ================= TYPES ================= */
 
 type Review = {
   _id: string;
@@ -36,7 +35,6 @@ type OrderReview = {
   review: Review;
 };
 
-/* ================= STAR ================= */
 
 function StarRating({ value }: { value: number }) {
   return (
@@ -55,7 +53,6 @@ function StarRating({ value }: { value: number }) {
   );
 }
 
-/* ================= PAGE ================= */
 
 export default function ReviewsAdmin() {
   const [reviews, setReviews] = useState<OrderReview[]>([]);
@@ -64,7 +61,6 @@ export default function ReviewsAdmin() {
   const [search, setSearch] = useState("");
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
 
-  /* ================= LOAD ================= */
 
   const load = async () => {
     try {
@@ -82,7 +78,6 @@ export default function ReviewsAdmin() {
     load();
   }, []);
 
-  /* ================= DELETE ================= */
 
   const deleteReview = async (id: string) => {
     try {
@@ -94,7 +89,6 @@ export default function ReviewsAdmin() {
     }
   };
 
-  /* ================= FILTER ================= */
 
   const filtered = useMemo(() => {
     return reviews.filter((r) => {
@@ -109,7 +103,6 @@ export default function ReviewsAdmin() {
     });
   }, [reviews, search, ratingFilter]);
 
-  /* ================= UI ================= */
 
   if (loading) {
     return (
@@ -122,7 +115,6 @@ export default function ReviewsAdmin() {
   return (
     <div className="container py-8 max-w-5xl">
 
-      {/* HEADER */}
       <div className="flex items-center gap-4 mb-6">
 
         <Link
@@ -142,7 +134,6 @@ export default function ReviewsAdmin() {
 
       </div>
 
-      {/* FILTERS */}
       <div className="flex flex-col md:flex-row gap-3 mb-6">
 
         <Input
@@ -177,7 +168,6 @@ export default function ReviewsAdmin() {
 
       </div>
 
-      {/* LIST */}
       <div className="space-y-4">
 
         {filtered.map((r) => (
@@ -185,7 +175,6 @@ export default function ReviewsAdmin() {
 
             <CardContent className="p-5">
 
-              {/* TOP */}
               <div className="flex justify-between mb-3">
 
                 <div className="flex items-center gap-3">
@@ -221,17 +210,14 @@ export default function ReviewsAdmin() {
 
               </div>
 
-              {/* SERVICE */}
               <p className="text-sm text-muted-foreground mb-1">
                 {r.items?.[0]?.productName || "Послуга"}
               </p>
 
-              {/* COMMENT */}
               <p className="text-sm">
                 {r.review.comment}
               </p>
 
-              {/* DATE */}
               <p className="text-xs text-muted-foreground mt-2">
                 {new Date(r.review.createdAt).toLocaleString("uk-UA")}
               </p>

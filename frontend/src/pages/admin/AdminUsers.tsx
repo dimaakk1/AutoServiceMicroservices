@@ -16,7 +16,6 @@ import {
   X,
 } from "lucide-react";
 
-/* ================= TYPES ================= */
 
 type UserDto = {
   userId: string;
@@ -41,7 +40,6 @@ type Order = {
   } | null;
 };
 
-/* ================= PAGE ================= */
 
 export default function UsersAdmin() {
   const [users, setUsers] = useState<UserDto[]>([]);
@@ -52,7 +50,6 @@ export default function UsersAdmin() {
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
-  /* ================= LOAD ================= */
 
   const loadUsers = async () => {
     try {
@@ -70,7 +67,6 @@ export default function UsersAdmin() {
     loadUsers();
   }, []);
 
-  /* ================= FILTER ================= */
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) =>
@@ -78,7 +74,6 @@ export default function UsersAdmin() {
     );
   }, [users, search]);
 
-  /* ================= ACTIONS ================= */
 
   const blockUser = async (id: string) => {
     try {
@@ -100,7 +95,6 @@ export default function UsersAdmin() {
     }
   };
 
-  /* ================= DETAILS ================= */
 
   const loadUserDetails = async (user: UserDto) => {
     try {
@@ -119,7 +113,6 @@ export default function UsersAdmin() {
     }
   };
 
-  /* ================= UI ================= */
 
   if (loading) {
     return (
@@ -134,7 +127,6 @@ export default function UsersAdmin() {
       <div className="container py-10 max-w-6xl">
         
 
-        {/* HEADER */}
         <div className="flex items-center gap-4 mb-6">
           <Link
           to="/admin"
@@ -154,7 +146,6 @@ export default function UsersAdmin() {
           
         </div>
 
-        {/* SEARCH */}
         <div className="relative mb-8">
           <Search className="absolute left-3 top-3 text-gray-400 h-4 w-4" />
 
@@ -166,7 +157,6 @@ export default function UsersAdmin() {
           />
         </div>
 
-        {/* USERS GRID */}
         <div className="grid md:grid-cols-2 gap-4">
 
           {filteredUsers.map((u) => (
@@ -178,7 +168,6 @@ export default function UsersAdmin() {
             >
               <CardContent className="p-5">
 
-                {/* TOP */}
                 <div className="flex justify-between items-start">
 
                   <div className="flex items-center gap-3">
@@ -209,7 +198,6 @@ export default function UsersAdmin() {
 
                 </div>
 
-                {/* ACTIONS */}
                 <div className="flex gap-2 mt-4">
 
                   <Button
@@ -249,21 +237,18 @@ export default function UsersAdmin() {
 
         </div>
 
-        {/* EMPTY */}
         {filteredUsers.length === 0 && (
           <div className="text-center mt-16 text-muted-foreground">
             Користувачів не знайдено
           </div>
         )}
 
-        {/* ================= MODAL ================= */}
 
         {selectedUser && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
 
             <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden">
 
-              {/* HEADER */}
               <div className="flex justify-between items-center p-5 border-b">
                 <div>
                   <h2 className="text-xl font-bold">
@@ -282,10 +267,8 @@ export default function UsersAdmin() {
                 </Button>
               </div>
 
-              {/* CONTENT */}
               <div className="p-5 space-y-4">
 
-                {/* STATS */}
                 <div className="grid grid-cols-3 gap-3">
 
                   <div className="bg-orange-50 rounded-xl p-3">
@@ -316,7 +299,6 @@ export default function UsersAdmin() {
 
                 </div>
 
-                {/* ORDERS */}
                 <div>
                   <h3 className="font-semibold mb-3">
                     Замовлення

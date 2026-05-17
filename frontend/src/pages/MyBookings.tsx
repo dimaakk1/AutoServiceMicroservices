@@ -139,7 +139,6 @@ export default function MyBookings() {
     <div className="min-h-screen bg-muted/30">
       <div className="container py-12 max-w-5xl">
 
-        {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-10">
 
           <div>
@@ -160,7 +159,6 @@ export default function MyBookings() {
           </Button>
         </div>
 
-        {/* EMPTY */}
         {orders.length === 0 ? (
           <div className="border rounded-2xl bg-card p-14 text-center shadow-sm">
 
@@ -234,7 +232,6 @@ export default function MyBookings() {
                           </div>
                         </div>
 
-                        {/* STATUS */}
                         <div
                           className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium ${status.className}`}
                         >
@@ -244,7 +241,6 @@ export default function MyBookings() {
                       </div>
                     </div>
 
-                    {/* ITEMS */}
                     <div className="p-6">
 
                       <div className="space-y-4">
@@ -272,7 +268,6 @@ export default function MyBookings() {
                         ))}
                       </div>
 
-                      {/* FOOTER */}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-8 pt-5 border-t">
 
                         <div>

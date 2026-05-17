@@ -36,7 +36,6 @@ export default function Auth() {
 
   const [loading, setLoading] = useState(false);
 
-  // ✅ NEW STATE FOR EMAIL VERIFICATION UX
   const [awaitingVerification, setAwaitingVerification] = useState(false);
 
   const { login } = useAuth();
@@ -52,7 +51,6 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      // LOGIN
       if (isLogin) {
         const res = await loginUser(username, password);
 
@@ -74,7 +72,6 @@ export default function Auth() {
         navigate("/");
       }
 
-      // REGISTER
       else {
         await registerUser(username, email, password);
 
@@ -82,10 +79,8 @@ export default function Auth() {
           "Реєстрація успішна! Перевір свою пошту для підтвердження акаунта"
         );
 
-        // ✅ SHOW EMAIL VERIFICATION STATE
         setAwaitingVerification(true);
 
-        // clear fields but DON'T switch to login
         setUsername("");
         setEmail("");
         setPassword("");
@@ -119,7 +114,6 @@ export default function Auth() {
 
       <div className="w-full max-w-5xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border bg-card shadow-xl">
 
-        {/* LEFT SIDE */}
         <div className="hidden lg:flex relative bg-gradient-to-br from-orange-500 to-orange-400 text-white p-12 flex-col justify-between">
 
           <div>
@@ -159,12 +153,10 @@ export default function Auth() {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
         <div className="p-8 md:p-12 flex items-center">
 
           <div className="w-full">
 
-            {/* HEADER */}
             <div className="mb-8">
               <h2 className="text-4xl font-bold tracking-tight mb-3">
                 {isLogin ? "Вхід" : "Реєстрація"}
@@ -177,7 +169,6 @@ export default function Auth() {
               </p>
             </div>
 
-            {/* EMAIL VERIFICATION INFO */}
             {awaitingVerification && (
               <div className="mb-5 p-4 rounded-xl bg-yellow-50 text-yellow-700 text-sm border border-yellow-200">
                 Ми надіслали лист для підтвердження email.
@@ -185,13 +176,11 @@ export default function Auth() {
               </div>
             )}
 
-            {/* FORM */}
             <Card className="border-0 shadow-none">
               <CardContent className="p-0">
 
                 <form onSubmit={handleSubmit} className="space-y-5">
 
-                  {/* USERNAME */}
                   <div className="space-y-2">
                     <Label>Ім’я користувача</Label>
 
@@ -208,7 +197,6 @@ export default function Auth() {
                     </div>
                   </div>
 
-                  {/* EMAIL */}
                   {!isLogin && (
                     <div className="space-y-2">
                       <Label>Email</Label>
@@ -228,7 +216,6 @@ export default function Auth() {
                     </div>
                   )}
 
-                  {/* PASSWORD */}
                   <div className="space-y-2">
                     <Label>Пароль</Label>
 
@@ -246,7 +233,6 @@ export default function Auth() {
                     </div>
                   </div>
 
-                  {/* BUTTON */}
                   <Button
                     type="submit"
                     disabled={loading}
@@ -261,7 +247,6 @@ export default function Auth() {
 
                 </form>
 
-                {/* SWITCH */}
                 <div className="mt-6 text-center text-sm">
 
                   <span className="text-muted-foreground">

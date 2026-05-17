@@ -17,7 +17,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// 🔹 decode JWT (fallback)
 const decodeToken = (token: string): User => {
   const d: any = jwtDecode(token);
 
@@ -36,7 +35,6 @@ const decodeToken = (token: string): User => {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  // 🔥 беремо АКТУАЛЬНОГО юзера з бекенду
   const refreshUser = async () => {
   try {
     const res = await api.get("/users/me");
@@ -47,33 +45,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return {
         ...prev,
         name: res.data.userName,
-        // ❌ role НЕ чіпаємо
       };
     });
   } catch (e) {}
 };
 
-  // 🔹 login
   const login = async (accessToken: string, refreshToken: string) => {
     localStorage.setItem("accessToken", accessToken);
     localStorage.setItem("refreshToken", refreshToken);
 
-    // тимчасово з токена (швидкий UI)
     const decoded = decodeToken(accessToken);
     setUser(decoded);
 
-    // потім оновлюємо з БД (істина)
     await refreshUser();
   };
 
-  // 🔹 logout
   const logout = () => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     setUser(null);
   };
 
-  // 🔹 init при старті сайту
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) return;

@@ -31,7 +31,6 @@ import {
 import { toast } from "sonner";
 import api from "../../api/api";
 
-/* ================= TYPES ================= */
 
 type Category = {
   categoryId: number;
@@ -45,7 +44,6 @@ type Service = {
   categoryName: string;
 };
 
-/* ================= PAGE ================= */
 
 export default function AdminServices() {
   const [services, setServices] = useState<Service[]>([]);
@@ -68,7 +66,6 @@ export default function AdminServices() {
     name: "",
   });
 
-  /* ================= LOAD ================= */
 
   useEffect(() => {
     loadAll();
@@ -92,7 +89,6 @@ export default function AdminServices() {
     }
   };
 
-  /* ================= SERVICE ================= */
 
   const openCreate = () => {
     setEditing(null);
@@ -139,7 +135,6 @@ export default function AdminServices() {
     loadAll();
   };
 
-  /* ================= CATEGORY ================= */
 
   const saveCategory = async () => {
     try {
@@ -164,7 +159,6 @@ export default function AdminServices() {
     loadAll();
   };
 
-  /* ================= UI ================= */
 
   if (loading) {
     return (
@@ -177,7 +171,6 @@ export default function AdminServices() {
   return (
     <div className="container py-8 max-w-6xl">
 
-      {/* HEADER */}
       <div className="flex items-center gap-4 mb-6">
 
         <Link
@@ -212,7 +205,6 @@ export default function AdminServices() {
 
       </div>
 
-      {/* TABLE */}
       <div className="border rounded-lg overflow-hidden">
 
         <Table>
@@ -269,7 +261,6 @@ export default function AdminServices() {
         </Table>
       </div>
 
-      {/* ================= SERVICE MODAL ================= */}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
@@ -324,7 +315,6 @@ export default function AdminServices() {
         </DialogContent>
       </Dialog>
 
-      {/* ================= CATEGORY MODAL ================= */}
 
       <Dialog open={catOpen} onOpenChange={setCatOpen}>
         <DialogContent>

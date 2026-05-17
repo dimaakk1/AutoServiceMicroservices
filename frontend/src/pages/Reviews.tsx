@@ -29,7 +29,6 @@ import {
 import { toast } from "sonner";
 import api from "../api/api";
 
-/* ================= TYPES ================= */
 
 type Review = {
   _id: string;
@@ -58,7 +57,6 @@ type Order = {
   review?: Review | null;
 };
 
-/* ================= STAR ================= */
 
 function StarRating({
   value,
@@ -95,7 +93,6 @@ function StarRating({
   );
 }
 
-/* ================= PAGE ================= */
 
 export default function Reviews() {
   const { user } = useAuth();
@@ -114,7 +111,6 @@ export default function Reviews() {
   const [editReview, setEditReview] =
     useState<Review | null>(null);
 
-  /* ================= LOAD ================= */
 
   useEffect(() => {
     loadReviews();
@@ -124,7 +120,6 @@ export default function Reviews() {
     }
   }, [user]);
 
-  /* ================= ALL REVIEWS ================= */
 
   const loadReviews = async () => {
     try {
@@ -142,7 +137,6 @@ export default function Reviews() {
     }
   };
 
-  /* ================= MY REVIEWS ================= */
 
   const loadMyReviews = async () => {
     try {
@@ -158,7 +152,6 @@ export default function Reviews() {
     }
   };
 
-  /* ================= MY ORDERS ================= */
 
   const loadOrders = async () => {
     try {
@@ -170,7 +163,6 @@ export default function Reviews() {
     }
   };
 
-  /* ================= CREATE REVIEW ================= */
 
   const handleSubmit = async (
     e: React.FormEvent
@@ -207,7 +199,6 @@ export default function Reviews() {
     }
   };
 
-  /* ================= DELETE REVIEW ================= */
 
   const handleDelete = async (id: string) => {
     try {
@@ -222,7 +213,6 @@ export default function Reviews() {
     }
   };
 
-  /* ================= UPDATE REVIEW ================= */
 
   const handleUpdate = async () => {
     if (!editReview) return;
@@ -246,7 +236,6 @@ export default function Reviews() {
     }
   };
 
-  /* ================= DATA ================= */
 
   const reviews = useMemo(() => {
     return reviewOrders.filter((o) => o.review);
@@ -277,7 +266,6 @@ export default function Reviews() {
       .join(", ");
   };
 
-  /* ================= UI ================= */
 
   if (loading) {
     return (
@@ -292,7 +280,6 @@ export default function Reviews() {
 
       <div className="container py-12 max-w-6xl">
 
-        {/* ================= HEADER ================= */}
         <div className="mb-10">
 
           <h1 className="text-4xl font-bold mb-3">
@@ -317,7 +304,6 @@ export default function Reviews() {
 
         </div>
 
-        {/* ================= SWITCH ================= */}
         <div className="flex gap-3 mb-8">
 
           <Button
@@ -360,7 +346,6 @@ export default function Reviews() {
 
         </div>
 
-        {/* ================= FORM ================= */}
         {user && (
           <Card className="mb-10 shadow-sm border-0">
 
@@ -394,7 +379,6 @@ export default function Reviews() {
                   className="space-y-5"
                 >
 
-                  {/* ORDER */}
                   <div className="space-y-2">
 
                     <Label>
@@ -430,7 +414,6 @@ export default function Reviews() {
 
                   </div>
 
-                  {/* RATING */}
                   <div className="space-y-2">
 
                     <Label>
@@ -444,7 +427,6 @@ export default function Reviews() {
 
                   </div>
 
-                  {/* COMMENT */}
                   <div className="space-y-2">
 
                     <Label>
@@ -476,7 +458,6 @@ export default function Reviews() {
           </Card>
         )}
 
-        {/* ================= REVIEWS LIST ================= */}
         <div className="space-y-5">
 
           {reviews.map((order) => (
@@ -489,7 +470,6 @@ export default function Reviews() {
 
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-5">
 
-                  {/* LEFT */}
                   <div className="flex gap-4">
 
                     <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
@@ -532,7 +512,6 @@ export default function Reviews() {
                         }
                       </p>
 
-                      {/* ACTIONS */}
                       {mode === "mine" && (
                         <div className="flex gap-2 mt-5">
 
@@ -577,7 +556,6 @@ export default function Reviews() {
             </Card>
           ))}
 
-          {/* EMPTY */}
           {reviews.length === 0 && (
             <Card className="border-dashed">
 
@@ -590,7 +568,6 @@ export default function Reviews() {
 
         </div>
 
-        {/* ================= EDIT MODAL ================= */}
         {editReview && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
