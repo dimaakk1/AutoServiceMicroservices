@@ -18,5 +18,6 @@ namespace AutoserviceOrders.BLL.Services.Interfaces
         Task<bool> ConfirmOrderAsync(int orderId);
         Task<IEnumerable<OrderDto>> GetMyOrdersAsync(string userId);
         Task<List<string>> GetTakenSlotsAsync(DateTime date);
+        Task<List<OrderDto>> GetOrdersByDateAsync(DateTime date);
     }
 }

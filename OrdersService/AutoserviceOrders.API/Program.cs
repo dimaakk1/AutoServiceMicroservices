@@ -41,7 +41,7 @@ namespace AutoserviceOrders.API
 
 
 
-            var sqlConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__SqlServer");
+            var sqlConnectionString = builder.Configuration.GetConnectionString("OrdersDb");
             DatabaseInitializer.Initialize(sqlConnectionString);
 
             builder.Services.AddScoped<IDbConnection>(sp => new SqlConnection(sqlConnectionString));

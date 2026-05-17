@@ -131,5 +131,12 @@ namespace AutoserviceOrders.API.Controllers
 
             return Ok(slots);
         }
+
+        [HttpGet("by-date")]
+        public async Task<IActionResult> GetByDate([FromQuery] DateTime date)
+        {
+            var result = await _orderService.GetOrdersByDateAsync(date);
+            return Ok(result);
+        }
     }
 }

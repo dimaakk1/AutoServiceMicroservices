@@ -43,13 +43,12 @@ namespace AutoServiceCatalog.API
 
 
             // Add services to the container.
-            var sqlConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__SqlServer");
 
             
             if (!builder.Environment.IsEnvironment("Testing"))
             {
                 builder.Services.AddDbContext<CarServiceContext>(options =>
-                options.UseSqlServer(sqlConnectionString));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("CatalogDb")));
             }
 
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));

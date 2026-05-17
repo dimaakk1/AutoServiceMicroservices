@@ -223,7 +223,21 @@ namespace AutoserviceOrders.BLL.Services
                 .Distinct()
                 .ToList();
         }
+        public async Task<List<OrderDto>> GetOrdersByDateAsync(DateTime date)
+        {
+            await _unitOfWork.BeginTransactionAsync();
 
+            var orders = await _unitOfWork.Orders.GetAllAsync();
+
+            await _unitOfWork.CommitAsync();
+
+            return _mapper.Map<List<OrderDto>>(
+                orders.Where(o =>
+                    o.Status != "Cancelled" &&
+                    o.OrderDate.Date == date.Date
+                ).ToList()
+            );
+        }
 
 
     }

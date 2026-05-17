@@ -30,20 +30,16 @@ import { toast } from "sonner";
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
 
-  const [username, setUsername] =
-    useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [email, setEmail] =
-    useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [password, setPassword] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
+  // ✅ NEW STATE FOR EMAIL VERIFICATION UX
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
 
   const { login } = useAuth();
-
   const navigate = useNavigate();
 
   const handleSubmit = async (
@@ -58,36 +54,19 @@ export default function Auth() {
     try {
       // LOGIN
       if (isLogin) {
-        const res = await loginUser(
-          username,
-          password
-        );
+        const res = await loginUser(username, password);
 
-        const accessToken =
-          res.data?.accessToken;
+        const accessToken = res.data?.accessToken;
+        const refreshToken = res.data?.refreshToken;
 
-        const refreshToken =
-          res.data?.refreshToken;
-
-        if (
-          !accessToken ||
-          !refreshToken
-        ) {
-          toast.error(
-            "Сервер не повернув токени авторизації"
-          );
-
+        if (!accessToken || !refreshToken) {
+          toast.error("Сервер не повернув токени авторизації");
           return;
         }
 
-        login(
-          accessToken,
-          refreshToken
-        );
+        login(accessToken, refreshToken);
 
-        toast.success(
-          "Вхід виконано успішно"
-        );
+        toast.success("Вхід виконано успішно");
 
         setUsername("");
         setPassword("");
@@ -97,18 +76,16 @@ export default function Auth() {
 
       // REGISTER
       else {
-        await registerUser(
-          username,
-          email,
-          password
-        );
+        await registerUser(username, email, password);
 
         toast.success(
-          "Реєстрація успішна"
+          "Реєстрація успішна! Перевір свою пошту для підтвердження акаунта"
         );
 
-        setIsLogin(true);
+        // ✅ SHOW EMAIL VERIFICATION STATE
+        setAwaitingVerification(true);
 
+        // clear fields but DON'T switch to login
         setUsername("");
         setEmail("");
         setPassword("");
@@ -120,8 +97,7 @@ export default function Auth() {
         err?.response?.data?.message ||
         err?.response?.data?.title ||
         err?.response?.data?.error ||
-        (typeof err?.response?.data ===
-        "string"
+        (typeof err?.response?.data === "string"
           ? err.response.data
           : null) ||
         (err?.response?.status === 401
@@ -167,26 +143,17 @@ export default function Auth() {
 
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5" />
-
-              <span>
-                Безпечна авторизація
-              </span>
+              <span>Безпечна авторизація</span>
             </div>
 
             <div className="flex items-center gap-3">
               <User className="h-5 w-5" />
-
-              <span>
-                Персональний кабінет
-              </span>
+              <span>Персональний кабінет</span>
             </div>
 
             <div className="flex items-center gap-3">
               <LockKeyhole className="h-5 w-5" />
-
-              <span>
-                Захист даних користувача
-              </span>
+              <span>Захист даних користувача</span>
             </div>
 
           </div>
@@ -197,20 +164,10 @@ export default function Auth() {
 
           <div className="w-full">
 
-            {/* MOBILE LOGO */}
-            <div className="lg:hidden flex justify-center mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-orange-100 flex items-center justify-center">
-                <Wrench className="h-8 w-8 text-orange-500" />
-              </div>
-            </div>
-
             {/* HEADER */}
             <div className="mb-8">
-
               <h2 className="text-4xl font-bold tracking-tight mb-3">
-                {isLogin
-                  ? "Вхід"
-                  : "Реєстрація"}
+                {isLogin ? "Вхід" : "Реєстрація"}
               </h2>
 
               <p className="text-muted-foreground text-lg">
@@ -220,31 +177,30 @@ export default function Auth() {
               </p>
             </div>
 
+            {/* EMAIL VERIFICATION INFO */}
+            {awaitingVerification && (
+              <div className="mb-5 p-4 rounded-xl bg-yellow-50 text-yellow-700 text-sm border border-yellow-200">
+                Ми надіслали лист для підтвердження email.
+                Перевір пошту і активуй акаунт перед входом.
+              </div>
+            )}
+
             {/* FORM */}
             <Card className="border-0 shadow-none">
               <CardContent className="p-0">
 
-                <form
-                  onSubmit={handleSubmit}
-                  className="space-y-5"
-                >
+                <form onSubmit={handleSubmit} className="space-y-5">
 
                   {/* USERNAME */}
                   <div className="space-y-2">
-                    <Label>
-                      Ім’я користувача
-                    </Label>
+                    <Label>Ім’я користувача</Label>
 
                     <div className="relative">
                       <User className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
 
                       <Input
                         value={username}
-                        onChange={(e) =>
-                          setUsername(
-                            e.target.value
-                          )
-                        }
+                        onChange={(e) => setUsername(e.target.value)}
                         required
                         placeholder="Username"
                         className="pl-10 h-11 rounded-xl"
@@ -263,11 +219,7 @@ export default function Auth() {
                         <Input
                           type="email"
                           value={email}
-                          onChange={(e) =>
-                            setEmail(
-                              e.target.value
-                            )
-                          }
+                          onChange={(e) => setEmail(e.target.value)}
                           required
                           placeholder="example@email.com"
                           className="pl-10 h-11 rounded-xl"
@@ -286,11 +238,7 @@ export default function Auth() {
                       <Input
                         type="password"
                         value={password}
-                        onChange={(e) =>
-                          setPassword(
-                            e.target.value
-                          )
-                        }
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                         placeholder="••••••••"
                         className="pl-10 h-11 rounded-xl"
@@ -324,23 +272,20 @@ export default function Auth() {
 
                   <button
                     type="button"
-                    onClick={() =>
-                      setIsLogin(
-                        (prev) => !prev
-                      )
-                    }
+                    onClick={() => setIsLogin((prev) => !prev)}
                     className="font-semibold text-orange-500 hover:text-orange-600 transition"
                   >
-                    {isLogin
-                      ? "Зареєструватися"
-                      : "Увійти"}
+                    {isLogin ? "Зареєструватися" : "Увійти"}
                   </button>
+
                 </div>
 
               </CardContent>
             </Card>
+
           </div>
         </div>
+
       </div>
     </div>
   );

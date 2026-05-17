@@ -17,20 +17,25 @@ namespace AutoServiceUsers.API.Controllers
     {
         private readonly IAuthService _authService;
 
-
         public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
 
-
+        // -----------------------------
+        // REGISTER
+        // -----------------------------
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
             try
             {
-                var result = await _authService.RegisterAsync(dto);
-                return Ok(result);
+                await _authService.RegisterAsync(dto);
+
+                return Ok(new
+                {
+                    message = "Реєстрація успішна. Перевірте email для підтвердження."
+                });
             }
             catch (Exception ex)
             {
@@ -38,7 +43,9 @@ namespace AutoServiceUsers.API.Controllers
             }
         }
 
-
+        // -----------------------------
+        // LOGIN
+        // -----------------------------
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
@@ -51,10 +58,11 @@ namespace AutoServiceUsers.API.Controllers
             {
                 return Unauthorized(new { message = ex.Message });
             }
-
         }
 
-
+        // -----------------------------
+        // REFRESH TOKEN
+        // -----------------------------
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto dto)
         {
@@ -69,7 +77,9 @@ namespace AutoServiceUsers.API.Controllers
             }
         }
 
-
+        // -----------------------------
+        // REVOKE TOKEN
+        // -----------------------------
         [HttpPost("revoke")]
         public async Task<IActionResult> Revoke([FromBody] RefreshRequestDto dto)
         {
@@ -84,6 +94,33 @@ namespace AutoServiceUsers.API.Controllers
             }
         }
 
+        // -----------------------------
+        // EMAIL VERIFICATION (ВАЖЛИВО)
+        // -----------------------------
+        [HttpGet("verify-email")]
+        public async Task<IActionResult> VerifyEmail([FromQuery] string userId, [FromQuery] string token)
+        {
+            try
+            {
+                var dto = new VerifyEmailDto
+                {
+                    UserId = userId,
+                    Token = token
+                };
+
+                await _authService.VerifyEmailAsync(dto);
+
+                return Redirect("http://localhost:5173/email-confirmed?status=success");
+            }
+            catch
+            {
+                return Redirect("http://localhost:5173/email-confirmed?status=error");
+            }
+        }
+
+        // -----------------------------
+        // TEST
+        // -----------------------------
         [HttpGet("ping")]
         [AllowAnonymous]
         public IActionResult Ping()
@@ -91,9 +128,8 @@ namespace AutoServiceUsers.API.Controllers
             return Ok(new { message = "AuthService працює!" });
         }
 
-
         // -----------------------------
-        // Test endpoint для перевірки JWT захисту
+        // JWT TEST
         // -----------------------------
         [HttpGet("protected")]
         [Authorize]
@@ -102,22 +138,5 @@ namespace AutoServiceUsers.API.Controllers
             var username = User.Identity?.Name;
             return Ok(new { message = $"JWT захист працює! Користувач: {username}" });
         }
-
-        [HttpPost("verify-email")]
-        [AllowAnonymous]
-        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
-        {
-            try
-            {
-                await _authService.VerifyEmailAsync(dto);
-                return Ok(new { message = "Email verified successfully" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-
     }
 }

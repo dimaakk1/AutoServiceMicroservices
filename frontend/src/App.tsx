@@ -19,6 +19,7 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminReviews from "./pages/admin/AdminReviews";
 import AdminUsers from "./pages/admin/AdminUsers";
+import EmailConfirmed from "./pages/EmailConfirmed";
 
 
 
@@ -49,6 +50,10 @@ export default function App() {
             <Route
               path="/reviews"
               element={<Reviews />}
+            />
+            <Route
+              path="/email-confirmed"
+              element={<EmailConfirmed />}
             />
 
             {/* USER */}
