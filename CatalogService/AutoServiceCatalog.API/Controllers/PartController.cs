@@ -20,8 +20,7 @@ namespace AutoServiceCatalog.API.Controllers
         }
 
         [HttpGet("services")]
-        public async Task<IActionResult> GetServices(
-    [FromQuery] PartQueryParameters parameters)
+        public async Task<IActionResult> GetServices([FromQuery] PartQueryParameters parameters)
         {
             var result = await _serviceService
                 .GetServicesAsync(parameters);

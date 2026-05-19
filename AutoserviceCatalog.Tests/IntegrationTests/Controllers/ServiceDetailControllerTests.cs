@@ -63,7 +63,7 @@ namespace AutoserviceCatalog.Tests.IntegrationTests.Controllers
             {
                 Name = "Test service unique " + Guid.NewGuid(),
                 Price = 100,
-                CategoryId = 1
+                CategoryName = "Maintenance"
             };
 
             var serviceResponse = await _client.PostAsJsonAsync(

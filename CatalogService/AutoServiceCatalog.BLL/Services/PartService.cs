@@ -64,6 +64,9 @@ namespace AutoServiceCatalog.BLL.Services
             if (string.IsNullOrWhiteSpace(dto.Name))
                 throw new ArgumentException("Назва послуги обов'язкова");
 
+            if (dto.Price <= 0)
+                throw new ArgumentException("Ціна повинна бути більше нуля");
+
             var category = await _unitOfWork.Categories
     .GetByNameAsync(dto.CategoryName);
 

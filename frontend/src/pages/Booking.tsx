@@ -62,8 +62,9 @@ export default function Booking() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
-    preselected ? Number(preselected) : null
+   // ✅ MULTI SELECT (замість одного)
+  const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>(
+    preselected ? [Number(preselected)] : []
   );
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -101,9 +102,10 @@ useEffect(() => {
 }, [selectedDate]);
 
 
-  const selectedService = useMemo(() => {
-    return services.find((s) => s.serviceId === selectedServiceId);
-  }, [selectedServiceId, services]);
+  // ✅ multiple services
+  const selectedServices = useMemo(() => {
+    return services.filter((s) => selectedServiceIds.includes(s.serviceId));
+  }, [selectedServiceIds, services]);
 
 
   const isSlotTaken = (time: string) => {
@@ -134,10 +136,9 @@ useEffect(() => {
 
 
 const handleConfirm = async () => {
-  if (!selectedService || !selectedDate || !selectedTime) return;
+    if (!selectedServices.length || !selectedDate || !selectedTime) return;
 
-  setSubmitting(true);
-
+    setSubmitting(true);
   try {
     const [hours, minutes] = selectedTime.split(":").map(Number);
 
@@ -158,11 +159,13 @@ const handleConfirm = async () => {
 
     const orderId = orderRes.data?.orderId;
 
-    await addOrderItem({
-      orderId,
-      productId: selectedService.serviceId,
-      quantity: 1,
-    });
+    for (const service of selectedServices) {
+        await addOrderItem({
+          orderId,
+          productId: service.serviceId,
+          quantity: 1,
+        });
+      }
 
     toast.success("Запис успішно створено");
     navigate("/my-bookings");
@@ -251,49 +254,62 @@ const handleConfirm = async () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-5">
-              {services.map((s) => (
-                <Card
-                  key={s.serviceId}
-                  onClick={() => {
-                    setSelectedServiceId(s.serviceId);
-                    setStep(1);
-                  }}
-                  className={cn(
-                    "cursor-pointer border transition-all hover:border-orange-300 hover:shadow-md",
-                    selectedServiceId === s.serviceId &&
-                      "border-orange-500 bg-orange-50"
-                  )}
-                >
-                  <CardContent className="p-6">
+              {services.map((s) => {
+                const selected = selectedServiceIds.includes(s.serviceId);
 
-                    <div className="flex items-start justify-between mb-4">
+                return (
+                  <Card
+                    key={s.serviceId}
+                    onClick={() => {
+                      setSelectedServiceIds((prev) =>
+                        prev.includes(s.serviceId)
+                          ? prev.filter((id) => id !== s.serviceId)
+                          : [...prev, s.serviceId]
+                      );
+                    }}
+                    className={cn(
+                      "cursor-pointer border transition-all hover:border-orange-300 hover:shadow-md",
+                      selected && "border-orange-500 bg-orange-50"
+                    )}
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                          <Wrench className="h-6 w-6 text-orange-500" />
+                        </div>
 
-                      <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                        <Wrench className="h-6 w-6 text-orange-500" />
+                        <Badge className="bg-orange-500 text-white border-0">
+                          {s.categoryName}
+                        </Badge>
                       </div>
 
-                      <Badge className="bg-orange-500 text-white border-0">
-                        {s.categoryName}
-                      </Badge>
-                    </div>
+                      <h3 className="text-lg font-semibold mb-2">
+                        {s.name}
+                      </h3>
 
-                    <h3 className="text-lg font-semibold mb-2">
-                      {s.name}
-                    </h3>
+                      <div className="flex justify-between items-center mt-5">
+                        <p className="text-xl font-bold">
+                          {s.price} ₴
+                        </p>
 
-                    <div className="flex justify-between items-center mt-5">
-                      <p className="text-xl font-bold">
-                        {s.price} ₴
-                      </p>
+                        <span className="text-sm text-orange-500 font-medium">
+                          Обрати
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
 
-                      <span className="text-sm text-orange-500 font-medium">
-                        Обрати
-                      </span>
-                    </div>
-
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="mt-6 flex justify-end">
+              <Button
+                onClick={() => setStep(1)}
+                disabled={!selectedServiceIds.length}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                Далі
+              </Button>
             </div>
 
           </div>
@@ -401,7 +417,7 @@ const handleConfirm = async () => {
                       </p>
 
                       <p className="font-semibold">
-                        {selectedService?.name}
+                        {selectedServices.map((s) => s.name).join(", ")}
                       </p>
                     </div>
 
@@ -411,7 +427,7 @@ const handleConfirm = async () => {
                       </p>
 
                       <Badge className="bg-orange-100 text-orange-600 border-0">
-                        {selectedService?.categoryName}
+                        {selectedServices.map((s) => s.categoryName).join(", ")}
                       </Badge>
                     </div>
 
@@ -443,7 +459,7 @@ const handleConfirm = async () => {
                       </span>
 
                       <span className="text-2xl font-bold">
-                        {selectedService?.price} ₴
+                        {selectedServices.reduce((sum, s) => sum + s.price, 0)} ₴
                       </span>
                     </div>
 
@@ -495,7 +511,7 @@ const handleConfirm = async () => {
                   </p>
 
                   <p className="font-semibold">
-                    {selectedService?.name}
+                    {selectedServices.map((s) => s.name).join(", ")}
                   </p>
                 </div>
 
@@ -505,7 +521,7 @@ const handleConfirm = async () => {
                   </p>
 
                   <p className="font-semibold">
-                    {selectedService?.categoryName}
+                    {selectedServices.map((s) => s.categoryName).join(", ")}
                   </p>
                 </div>
 
@@ -537,7 +553,7 @@ const handleConfirm = async () => {
                 </span>
 
                 <span className="text-3xl font-bold">
-                  {selectedService?.price} ₴
+                  {selectedServices.reduce((sum, s) => sum + s.price, 0)} ₴
                 </span>
               </div>
 

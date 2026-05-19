@@ -68,7 +68,7 @@ namespace AutoserviceCatalog.Tests.IntegrationTests.Controllers
             {
                 Name = "Integration Test Service",
                 Price = 150,
-                CategoryId = 1
+                CategoryName = "Maintenance"
             };
 
             var response = await _client.PostAsJsonAsync("/api/Catalog/Service", dto);
@@ -87,7 +87,7 @@ namespace AutoserviceCatalog.Tests.IntegrationTests.Controllers
             {
                 Name = "",
                 Price = -10,
-                CategoryId = 1
+                CategoryName = "Maintenance"
             };
 
             var response = await _client.PostAsJsonAsync("/api/Catalog/Service", dto);
@@ -102,7 +102,7 @@ namespace AutoserviceCatalog.Tests.IntegrationTests.Controllers
             {
                 Name = "Updated Service",
                 Price = 300,
-                CategoryId = 1
+                CategoryName = "Maintenance"
             };
 
             var response = await _client.PutAsJsonAsync("/api/Catalog/Service/1", dto);
@@ -117,7 +117,7 @@ namespace AutoserviceCatalog.Tests.IntegrationTests.Controllers
             {
                 Name = "Test",
                 Price = 100,
-                CategoryId = 1
+                CategoryName = "Maintenance"
             };
 
             var response = await _client.PutAsJsonAsync("/api/Catalog/Service/99999", dto);

@@ -26,6 +26,10 @@ namespace AutoserviceCatalog.Tests.DAL
         [Fact]
         public async Task GetServicesAbovePriceAsync_ReturnsOnlyHigherPrices()
         {
+            var category = new Category { CategoryId = 1, Name = "Maintenance" };
+            await _context.Categories.AddAsync(category);
+            await _context.SaveChangesAsync();
+
             var services = new List<Service>
             {
                 new Service { ServiceId = 1, Name = "A", Price = 50, CategoryId = 1 },
@@ -45,6 +49,10 @@ namespace AutoserviceCatalog.Tests.DAL
         [Fact]
         public async Task GetServicesBelowPriceAsync_ReturnsOnlyLowerPrices()
         {
+            var category = new Category { CategoryId = 1, Name = "Maintenance" };
+            await _context.Categories.AddAsync(category);
+            await _context.SaveChangesAsync();
+
             var services = new List<Service>
             {
                 new Service { ServiceId = 1, Name = "A", Price = 50, CategoryId = 1 },
@@ -64,6 +72,10 @@ namespace AutoserviceCatalog.Tests.DAL
         [Fact]
         public async Task SearchByNameAsync_ReturnsMatchingServices()
         {
+            var category = new Category { CategoryId = 1, Name = "Maintenance" };
+            await _context.Categories.AddAsync(category);
+            await _context.SaveChangesAsync();
+
             var services = new List<Service>
             {
                 new Service { ServiceId = 1, Name = "Oil Change", Price = 50, CategoryId = 1 },
@@ -83,6 +95,10 @@ namespace AutoserviceCatalog.Tests.DAL
         [Fact]
         public async Task SearchByNameAsync_NoMatches_ReturnsEmpty()
         {
+            var category = new Category { CategoryId = 1, Name = "Maintenance" };
+            await _context.Categories.AddAsync(category);
+            await _context.SaveChangesAsync();
+
             await _context.Services.AddAsync(
                 new Service { ServiceId = 1, Name = "Engine Repair", Price = 100, CategoryId = 1 }
             );

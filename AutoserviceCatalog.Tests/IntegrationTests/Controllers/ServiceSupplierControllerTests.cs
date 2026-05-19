@@ -75,7 +75,7 @@ namespace AutoserviceCatalog.Tests.IntegrationTests.Controllers
             {
                 Name = "Test Service",
                 Price = 100,
-                CategoryId = createdCategory!.CategoryId
+                CategoryName = createdCategory!.Name
             };
 
             var serviceResponse = await _client.PostAsJsonAsync(

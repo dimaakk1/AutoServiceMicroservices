@@ -23,6 +23,7 @@ namespace AutoserviceCatalog.Tests.BLL
         private readonly Mock<ITwoLevelCacheService<List<ServiceDto>>> _cache;
 
         private readonly Mock<IServiceRepository> _repo;
+        private readonly Mock<ICategoryRepository> _categoryRepo;
 
         private readonly ServiceService _sut;
 
@@ -33,8 +34,10 @@ namespace AutoserviceCatalog.Tests.BLL
             _cache = new Mock<ITwoLevelCacheService<List<ServiceDto>>>();
 
             _repo = new Mock<IServiceRepository>();
+            _categoryRepo = new Mock<ICategoryRepository>();
 
             _uow.Setup(x => x.Services).Returns(_repo.Object);
+            _uow.Setup(x => x.Categories).Returns(_categoryRepo.Object);
 
             _sut = new ServiceService(
                 _uow.Object,
@@ -91,27 +94,36 @@ namespace AutoserviceCatalog.Tests.BLL
             {
                 Name = "Oil",
                 Price = 100,
-                CategoryId = 1
+                CategoryName = "Maintenance"
             };
 
-            var entity = new Service
-            {
-                ServiceId = 1,
-                Name = "Oil",
-                Price = 100,
-                CategoryId = 1
-            };
+            var category = new Category { CategoryId = 1, Name = "Maintenance" };
 
-            var mappedDto = new ServiceDto { Name = "Oil" };
+            var mappedDto = new ServiceDto { ServiceId = 1, Name = "Oil", Price = 100 };
 
-            _mapper.Setup(x => x.Map<Service>(dto)).Returns(entity);
-            _mapper.Setup(x => x.Map<ServiceDto>(entity)).Returns(mappedDto);
+            _categoryRepo.Setup(x => x.GetByNameAsync(dto.CategoryName))
+                .ReturnsAsync(category);
+            
+            // Setup the mapper to map the Service to ServiceDto
+            _mapper.Setup(x => x.Map<ServiceDto>(It.IsAny<Service>()))
+                .Returns((Service s) => new ServiceDto 
+                { 
+                    ServiceId = s.ServiceId, 
+                    Name = s.Name, 
+                    Price = s.Price 
+                });
+
+            // Setup AddAsync to set the ServiceId
+            _repo.Setup(x => x.AddAsync(It.IsAny<Service>()))
+                .Callback<Service>(s => s.ServiceId = 1)
+                .Returns(Task.CompletedTask);
 
             var result = await _sut.CreateAsync(dto);
 
             result.Should().NotBeNull();
+            result!.Name.Should().Be("Oil");
 
-            _repo.Verify(x => x.AddAsync(entity), Times.Once);
+            _repo.Verify(x => x.AddAsync(It.IsAny<Service>()), Times.Once);
             _uow.Verify(x => x.SaveChangesAsync(), Times.Once);
 
             _cache.Verify(x => x.InvalidateAsync("services:all"), Times.Once);
@@ -139,8 +151,13 @@ namespace AutoserviceCatalog.Tests.BLL
             var dto = new ServiceCreateDto
             {
                 Name = "Test",
-                Price = 0
+                Price = 0,
+                CategoryName = "Maintenance"
             };
+
+            var category = new Category { CategoryId = 1, Name = "Maintenance" };
+            _categoryRepo.Setup(x => x.GetByNameAsync(dto.CategoryName))
+                .ReturnsAsync(category);
 
             Func<Task> act = () => _sut.CreateAsync(dto);
 
@@ -168,8 +185,12 @@ namespace AutoserviceCatalog.Tests.BLL
             {
                 Name = "New",
                 Price = 200,
-                CategoryId = 2
+                CategoryName = "Repairs"
             };
+
+            var category = new Category { CategoryId = 2, Name = "Repairs" };
+            _categoryRepo.Setup(x => x.GetByNameAsync(dto.CategoryName))
+                .ReturnsAsync(category);
 
             await _sut.UpdateAsync(1, dto);
 

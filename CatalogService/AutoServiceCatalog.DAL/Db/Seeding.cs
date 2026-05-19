@@ -29,7 +29,8 @@ namespace AutoServiceCatalog.DAL.Db
                 new Category { Name = "Діагностика" },
                 new Category { Name = "ТО" },
                 new Category { Name = "Ремонт двигуна" },
-                new Category { Name = "Кузовні роботи" }
+                new Category { Name = "Кузовні роботи" },
+                new Category { Name = "Maintenance" }
             };
             await context.Categories.AddRangeAsync(categories);
             await context.SaveChangesAsync();
