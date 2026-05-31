@@ -26,7 +26,18 @@ var mongo = builder.AddMongoDB("mongo")
 var redis = builder.AddRedis("redis")
     .WithDataVolume("redis-data");
 
+var rabbitmq = builder.AddRabbitMQ("rabbitmq")
+    .WithManagementPlugin()
+    .WithEnvironment("RABBITMQ_DEFAULT_USER", "admin")
+    .WithEnvironment("RABBITMQ_DEFAULT_PASS", "admin123")
+    .WithDataVolume("rabbit-data");
+
 /* ================= SERVICES ================= */
+
+var notificationService = builder
+    .AddProject<Projects.AutoserviceNotification>("autoservicenotification")
+    .WithReference(rabbitmq)
+    .WaitFor(rabbitmq);
 
 var catalogService = builder
     .AddProject<Projects.AutoServiceCatalog_API>("catalog-service")
@@ -39,8 +50,10 @@ var ordersService = builder
     .AddProject<Projects.AutoserviceOrders_API>("orders-service")
     .WithReference(ordersDb)
     .WithReference(redis)
+    .WithReference(rabbitmq)
     .WaitFor(ordersDb)
-    .WaitFor(redis);
+    .WaitFor(redis)
+    .WaitFor(rabbitmq);
 
 var reviewsService = builder
     .AddProject<Projects.WebApi>("reviews-service")
@@ -53,6 +66,8 @@ var usersService = builder
     .AddProject<Projects.AutoServiceUsers_API>("users-service")
     .WithReference(usersDb)
     .WaitFor(usersDb);
+
+
 
 /* ================= GATEWAY ================= */
 
@@ -75,5 +90,6 @@ var aggregationApi = builder
     .WithReference(reviewsService)
     .WithReference(redis)
     .WaitFor(redis);
+
 
 builder.Build().Run();

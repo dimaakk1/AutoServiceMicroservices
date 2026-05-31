@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.MongoDB" Version="9.5.2" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.Redis" Version="9.5.2" />
     <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.5.2" />
   </ItemGroup>
@@ -19,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\AggregatorService\AggregatorService.csproj" />
     <ProjectReference Include="..\..\ApiGateway\ApiGateway.csproj" />
+    <ProjectReference Include="..\..\AutoserviceNotification\AutoserviceNotification.csproj" />
     <ProjectReference Include="..\..\AutoServiceUsers.API\AutoServiceUsers.API.csproj" />
     <ProjectReference Include="..\..\CatalogService\AutoServiceCatalog.API\AutoServiceCatalog.API.csproj" />
     <ProjectReference Include="..\..\ordersservice\AutoserviceOrders.API\AutoserviceOrders.API.csproj" />

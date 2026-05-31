@@ -1,0 +1,6 @@
+@AutoserviceNotification_HostAddress = http://localhost:5227
+
+GET {{AutoserviceNotification_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

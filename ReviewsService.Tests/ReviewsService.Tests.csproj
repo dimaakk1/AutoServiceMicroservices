@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="12.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.6.2" />
@@ -20,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ordersservice\AutoserviceOrders.BLL\AutoserviceOrders.BLL.csproj" />
-    <ProjectReference Include="..\ordersservice\AutoserviceOrders.DAL\AutoserviceOrders.DAL.csproj" />
+    <ProjectReference Include="..\ReviewsService\Application\Application.csproj" />
+    <ProjectReference Include="..\ReviewsService\Domain\Domain.csproj" />
   </ItemGroup>
 
 </Project>
