@@ -28,9 +28,7 @@ var redis = builder.AddRedis("redis")
 
 var rabbitmq = builder.AddRabbitMQ("rabbitmq")
     .WithManagementPlugin()
-    .WithEnvironment("RABBITMQ_DEFAULT_USER", "admin")
-    .WithEnvironment("RABBITMQ_DEFAULT_PASS", "admin123")
-    .WithDataVolume("rabbit-data");
+    .WithDataVolume("rabbitmq-data");
 
 /* ================= SERVICES ================= */
 
@@ -67,6 +65,10 @@ var usersService = builder
     .WithReference(usersDb)
     .WaitFor(usersDb);
 
+var aiService = builder
+    .AddProject<Projects.AutoserviceAI_API>("autoserviceai");
+
+
 
 
 /* ================= GATEWAY ================= */
@@ -90,6 +92,9 @@ var aggregationApi = builder
     .WithReference(reviewsService)
     .WithReference(redis)
     .WaitFor(redis);
+
+
+
 
 
 builder.Build().Run();

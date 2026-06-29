@@ -18,6 +18,7 @@ namespace AutoserviceOrders.BLL.Automapper
             CreateMap<Order, OrderDto>().ReverseMap();
             CreateMap<OrderItemProductInfo, OrderItemWithProductDto>();
             CreateMap<OrderItem, OrderItemDto>();
+            CreateMap<Payment, PaymentDto>().ReverseMap();
         }
 
     }

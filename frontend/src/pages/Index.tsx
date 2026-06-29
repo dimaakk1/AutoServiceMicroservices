@@ -14,98 +14,104 @@ export default function Index() {
   return (
     <div className="bg-background">
 
-      <section className="relative h-[70vh] min-h-[520px] flex items-center overflow-hidden">
+      {/* HERO (Lovable style) */}
+      <section className="relative overflow-hidden min-h-[85vh] flex items-center">
 
+        {/* Background image */}
         <img
           src={heroImage}
-          alt="Автосервіс"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover scale-105"
+          alt="Auto service"
         />
 
-        <div className="absolute inset-0 bg-black/60" />
+        {/* overlays */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30" />
+        <div className="absolute inset-0 bg-grid-dark opacity-20" />
 
-        <div className="container relative z-10 text-white">
+        <div className="container relative z-10 grid lg:grid-cols-2 gap-12 items-center text-white">
 
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight max-w-2xl">
-            Надійний автосервіс для вашого авто
-          </h1>
+          {/* LEFT */}
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs mb-6">
+              <span className="h-2 w-2 rounded-full bg-accent animate-pulse" />
+              Автосервіс нового покоління
+            </div>
 
-          <p className="mt-5 text-lg text-white/80 max-w-xl">
-            Діагностика, ремонт і обслуговування з гарантією якості та прозорими цінами.
-          </p>
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+              Надійний сервіс для вашого авто
+              <span className="block text-accent mt-2">
+                швидко, чесно, якісно
+              </span>
+            </h1>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/booking">
-              <Button
-                size="lg"
-                className="bg-accent hover:bg-accent/90 text-accent-foreground px-8"
-              >
-                Записатися
-              </Button>
-            </Link>
+            <p className="mt-6 text-white/70 max-w-xl text-lg">
+              Діагностика, ремонт і обслуговування з прозорими цінами та гарантією.
+            </p>
 
-            <Link to="/services">
-  <Button
-    size="lg"
-    variant="outline"
-    className="border-white/40 bg-white/10 text-white hover:bg-white hover:text-black px-8"
-  >
-    Послуги
-  </Button>
-</Link>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link to="/booking">
+                <Button className="bg-accent hover:bg-accent/90 text-black px-8 h-12">
+                  Записатися
+                </Button>
+              </Link>
+
+              <Link to="/services">
+                <Button
+                  variant="outline"
+                  className="border-white/30 bg-white/10 text-white hover:bg-white hover:text-black h-12 px-8"
+                >
+                  Послуги
+                </Button>
+              </Link>
+            </div>
           </div>
 
-        </div>
-      </section>
+          {/* RIGHT CARD */}
+          <div className="relative">
 
-      <section className="py-20">
-        <div className="container">
+            <div className="absolute -inset-6 bg-accent/20 blur-3xl rounded-full" />
 
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Чому обирають нас
-          </h2>
+            <div className="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-2xl">
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <h3 className="text-lg font-semibold mb-4">
+                Чому обирають нас
+              </h3>
 
-            {features.map((f, i) => (
-              <div
-                key={i}
-                className="bg-card border rounded-xl p-6 text-center shadow-sm hover:shadow-md transition"
-              >
-                <div className="mx-auto w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4">
-                  <f.icon className="h-6 w-6 text-accent" />
-                </div>
+              <div className="space-y-4">
+                {features.map((f, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className="p-2 rounded-lg bg-white/10">
+                      <f.icon className="h-5 w-5 text-accent" />
+                    </div>
 
-                <h3 className="font-semibold text-lg mb-2">
-                  {f.title}
-                </h3>
-
-                <p className="text-sm text-muted-foreground">
-                  {f.desc}
-                </p>
+                    <div>
+                      <div className="font-medium">{f.title}</div>
+                      <div className="text-sm text-white/60">{f.desc}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
 
+            </div>
           </div>
+
         </div>
       </section>
 
-      <section className="bg-primary text-primary-foreground py-16">
-        <div className="container text-center">
+      {/* CTA */}
+      <section className="py-20 bg-background">
+        <div className="container text-center max-w-2xl">
 
-          <h2 className="text-3xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold">
             Потрібен ремонт авто?
           </h2>
 
-          <p className="text-white/80 mb-8 max-w-md mx-auto">
-            Запишіться зараз і отримайте швидке обслуговування без черг.
+          <p className="text-muted-foreground mt-4">
+            Запишіться онлайн і отримайте швидке обслуговування без черг.
           </p>
 
           <Link to="/booking">
-            <Button
-              size="lg"
-              className="bg-accent hover:bg-accent/90 text-accent-foreground px-10"
-            >
+            <Button className="mt-8 bg-accent hover:bg-accent/90 text-black px-10 h-12">
               Записатися зараз
             </Button>
           </Link>

@@ -13,11 +13,13 @@ namespace AutoserviceOrders.DAL.UnitOfWork
     public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     {
         private readonly IDbConnection _connection;
-        private IDbTransaction _transaction;
+        private IDbTransaction? _transaction;
+        private readonly Dictionary<Type, object> _repositories = new();
 
-        public IOrderRepository Orders { get; private set; }
-        public IOrderDetailsRepository OrderDetails { get; private set; }
-        public IOrderItemRepository OrderItems { get; private set; }
+        public IOrderRepository? Orders { get; private set; }
+        public IOrderDetailsRepository? OrderDetails { get; private set; }
+        public IOrderItemRepository? OrderItems { get; private set; }
+        public IPaymentRepository? Payments { get; private set; }
 
         public UnitOfWork(IDbConnection connection)
         {
@@ -43,6 +45,44 @@ namespace AutoserviceOrders.DAL.UnitOfWork
             Orders = new OrderRepository(_connection, _transaction);
             OrderDetails = new OrderDetailsRepository(_connection, _transaction);
             OrderItems = new OrderItemRepository(_connection, _transaction);
+            Payments = new PaymentRepository(_connection, _transaction);
+        }
+
+        public T GetRepository<T>() where T : class
+        {
+            var type = typeof(T);
+            
+            if (_repositories.TryGetValue(type, out var repository))
+            {
+                return (T)repository;
+            }
+
+            object? repoInstance = null;
+
+            if (type == typeof(IOrderRepository))
+            {
+                repoInstance = Orders ?? new OrderRepository(_connection, _transaction);
+            }
+            else if (type == typeof(IOrderDetailsRepository))
+            {
+                repoInstance = OrderDetails ?? new OrderDetailsRepository(_connection, _transaction);
+            }
+            else if (type == typeof(IOrderItemRepository))
+            {
+                repoInstance = OrderItems ?? new OrderItemRepository(_connection, _transaction);
+            }
+            else if (type == typeof(IPaymentRepository))
+            {
+                repoInstance = Payments ?? new PaymentRepository(_connection, _transaction);
+            }
+
+            if (repoInstance == null)
+            {
+                throw new InvalidOperationException($"Repository of type {type.Name} is not registered");
+            }
+
+            _repositories[type] = repoInstance;
+            return (T)repoInstance;
         }
 
         public Task CommitAsync()

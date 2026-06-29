@@ -22,10 +22,9 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import EmailConfirmed from "./pages/EmailConfirmed";
 
 
-
 export default function App() {
   return (
-    <AuthProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Layout>
           <Toaster
@@ -126,6 +125,6 @@ export default function App() {
           </Routes>
         </Layout>
       </BrowserRouter>
-    </AuthProvider>
+    </AuthProvider>    
   );
 }

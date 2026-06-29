@@ -1,8 +1,18 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
-import { Car, Menu, X, LogOut, User, Shield } from "lucide-react";
+import {
+  Car,
+  Menu,
+  X,
+  LogOut,
+  User,
+  Shield,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useState } from "react";
+
+import AiChat from './AiChatting';
 
 const navItems = [
   { to: "/", label: "Головна" },
@@ -16,28 +26,36 @@ const authNavItems = [
   { to: "/profile", label: "Профіль" },
 ];
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isAdmin = user?.role === "Admin";
+  const [mobileOpen, setMobileOpen] =
+    useState(false);
+
+  const isAdmin =
+    user?.role === "Admin";
 
   return (
     <div className="min-h-screen flex flex-col">
-
       {/* HEADER */}
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur">
         <div className="container flex h-16 items-center justify-between">
-
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl">
+          <Link
+            to="/"
+            className="flex items-center gap-2 font-bold text-xl"
+          >
             <Car className="h-6 w-6 text-accent" />
             <span>АвтоПро</span>
           </Link>
 
           {/* NAV DESKTOP */}
           <nav className="hidden md:flex items-center gap-1">
-            {navItems.map(item => (
+            {navItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -52,7 +70,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             ))}
 
             {user &&
-              authNavItems.map(item => (
+              authNavItems.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
@@ -86,14 +104,20 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   {user.name}
                 </span>
 
-                <Button variant="ghost" size="sm" onClick={logout}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                >
                   <LogOut className="h-4 w-4 mr-1" />
                   Вийти
                 </Button>
               </>
             ) : (
               <Link to="/auth">
-                <Button size="sm">Увійти</Button>
+                <Button size="sm">
+                  Увійти
+                </Button>
               </Link>
             )}
           </div>
@@ -101,7 +125,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* MOBILE BUTTON */}
           <button
             className="md:hidden"
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={() =>
+              setMobileOpen(!mobileOpen)
+            }
           >
             {mobileOpen ? <X /> : <Menu />}
           </button>
@@ -110,11 +136,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* MOBILE MENU */}
         {mobileOpen && (
           <div className="md:hidden border-t p-4">
-            {navItems.map(item => (
+            {navItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
-                onClick={() => setMobileOpen(false)}
+                onClick={() =>
+                  setMobileOpen(false)
+                }
                 className="block py-2"
               >
                 {item.label}
@@ -122,11 +150,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             ))}
 
             {user &&
-              authNavItems.map(item => (
+              authNavItems.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={() =>
+                    setMobileOpen(false)
+                  }
                   className="block py-2"
                 >
                   {item.label}
@@ -136,7 +166,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {isAdmin && (
               <Link
                 to="/admin"
-                onClick={() => setMobileOpen(false)}
+                onClick={() =>
+                  setMobileOpen(false)
+                }
                 className="block py-2 text-accent"
               >
                 Адмін
@@ -156,7 +188,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             ) : (
               <Link
                 to="/auth"
-                onClick={() => setMobileOpen(false)}
+                onClick={() =>
+                  setMobileOpen(false)
+                }
                 className="text-accent py-2 block"
               >
                 Увійти
@@ -166,11 +200,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1">{children}</main>
+      {/* CONTENT */}
+      <main className="flex-1">
+        {children}
+      </main>
 
+      {/* AI CHAT */}
+      {user && !isAdmin && (
+        <AiChat />
+      )}
+
+      {/* FOOTER */}
       <footer className="border-t bg-primary text-primary-foreground">
         <div className="container py-8 text-center text-sm opacity-80">
-          © 2026 АвтоПро — Професійний автосервіс. Усі права захищено.
+          © 2026 АвтоПро — Професійний
+          автосервіс. Усі права захищено.
         </div>
       </footer>
     </div>

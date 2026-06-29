@@ -14,18 +14,20 @@ namespace AutoserviceOrders.BLL.Services
 {
     public class OrderService : IOrderService
     {
+        private readonly RabbitMqPublisher _publisher;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly TwoLevelCacheService<List<OrderDto>> _ordersCache;
-
         public OrderService(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            TwoLevelCacheService<List<OrderDto>> ordersCache)
+    IUnitOfWork unitOfWork,
+    IMapper mapper,
+    TwoLevelCacheService<List<OrderDto>> ordersCache,
+    RabbitMqPublisher publisher)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _ordersCache = ordersCache;
+            _publisher = publisher;
         }
 
         public async Task<int> CreateOrderAsync(OrderDto orderDto)
@@ -63,6 +65,14 @@ namespace AutoserviceOrders.BLL.Services
                 await _unitOfWork.CommitAsync();
 
                 order.OrderId = newId;
+
+                await _publisher.PublishOrderCreatedAsync(
+    new OrderCreatedEvent
+    {
+        OrderId = order.OrderId,
+        UserId = order.UserId,
+                OrderDate = order.OrderDate
+    });
 
                 // invalidate cache
                 await _ordersCache.InvalidateAsync("orders:all");

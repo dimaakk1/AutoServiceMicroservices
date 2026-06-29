@@ -1,5 +1,8 @@
 
-namespace AutoserviceNotification;
+using AutoserviceAI.BLL.Services;
+using DotNetEnv;
+
+namespace AutoserviceAI;
 
 public class Program
 {
@@ -7,22 +10,17 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
-
+        Env.Load();
         // Add services to the container.
-        DotNetEnv.Env.Load();
-
+        builder.Services.AddHttpClient<
+    IAiDiagnosticService,
+    AiDiagnosticService>();
+        builder.Services.AddScoped<IAiDiagnosticService, AiDiagnosticService>();
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        builder.Services.AddGrpcClient<UserService.UserServiceClient>(o =>
-        {
-            o.Address = new Uri("https://localhost:5004"); // твій UserService
-        });
 
-        builder.Services.AddHostedService<OrderCreatedConsumer>();
-
-        builder.Services.AddScoped<IEmailService, EmailService>();
         var app = builder.Build();
 
         app.MapDefaultEndpoints();

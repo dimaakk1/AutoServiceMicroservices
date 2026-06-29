@@ -58,6 +58,21 @@ namespace AutoserviceOrders.DAL.db
             ProductId INT NOT NULL,
             Quantity INT NOT NULL,
             FOREIGN KEY (OrderId) REFERENCES Orders(OrderId),
+        );
+
+        IF OBJECT_ID('Payments') IS NULL
+        CREATE TABLE Payments (
+            PaymentId INT IDENTITY(1,1) PRIMARY KEY,
+            OrderId INT NOT NULL,
+            Amount DECIMAL(10, 2) NOT NULL,
+            Currency NVARCHAR(3) DEFAULT 'UAH',
+            Status NVARCHAR(50) DEFAULT 'Pending',
+            PaymentMethod NVARCHAR(50) DEFAULT 'LiqPay',
+            TransactionId NVARCHAR(255),
+            CreatedAt DATETIME DEFAULT GETDATE(),
+            PaidAt DATETIME NULL,
+            Description NVARCHAR(MAX),
+            FOREIGN KEY (OrderId) REFERENCES Orders(OrderId)
         );";
 
             using var cmd2 = new SqlCommand(createTablesScript, conn);

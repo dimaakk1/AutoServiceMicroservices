@@ -4,6 +4,7 @@ using AutoserviceOrders.BLL.Cache;
 using AutoserviceOrders.BLL.Grpc;
 using AutoserviceOrders.BLL.Services;
 using AutoserviceOrders.BLL.Services.Interfaces;
+using AutoserviceOrders.BLL.Services.LiqPay;
 using AutoserviceOrders.DAL.db;
 using AutoserviceOrders.DAL.Repositories;
 using AutoserviceOrders.DAL.Repositories.Interfaces;
@@ -39,7 +40,8 @@ namespace AutoserviceOrders.API
             });
             builder.Services.AddScoped(typeof(TwoLevelCacheService<>));
 
-
+            var connectionString =
+    builder.Configuration.GetConnectionString("rabbitmq");
 
             var sqlConnectionString = builder.Configuration.GetConnectionString("OrdersDb");
             DatabaseInitializer.Initialize(sqlConnectionString);
@@ -51,7 +53,10 @@ namespace AutoserviceOrders.API
             builder.Services.AddScoped<IOrderService, BLL.Services.OrderService>();
             builder.Services.AddScoped<IOrderDetailsService, OrderDetailsService>();
             builder.Services.AddScoped<IOrderItemService, OrderItemService>();
-
+            builder.Services.AddScoped<IPaymentService, PaymentService>();
+            builder.Services.AddScoped<ILiqPayService, LiqPayService>();
+            builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+            builder.Services.AddScoped<RabbitMqPublisher>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));

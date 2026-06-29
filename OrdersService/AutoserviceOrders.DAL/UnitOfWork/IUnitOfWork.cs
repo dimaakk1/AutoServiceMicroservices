@@ -9,12 +9,14 @@ namespace AutoserviceOrders.DAL.UnitOfWork
 {
     public interface IUnitOfWork : IAsyncDisposable
     {
-        IOrderRepository Orders { get; }
-        IOrderDetailsRepository OrderDetails { get; }
-        IOrderItemRepository OrderItems { get; }
+        IOrderRepository? Orders { get; }
+        IOrderDetailsRepository? OrderDetails { get; }
+        IOrderItemRepository? OrderItems { get; }
+        IPaymentRepository? Payments { get; }
 
         Task BeginTransactionAsync();
         Task CommitAsync();
         Task RollbackAsync();
+        T GetRepository<T>() where T : class;
     }
 }

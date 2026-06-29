@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
 import {
   Search,
   SlidersHorizontal,
-  Wrench,
+  Clock,
+  ArrowRight,
+  Wrench
 } from "lucide-react";
 
-import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
-import {
-  Card,
-  CardContent,
-} from "../components/ui/card";
-
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
 import api from "../api/api";
 
 type Service = {
@@ -21,231 +18,199 @@ type Service = {
   name: string;
   price: number;
   categoryName: string;
+  description?: string;
+  duration?: string;
 };
 
 export default function Services() {
   const [services, setServices] = useState<Service[]>([]);
-
   const [keyword, setKeyword] = useState("");
   const [price, setPrice] = useState("");
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadAll();
   }, []);
 
-
   const loadAll = async () => {
     try {
       setLoading(true);
-
       const res = await api.get("/Catalog/Service");
-
       setServices(res.data);
-    } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-
   const handleSearch = async () => {
-    try {
-      if (!keyword.trim()) {
-        return loadAll();
-      }
-
-      const res = await api.get(
-        `/Catalog/Service/search?keyword=${keyword}`
-      );
-
-      setServices(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    if (!keyword.trim()) return loadAll();
+    const res = await api.get(`/Catalog/Service/search?keyword=${keyword}`);
+    setServices(res.data);
   };
 
-
   const handleAbove = async () => {
-    try {
-      if (!price) return;
-
-      const res = await api.get(
-        `/Catalog/Service/price/above/${price}`
-      );
-
-      setServices(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    if (!price) return;
+    const res = await api.get(`/Catalog/Service/price/above/${price}`);
+    setServices(res.data);
   };
 
   const handleBelow = async () => {
-    try {
-      if (!price) return;
-
-      const res = await api.get(
-        `/Catalog/Service/price/below/${price}`
-      );
-
-      setServices(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    if (!price) return;
+    const res = await api.get(`/Catalog/Service/price/below/${price}`);
+    setServices(res.data);
   };
 
-
-  if (loading) {
-    return (
-      <div className="container py-20 text-center text-muted-foreground">
-        Завантаження послуг...
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-background">
 
-      <div className="container py-12">
+      {/* HEADER */}
+      <section className="relative overflow-hidden py-16 border-b border-border">
+        <div className="container">
 
-        <div className="mb-10">
+          <div className="max-w-2xl">
+            <div className="text-accent text-xs uppercase tracking-[0.2em] mb-3">
+              // Каталог послуг
+            </div>
 
-          <h1 className="text-4xl font-bold mb-4">
-            Наші послуги
-          </h1>
+            <h1 className="text-4xl md:text-5xl font-bold">
+              Все для вашого авто
+            </h1>
 
-          <p className="text-muted-foreground max-w-2xl text-lg">
-            Повний спектр послуг для вашого автомобіля —
-            від діагностики до складного ремонту.
-          </p>
+            <p className="text-muted-foreground mt-4">
+              Діагностика, ремонт і обслуговування з фіксованими цінами та прозорими умовами.
+            </p>
+          </div>
 
         </div>
+      </section>
 
-        <Card className="mb-10 shadow-sm">
-          <CardContent className="p-5">
+      {/* FILTERS */}
+      <section className="py-10">
+        <div className="container">
 
-            <div className="flex items-center gap-2 mb-5">
-              <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+          <Card className="border border-border bg-card shadow-card">
+            <CardContent className="p-5">
 
-              <h2 className="font-semibold text-lg">
-                Фільтри та пошук
-              </h2>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-
-              <div className="relative min-w-[240px] flex-1">
-
-                <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-
-                <Input
-                  placeholder="Пошук послуг..."
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="flex items-center gap-2 mb-4">
+                <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+                <h2 className="font-semibold">Фільтри</h2>
               </div>
 
-              <Button
-                onClick={handleSearch}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
-              >
-                Пошук
-              </Button>
+              <div className="flex flex-wrap gap-3">
 
-              <Input
-                type="number"
-                placeholder="Ціна"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-[140px]"
-              />
+                {/* SEARCH */}
+                <div className="relative flex-1 min-w-[240px]">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    placeholder="Пошук послуги..."
+                    className="pl-9"
+                  />
+                </div>
 
-              <Button
-                variant="outline"
-                onClick={handleAbove}
-                className="border-orange-200 hover:bg-orange-50"
-              >
-                Дорожче
-              </Button>
+                <Button onClick={handleSearch} className="bg-accent text-black hover:bg-accent/90">
+                  Пошук
+                </Button>
 
-              <Button
-                variant="outline"
-                onClick={handleBelow}
-                className="border-orange-200 hover:bg-orange-50"
-              >
-                Дешевше
-              </Button>
+                {/* PRICE */}
+                <Input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="Ціна"
+                  className="w-[140px]"
+                />
 
-              <Button
-                variant="ghost"
-                onClick={loadAll}
-                className="text-orange-600 hover:bg-orange-100"
-              >
-                Скинути
-              </Button>
+                <Button variant="outline" onClick={handleAbove}>
+                  Дорожче
+                </Button>
 
-            </div>
+                <Button variant="outline" onClick={handleBelow}>
+                  Дешевше
+                </Button>
 
-          </CardContent>
-        </Card>
+                <Button variant="ghost" onClick={loadAll} className="text-accent">
+                  Скинути
+                </Button>
 
-        {services.length === 0 ? (
-          <Card className="border-dashed">
-            <CardContent className="py-14 text-center text-muted-foreground">
-              Послуги не знайдено
+              </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
-            {services.map((service) => (
-              <Card
-                key={service.serviceId}
-                className="shadow-sm hover:shadow-lg transition-all hover:-translate-y-1"
-              >
-                <CardContent className="p-6 flex flex-col h-full">
+        </div>
+      </section>
 
-                  <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center mb-5">
-                    <Wrench className="h-6 w-6 text-orange-500" />
-                  </div>
+      {/* LIST */}
+      <section className="pb-20">
+        <div className="container">
 
-                  <h3 className="text-xl font-semibold mb-2">
-                    {service.name}
-                  </h3>
+          {loading ? (
+            <div className="text-center text-muted-foreground py-20">
+              Завантаження...
+            </div>
+          ) : services.length === 0 ? (
+            <Card className="border-dashed">
+              <CardContent className="py-16 text-center text-muted-foreground">
+                Послуги не знайдено
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {service.categoryName}
-                  </p>
+              {services.map((s) => (
+                <Card
+                  key={s.serviceId}
+                  className="group relative bg-card border border-border hover:border-accent/40 hover:-translate-y-1 transition-all shadow-card"
+                >
 
-                  <div className="mt-auto mb-5">
+                  <CardContent className="p-6 flex flex-col h-full">
 
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Вартість
+                    {/* ICON */}
+                    <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5 group-hover:bg-accent transition-colors">
+                      <Wrench className="h-5 w-5 text-accent group-hover:text-black" />
+                    </div>
+
+                    {/* TITLE */}
+                    <h3 className="font-semibold text-lg mb-1">
+                      {s.name}
+                    </h3>
+
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {s.categoryName}
                     </p>
 
-                    <p className="text-2xl font-bold">
-                      {service.price} ₴
-                    </p>
+                    {/* PRICE */}
+                    <div className="mt-auto flex items-center justify-between pt-4 border-t border-border">
+                      <span className="font-bold text-lg">
+                        {s.price} ₴
+                      </span>
 
-                  </div>
+                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        ~60 хв
+                      </span>
+                    </div>
 
-                  <Link to={`/booking?service=${service.serviceId}`}>
-                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-                      Записатися
-                    </Button>
-                  </Link>
+                    {/* CTA */}
+                    <Link
+                      to={`/booking?service=${s.serviceId}`}
+                      className="mt-5 flex items-center justify-between text-sm font-medium group/btn"
+                    >
+                      <span>Записатися</span>
+                      <ArrowRight className="h-4 w-4 text-accent group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
 
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              ))}
 
-          </div>
-        )}
+            </div>
+          )}
 
-      </div>
+        </div>
+      </section>
+
     </div>
   );
 }

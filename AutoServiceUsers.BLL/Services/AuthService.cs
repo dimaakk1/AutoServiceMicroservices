@@ -61,10 +61,60 @@ namespace AutoServiceUsers.BLL.Services
             // SEND EMAIL
             // -------------------------
             await _emailService.SendEmailAsync(
-                user.Email!,
-                "Підтвердження email",
-                $"<p>Підтвердіть email:</p><a href='{link}'>Натисніть тут</a>"
-            );
+    user.Email!,
+    "Підтвердження Email",
+    $@"
+    <div style='font-family:Arial,sans-serif;max-width:600px;margin:0 auto;'>
+
+        <div style='background:#f97316;padding:25px;text-align:center;'>
+            <h1 style='color:white;margin:0;'>
+                🚗 Auto Service
+            </h1>
+        </div>
+
+        <div style='background:#f9fafb;padding:30px;'>
+
+            <h2 style='color:#111827;'>
+                Вітаємо, {user.UserName}!
+            </h2>
+
+            <p style='font-size:16px;color:#374151;line-height:1.6;'>
+                Дякуємо за реєстрацію в Auto Service.
+                Для завершення створення акаунта необхідно підтвердити вашу електронну пошту.
+            </p>
+
+            <div style='text-align:center;margin:35px 0;'>
+
+                <a href='{link}'
+                   style='
+                        background:#f97316;
+                        color:white;
+                        text-decoration:none;
+                        padding:14px 28px;
+                        border-radius:8px;
+                        font-weight:bold;
+                        display:inline-block;'>
+                    Підтвердити Email
+                </a>
+
+            </div>
+
+            <p style='color:#6b7280;font-size:14px;'>
+                Якщо кнопка не працює, скопіюйте та відкрийте це посилання:
+            </p>
+
+            <p style='word-break:break-all;font-size:14px;'>
+                <a href='{link}'>{link}</a>
+            </p>
+
+        </div>
+
+        <div style='background:#111827;color:white;padding:15px;text-align:center;'>
+            © 2026 Auto Service
+        </div>
+
+    </div>"
+);
 
             return new
             {
