@@ -48,6 +48,10 @@ type Order = {
   email: string;
   orderDate: string;
   status: string;
+
+  paymentStatus?: string | null;
+  paymentId?: number;
+
   items: OrderItem[];
   review: Review | null;
 };
@@ -77,24 +81,41 @@ export default function AdminOrders() {
 
 
   const loadOrders = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const res = await api.get("/aggregation/orders", {
+    const [ordersRes, paymentsRes] = await Promise.all([
+      api.get("/aggregation/orders", {
         params: {
           status: filters.status || undefined,
           fromDate: filters.fromDate || undefined,
           toDate: filters.toDate || undefined,
         },
-      });
+      }),
+      api.get("/Orders/payments"),
+    ]);
 
-      setOrders(res.data);
-    } catch {
-      toast.error("Не вдалося завантажити замовлення");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const payments = paymentsRes.data;
+
+    const ordersWithPayments = ordersRes.data.map((order: any) => {
+      const payment = payments.find(
+        (p: any) => p.orderId === order.orderId
+      );
+
+      return {
+        ...order,
+        paymentStatus: payment?.status ?? null,
+        paymentId: payment?.paymentId,
+      };
+    });
+
+    setOrders(ordersWithPayments);
+  } catch {
+    toast.error("Не вдалося завантажити замовлення");
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (user?.role === "Admin") loadOrders();
@@ -242,14 +263,34 @@ export default function AdminOrders() {
           className="border rounded-lg p-3 flex justify-between items-center"
         >
           <div>
-            <div className="font-medium">
-              #{o.orderId} — {o.username}
-            </div>
+  <div className="font-medium">
+    #{o.orderId} — {o.username}
+  </div>
 
-            <div className="text-sm text-muted-foreground">
-              {o.items.map(i => i.productName).join(", ")}
-            </div>
-          </div>
+  <div className="text-sm text-muted-foreground">
+    {o.items.map(i => i.productName).join(", ")}
+  </div>
+
+  <div className="mt-2">
+  {o.paymentStatus?.toLowerCase() === "success" ? (
+    <Badge className="bg-green-500 text-white">
+      Оплачено
+    </Badge>
+  ) : o.paymentStatus?.toLowerCase() === "pending" ? (
+    <Badge className="bg-yellow-500 text-white">
+      Очікує оплату
+    </Badge>
+  ) : o.paymentStatus ? (
+    <Badge className="bg-red-500 text-white">
+      {o.paymentStatus}
+    </Badge>
+  ) : (
+    <Badge variant="outline">
+      Без платежу
+    </Badge>
+  )}
+</div>
+</div>
 
           <div className="flex items-center gap-4">
 
@@ -298,9 +339,10 @@ export default function AdminOrders() {
               <TableHead className="text-white">Користувач</TableHead>
               <TableHead className="text-white">Дата</TableHead>
               <TableHead className="text-white">Послуги</TableHead>
-              <TableHead className="text-white">Сума</TableHead>
-              <TableHead className="text-white">Відгук</TableHead>
-              <TableHead className="text-white">Статус</TableHead>
+       <TableHead className="text-white">Сума</TableHead>
+<TableHead className="text-white">Оплата</TableHead>
+<TableHead className="text-white">Відгук</TableHead>
+<TableHead className="text-white">Статус</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -337,6 +379,32 @@ export default function AdminOrders() {
                 <TableCell className="font-semibold">
                   {totalPrice(order).toFixed(2)} ₴
                 </TableCell>
+
+                <TableCell>
+  {order.paymentStatus === "Success" && (
+    <Badge className="bg-green-500 text-white">
+      Оплачено
+    </Badge>
+  )}
+
+  {order.paymentStatus === "Pending" && (
+    <Badge className="bg-yellow-500 text-white">
+      Очікує оплату
+    </Badge>
+  )}
+
+  {order.paymentStatus === "Failure" && (
+    <Badge className="bg-red-500 text-white">
+      Помилка
+    </Badge>
+  )}
+
+  {!order.paymentStatus && (
+    <Badge variant="outline">
+      Без платежу
+    </Badge>
+  )}
+</TableCell>
 
                 <TableCell className="text-sm">
                   {order.review ? (

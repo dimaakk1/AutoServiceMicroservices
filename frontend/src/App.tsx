@@ -13,7 +13,7 @@ import Booking from "./pages/Booking";
 import Profile from "./pages/Profile";
 import MyBookings from "./pages/MyBookings";
 import Reviews from "./pages/Reviews";
-
+import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminServices from "./pages/admin/AdminServices";
@@ -53,6 +53,10 @@ export default function App() {
               path="/email-confirmed"
               element={<EmailConfirmed />}
             />
+            <Route
+  path="/payment-success"
+  element={<PaymentSuccess />}
+/>
 
             <Route
               path="/booking"

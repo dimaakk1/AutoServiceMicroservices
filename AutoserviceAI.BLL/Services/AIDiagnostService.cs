@@ -40,8 +40,7 @@ namespace AutoserviceAI.BLL.Services
             Якщо інформації недостатньо —
             став уточнюючі питання.
 
-            Не став остаточний діагноз.
-            Рекомендуй звернення до сервісу.
+            Вкінці рекомендуй звернення до автосервісу AutoPro для вирішення проблеми.
             """;
 
             var conversation =
@@ -73,7 +72,14 @@ namespace AutoserviceAI.BLL.Services
                 await _httpClient.PostAsJsonAsync(
                     $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}",
                     requestBody);
+            Console.WriteLine(
+    $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}"
+);
 
+            Console.WriteLine(response.StatusCode);
+
+            var error = await response.Content.ReadAsStringAsync();
+            Console.WriteLine(error);
             response.EnsureSuccessStatusCode();
 
             var result =

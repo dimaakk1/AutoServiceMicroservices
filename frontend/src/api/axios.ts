@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://localhost:5000/api",
+  baseURL: "http://192.168.0.201:5000/api",
 });
 
 
@@ -30,7 +30,7 @@ api.interceptors.response.use(
         if (!refreshToken) throw new Error("No refresh token");
 
         const res = await axios.post(
-          "https://localhost:5000/api/auth/refresh",
+          "http://192.168.0.201:5000/api/auth/refresh",
           { refreshToken }
         );
 

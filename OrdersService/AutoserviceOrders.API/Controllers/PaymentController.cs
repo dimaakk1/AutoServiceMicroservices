@@ -2,13 +2,12 @@ using AutoserviceOrders.BLL.DTO;
 using AutoserviceOrders.BLL.Services.Interfaces;
 using AutoserviceOrders.BLL.Services.LiqPay;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace AutoserviceOrders.API.Controllers
 {
-    [Route("api/Payments")]
+    [Route("api/Orders/payments")]
     [ApiController]
     public class PaymentController : ControllerBase
     {
@@ -16,156 +15,121 @@ namespace AutoserviceOrders.API.Controllers
         private readonly ILiqPayService _liqPayService;
         private readonly IOrderService _orderService;
 
-        public PaymentController(IPaymentService paymentService, ILiqPayService liqPayService, IOrderService orderService)
+        public PaymentController(
+            IPaymentService paymentService,
+            ILiqPayService liqPayService,
+            IOrderService orderService)
         {
-            _paymentService = paymentService ?? throw new ArgumentNullException(nameof(paymentService));
-            _liqPayService = liqPayService ?? throw new ArgumentNullException(nameof(liqPayService));
-            _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
-        }
-
-        [HttpPost("create")]
-        [Authorize]
-        public async Task<IActionResult> CreatePayment([FromBody] CreatePaymentDto createPaymentDto)
-        {
-            if (createPaymentDto == null || createPaymentDto.OrderId <= 0)
-                return BadRequest(new { message = "Invalid order ID" });
-
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-                return Unauthorized();
-
-            try
-            {
-                var order = await _orderService.GetOrderByIdAsync(createPaymentDto.OrderId);
-                if (order == null || order.UserId != userId)
-                    return Forbid();
-
-                var payment = await _paymentService.CreatePaymentAsync(createPaymentDto);
-
-                return Ok(new
-                {
-                    message = "Payment created successfully",
-                    payment = payment
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            _paymentService = paymentService;
+            _liqPayService = liqPayService;
+            _orderService = orderService;
         }
 
         [HttpPost("checkout")]
         [Authorize]
-        public async Task<IActionResult> GetCheckoutForm([FromBody] CreatePaymentDto createPaymentDto)
+        public async Task<IActionResult> Checkout([FromBody] CreatePaymentDto dto)
         {
-            if (createPaymentDto == null || createPaymentDto.OrderId <= 0)
-                return BadRequest(new { message = "Invalid order ID" });
-
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+
+            if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
+
+            if (dto == null || dto.OrderId <= 0)
+                return BadRequest(new { message = "Invalid order id" });
 
             try
             {
-                var order = await _orderService.GetOrderByIdAsync(createPaymentDto.OrderId);
-                if (order == null || order.UserId != userId)
+                var order = await _orderService.GetOrderByIdAsync(dto.OrderId);
+
+                if (order == null)
+                    return NotFound(new { message = "Order not found" });
+
+                if (order.UserId != userId)
                     return Forbid();
 
-                // Create payment record
-                var payment = await _paymentService.CreatePaymentAsync(createPaymentDto);
+                var existingPayment =
+                    await _paymentService.GetPaymentByOrderIdAsync(dto.OrderId);
 
-                // Generate checkout form
-                var checkoutForm = _liqPayService.GenerateCheckoutForm(
-                    createPaymentDto.OrderId,
-                    createPaymentDto.Amount,
-                    userId
-                );
+                PaymentDto payment;
+
+                if (existingPayment != null)
+                {
+                    payment = existingPayment;
+                }
+                else
+                {
+                    payment = await _paymentService.CreatePaymentAsync(dto);
+                }
+
+                var checkoutData = _liqPayService.GenerateCheckoutData(
+     payment.OrderId,
+     payment.Amount
+ );
 
                 return Ok(new
                 {
-                    message = "Checkout form generated",
-                    checkoutForm = checkoutForm,
-                    payment = payment
+                    paymentId = payment.PaymentId,
+                    amount = payment.Amount,
+                    data = checkoutData.Data,
+                    signature = checkoutData.Signature
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
             }
         }
 
         [HttpPost("callback")]
         [AllowAnonymous]
-        public async Task<IActionResult> HandleCallback([FromBody] LiqPayCallbackDto callbackDto)
+        public async Task<IActionResult> Callback(
+            [FromForm] string data,
+            [FromForm] string signature)
         {
-            if (callbackDto == null || string.IsNullOrEmpty(callbackDto.Data) || string.IsNullOrEmpty(callbackDto.Signature))
-                return BadRequest();
-
             try
             {
-                var callbackData = await _liqPayService.ParseCallbackAsync(callbackDto.Data, callbackDto.Signature);
+                var callbackData =
+                    await _liqPayService.ParseCallbackAsync(
+                        data,
+                        signature);
 
-                // Update payment status
-                var payment = await _paymentService.GetPaymentByOrderIdAsync(callbackData.OrderId);
-                if (payment == null)
-                    return BadRequest();
-
-                var updatedPayment = await _paymentService.UpdatePaymentStatusAsync(
-                    payment.PaymentId,
+                await _paymentService.UpdatePaymentStatusAsync(
+                    callbackData.PaymentId,
                     callbackData.Status,
-                    callbackData.TransactionId
-                );
+                    callbackData.TransactionId);
 
-                return Ok(new { message = "Payment processed successfully", payment = updatedPayment });
+                return Ok("ok");
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        [HttpGet("order/{orderId}")]
-        [Authorize]
-        public async Task<IActionResult> GetPaymentByOrderId(int orderId)
-        {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-                return Unauthorized();
-
-            try
-            {
-                var order = await _orderService.GetOrderByIdAsync(orderId);
-                if (order == null || order.UserId != userId)
-                    return Forbid();
-
-                var payment = await _paymentService.GetPaymentByOrderIdAsync(orderId);
-                if (payment == null)
-                    return NotFound();
-
-                return Ok(payment);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"LiqPay callback error: {ex.Message}");
+                return BadRequest();
             }
         }
 
         [HttpGet("{paymentId}")]
         [Authorize]
-        public async Task<IActionResult> GetPaymentById(int paymentId)
+        public async Task<IActionResult> GetPayment(int paymentId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+
+            if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
             try
             {
-                var payment = await _paymentService.GetPaymentByIdAsync(paymentId);
+                var payment =
+                    await _paymentService.GetPaymentByIdAsync(paymentId);
+
                 if (payment == null)
                     return NotFound();
 
-                // Verify ownership
-                var order = await _orderService.GetOrderByIdAsync(payment.OrderId);
+                var order =
+                    await _orderService.GetOrderByIdAsync(payment.OrderId);
+
                 if (order == null || order.UserId != userId)
                     return Forbid();
 
@@ -173,26 +137,72 @@ namespace AutoserviceOrders.API.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
             }
         }
 
-        [HttpGet("my/payments")]
+        [HttpGet("order/{orderId}")]
         [Authorize]
-        public async Task<IActionResult> GetMyPayments()
+        public async Task<IActionResult> GetPaymentByOrder(int orderId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+
+            if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
             try
             {
-                var payments = await _paymentService.GetPaymentsByUserIdAsync(userId);
+                var order =
+                    await _orderService.GetOrderByIdAsync(orderId);
+
+                if (order == null)
+                    return NotFound();
+
+                if (order.UserId != userId)
+                    return Forbid();
+
+                var payment =
+                    await _paymentService.GetPaymentByOrderIdAsync(orderId);
+
+                if (payment == null)
+                    return NotFound();
+
+                return Ok(payment);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("my")]
+        [Authorize]
+        public async Task<IActionResult> GetMyPayments()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            try
+            {
+                var payments =
+                    await _paymentService.GetPaymentsByUserIdAsync(userId);
+
                 return Ok(payments);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
             }
         }
 
@@ -202,12 +212,17 @@ namespace AutoserviceOrders.API.Controllers
         {
             try
             {
-                var payments = await _paymentService.GetAllPaymentsAsync();
+                var payments =
+                    await _paymentService.GetAllPaymentsAsync();
+
                 return Ok(payments);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = ex.Message
+                });
             }
         }
     }

@@ -10,6 +10,7 @@ using AutoserviceOrders.DAL.Repositories;
 using AutoserviceOrders.DAL.Repositories.Interfaces;
 using AutoserviceOrders.DAL.UnitOfWork;
 using Dapper;
+using DotNetEnv;
 using Grpc.AspNetCore.Server;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Data.SqlClient;
@@ -30,6 +31,7 @@ namespace AutoserviceOrders.API
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddGrpc();
             builder.Logging.AddConsole();
+            Env.Load();
 
             builder.Services.AddMemoryCache();
 

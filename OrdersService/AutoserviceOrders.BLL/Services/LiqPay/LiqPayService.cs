@@ -1,18 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
 namespace AutoserviceOrders.BLL.Services.LiqPay
 {
     public interface ILiqPayService
     {
-        string GenerateCheckoutForm(int orderId, decimal amount, string userId);
+        LiqPayCheckoutDto GenerateCheckoutData(int paymentId, decimal amount);
+
         bool VerifyCallback(string data, string signature);
+
         Task<PaymentCallbackData> ParseCallbackAsync(string data, string signature);
     }
 
@@ -21,100 +20,142 @@ namespace AutoserviceOrders.BLL.Services.LiqPay
         private readonly string _publicKey;
         private readonly string _privateKey;
         private readonly string _callbackUrl;
+        private readonly string _resultUrl;
 
         public LiqPayService(IConfiguration configuration)
         {
-            _publicKey = configuration["LiqPay:PublicKey"] ?? throw new ArgumentNullException("LiqPay:PublicKey");
-            _privateKey = configuration["LiqPay:PrivateKey"] ?? throw new ArgumentNullException("LiqPay:PrivateKey");
-            _callbackUrl = configuration["LiqPay:CallbackUrl"] ?? "https://yourdomain.com/api/payments/callback";
+            _publicKey = Environment.GetEnvironmentVariable("PublicKey")
+                ?? throw new ArgumentNullException("LiqPay:PublicKey");
+
+            _privateKey = Environment.GetEnvironmentVariable("PrivateKey")
+                ?? throw new ArgumentNullException("LiqPay:PrivateKey");
+
+            _callbackUrl = Environment.GetEnvironmentVariable("CallbackUrl")
+                ?? throw new ArgumentNullException("LiqPay:CallbackUrl");
+
+            _resultUrl = Environment.GetEnvironmentVariable("ResultUrl")
+                ?? throw new ArgumentNullException("LiqPay:ResultUrl");
         }
 
-        public string GenerateCheckoutForm(int orderId, decimal amount, string userId)
+        public LiqPayCheckoutDto GenerateCheckoutData(int paymentId, decimal amount)
         {
             var request = new
             {
                 public_key = _publicKey,
                 version = "3",
                 action = "pay",
-                amount = (int)(amount * 100), // конвертуємо в копійки
+                amount = amount,
                 currency = "UAH",
-                description = $"Order #{orderId}",
-                order_id = orderId.ToString(),
+                description = $"Оплата замовлення #{paymentId}",
+                order_id = paymentId.ToString(),
                 server_url = _callbackUrl,
-                result_url = "https://yourdomain.com/orders/success",
+                result_url = _resultUrl,
                 language = "uk"
             };
 
-            var data = Base64Encode(JsonSerializer.Serialize(request));
+            var json = JsonSerializer.Serialize(request);
+
+            var data = Base64Encode(json);
+
             var signature = GenerateSignature(data);
 
-            return GenerateHtmlForm(data, signature);
+            return new LiqPayCheckoutDto
+            {
+                Data = data,
+                Signature = signature
+            };
         }
 
         public bool VerifyCallback(string data, string signature)
         {
             var expectedSignature = GenerateSignature(data);
-            return signature == expectedSignature;
+
+            return CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(signature),
+                Encoding.UTF8.GetBytes(expectedSignature));
         }
 
-        public async Task<PaymentCallbackData> ParseCallbackAsync(string data, string signature)
+        public async Task<PaymentCallbackData> ParseCallbackAsync(
+            string data,
+            string signature)
         {
             if (!VerifyCallback(data, signature))
             {
-                throw new InvalidOperationException("Invalid callback signature");
+                throw new InvalidOperationException("Invalid LiqPay signature");
             }
 
             var decodedData = Base64Decode(data);
-            using var doc = JsonDocument.Parse(decodedData);
-            var root = doc.RootElement;
 
-            return new PaymentCallbackData
+            using var document = JsonDocument.Parse(decodedData);
+
+            var root = document.RootElement;
+
+            return await Task.FromResult(new PaymentCallbackData
             {
-                OrderId = root.TryGetProperty("order_id", out var orderId) ? int.Parse(orderId.GetString() ?? "0") : 0,
-                Amount = root.TryGetProperty("amount", out var amount) ? amount.GetDecimal() / 100 : 0,
-                Status = root.TryGetProperty("status", out var status) ? status.GetString() ?? "pending" : "pending",
-                TransactionId = root.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : null,
-                Description = root.TryGetProperty("description", out var desc) ? desc.GetString() : null
-            };
+                PaymentId = root.TryGetProperty("order_id", out var orderId)
+                    ? int.Parse(orderId.GetString() ?? "0")
+                    : 0,
+
+                Amount = root.TryGetProperty("amount", out var amount)
+                    ? amount.GetDecimal()
+                    : 0,
+
+                Status = root.TryGetProperty("status", out var status)
+                    ? status.GetString() ?? "pending"
+                    : "pending",
+
+                TransactionId = root.TryGetProperty("transaction_id", out var txId)
+                    ? txId.GetString()
+                    : null,
+
+                Description = root.TryGetProperty("description", out var desc)
+                    ? desc.GetString()
+                    : null
+            });
         }
 
         private string GenerateSignature(string data)
         {
-            var str = _privateKey + data + _privateKey;
+            var signatureString = $"{_privateKey}{data}{_privateKey}";
+
             using var sha1 = SHA1.Create();
-            var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(str));
+
+            var hash = sha1.ComputeHash(
+                Encoding.UTF8.GetBytes(signatureString));
+
             return Convert.ToBase64String(hash);
         }
 
-        private string Base64Encode(string text)
+        private static string Base64Encode(string text)
         {
-            var textBytes = Encoding.UTF8.GetBytes(text);
-            return Convert.ToBase64String(textBytes);
+            return Convert.ToBase64String(
+                Encoding.UTF8.GetBytes(text));
         }
 
-        private string Base64Decode(string base64EncodedData)
+        private static string Base64Decode(string base64)
         {
-            var base64EncodedBytes = Convert.FromBase64String(base64EncodedData);
-            return Encoding.UTF8.GetString(base64EncodedBytes);
+            return Encoding.UTF8.GetString(
+                Convert.FromBase64String(base64));
         }
+    }
 
-        private string GenerateHtmlForm(string data, string signature)
-        {
-            return $@"
-<form method='POST' action='https://www.liqpay.com/api/3/checkout' accept-charset='utf-8'>
-    <input type='hidden' name='data' value='{data}' />
-    <input type='hidden' name='signature' value='{signature}' />
-    <button type='submit'>Оплатити</button>
-</form>";
-        }
+    public class LiqPayCheckoutDto
+    {
+        public string Data { get; set; } = string.Empty;
+
+        public string Signature { get; set; } = string.Empty;
     }
 
     public class PaymentCallbackData
     {
-        public int OrderId { get; set; }
+        public int PaymentId { get; set; }
+
         public decimal Amount { get; set; }
+
         public string Status { get; set; } = string.Empty;
+
         public string? TransactionId { get; set; }
+
         public string? Description { get; set; }
     }
 }

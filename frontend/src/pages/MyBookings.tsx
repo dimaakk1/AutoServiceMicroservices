@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth-context";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
-
+import { createCheckout } from "../api/payment";
 import {
   CalendarDays,
   XCircle,
@@ -57,6 +57,48 @@ export default function MyBookings() {
       toast.error("Помилка скасування");
     }
   };
+
+  const handlePayment = async (order: any) => {
+  try {
+    const total =
+      order.items?.reduce(
+        (sum: number, item: any) => sum + item.totalPrice,
+        0
+      ) || 100;
+
+    const response = await createCheckout({
+      orderId: order.orderId,
+      amount: total,
+      description: `Оплата замовлення #${order.orderId}`,
+    });
+
+    const { data, signature } = response.data;
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = "https://www.liqpay.ua/api/3/checkout";
+    form.acceptCharset = "utf-8";
+
+    const dataInput = document.createElement("input");
+    dataInput.type = "hidden";
+    dataInput.name = "data";
+    dataInput.value = data;
+
+    const signatureInput = document.createElement("input");
+    signatureInput.type = "hidden";
+    signatureInput.name = "signature";
+    signatureInput.value = signature;
+
+    form.appendChild(dataInput);
+    form.appendChild(signatureInput);
+
+    document.body.appendChild(form);
+    form.submit();
+  } catch (error) {
+    console.error(error);
+    toast.error("Помилка створення платежу");
+  }
+};
 
   const getStatusStyles = (status: string) => {
     switch (status) {
@@ -280,19 +322,28 @@ export default function MyBookings() {
                           </p>
                         </div>
 
-                        {(order.status === "Pending" ||
-                          order.status === "Confirmed") && (
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              handleCancel(order.orderId)
-                            }
-                            className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
-                          >
-                            <XCircle className="h-4 w-4 mr-2" />
-                            Скасувати запис
-                          </Button>
-                        )}
+                        <div className="flex gap-3">
+  {order.status === "Pending" && (
+    <Button
+      onClick={() => handlePayment(order)}
+      className="bg-green-600 hover:bg-green-700 text-white rounded-xl"
+    >
+      Оплатити
+    </Button>
+  )}
+
+  {(order.status === "Pending" ||
+    order.status === "Confirmed") && (
+    <Button
+      variant="outline"
+      onClick={() => handleCancel(order.orderId)}
+      className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
+    >
+      <XCircle className="h-4 w-4 mr-2" />
+      Скасувати запис
+    </Button>
+  )}
+</div>
                       </div>
                     </div>
                   </div>

@@ -12,10 +12,8 @@ public class Program
         builder.AddServiceDefaults();
         Env.Load();
         // Add services to the container.
-        builder.Services.AddHttpClient<
-    IAiDiagnosticService,
-    AiDiagnosticService>();
-        builder.Services.AddScoped<IAiDiagnosticService, AiDiagnosticService>();
+        builder.Services.AddHttpClient<IAiDiagnosticService, AiDiagnosticService>();
+
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();

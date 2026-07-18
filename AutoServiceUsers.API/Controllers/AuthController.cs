@@ -110,11 +110,11 @@ namespace AutoServiceUsers.API.Controllers
 
                 await _authService.VerifyEmailAsync(dto);
 
-                return Redirect("http://localhost:5173/email-confirmed?status=success");
+                return Redirect("http://192.168.0.206:5173/email-confirmed?status=success");
             }
             catch
             {
-                return Redirect("http://localhost:5173/email-confirmed?status=error");
+                return Redirect("http://192.168.0.206:5173/email-confirmed?status=error");
             }
         }
 

@@ -68,9 +68,7 @@ export default function Services() {
         <div className="container">
 
           <div className="max-w-2xl">
-            <div className="text-accent text-xs uppercase tracking-[0.2em] mb-3">
-              // Каталог послуг
-            </div>
+          
 
             <h1 className="text-4xl md:text-5xl font-bold">
               Все для вашого авто
