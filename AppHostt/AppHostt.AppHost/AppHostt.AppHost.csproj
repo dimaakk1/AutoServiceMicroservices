@@ -22,6 +22,7 @@
     <ProjectReference Include="..\..\ApiGateway\ApiGateway.csproj" />
     <ProjectReference Include="..\..\AutoserviceAI\AutoserviceAI.API.csproj" />
     <ProjectReference Include="..\..\AutoserviceNotification\AutoserviceNotification.csproj" />
+    <ProjectReference Include="..\..\AutoServiceTelegram.API\AutoServiceTelegram.API.csproj" />
     <ProjectReference Include="..\..\AutoServiceUsers.API\AutoServiceUsers.API.csproj" />
     <ProjectReference Include="..\..\CatalogService\AutoServiceCatalog.API\AutoServiceCatalog.API.csproj" />
     <ProjectReference Include="..\..\ordersservice\AutoserviceOrders.API\AutoserviceOrders.API.csproj" />

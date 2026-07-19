@@ -68,6 +68,11 @@ var usersService = builder
 var aiService = builder
     .AddProject<Projects.AutoserviceAI_API>("autoserviceai");
 
+var telegramService = builder
+    .AddProject<Projects.AutoServiceTelegram_API>("autoservicetelegram")
+    .WithReference(rabbitmq)
+    .WaitFor(rabbitmq);
+
 
 
 
@@ -92,7 +97,6 @@ var aggregationApi = builder
     .WithReference(reviewsService)
     .WithReference(redis)
     .WaitFor(redis);
-
 
 
 

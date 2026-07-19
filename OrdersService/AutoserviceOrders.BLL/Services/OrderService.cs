@@ -74,6 +74,8 @@ namespace AutoserviceOrders.BLL.Services
                 OrderDate = order.OrderDate
     });
 
+  
+
                 // invalidate cache
                 await _ordersCache.InvalidateAsync("orders:all");
                 await _ordersCache.InvalidateAsync($"order:{order.OrderId}");

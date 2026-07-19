@@ -32,12 +32,24 @@ namespace AutoserviceNotification
             _connection = await factory.CreateConnectionAsync(cancellationToken);
             _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
+            await _channel.ExchangeDeclareAsync(
+    exchange: "order-created-exchange",
+    type: ExchangeType.Fanout,
+    durable: true,
+    cancellationToken: cancellationToken);
+
             await _channel.QueueDeclareAsync(
-                queue: "order-created",
+                queue: "email-orders",
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
                 arguments: null,
+                cancellationToken: cancellationToken);
+
+            await _channel.QueueBindAsync(
+                queue: "email-orders",
+                exchange: "order-created-exchange",
+                routingKey: "",
                 cancellationToken: cancellationToken);
 
             await base.StartAsync(cancellationToken);
@@ -142,10 +154,10 @@ namespace AutoserviceNotification
             };
 
             _channel.BasicConsumeAsync(
-                queue: "order-created",
-                autoAck: false,
-                consumer: consumer
-            );
+    queue: "email-orders",
+    autoAck: false,
+    consumer: consumer
+);
 
             return Task.CompletedTask;
         }

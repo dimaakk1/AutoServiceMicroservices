@@ -24,12 +24,6 @@ namespace AutoserviceOrders.BLL.Services
             var connectionString =
                 _configuration.GetConnectionString("rabbitmq");
 
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new InvalidOperationException(
-                    "RabbitMQ connection string not found.");
-            }
-
             var factory = new ConnectionFactory
             {
                 Uri = new Uri(connectionString)
@@ -41,19 +35,21 @@ namespace AutoserviceOrders.BLL.Services
             await using var channel =
                 await connection.CreateChannelAsync();
 
-            await channel.QueueDeclareAsync(
-                queue: "order-created",
-                durable: true,
-                exclusive: false,
-                autoDelete: false);
+            await channel.ExchangeDeclareAsync(
+                exchange: "order-created-exchange",
+                type: ExchangeType.Fanout,
+                durable: true);
 
             var body = Encoding.UTF8.GetBytes(
                 JsonSerializer.Serialize(order));
 
             await channel.BasicPublishAsync(
-                exchange: "",
-                routingKey: "order-created",
+                exchange: "order-created-exchange",
+                routingKey: "",
                 body: body);
+
+            Console.WriteLine(
+                $"Order {order.OrderId} published");
         }
     }
 }
