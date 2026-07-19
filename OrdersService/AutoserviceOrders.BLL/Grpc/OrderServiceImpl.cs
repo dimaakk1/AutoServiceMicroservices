@@ -39,10 +39,15 @@ namespace AutoserviceOrders.BLL.Grpc
             var filter = new OrderFilterDto
             {
                 UserId = request.UserId,
-                Status = request.Status
+                Status = request.Status,
+                Date = string.IsNullOrEmpty(request.Date)
+        ? null
+        : DateTime.Parse(request.Date)
             };
 
-            var orders = await _orderItemService.GetAllOrdersWithItemsAsync(filter);
+
+            var orders =
+                await _orderItemService.GetAllOrdersWithItemsAsync(filter);
 
             var response = new OrderListResponse();
 
@@ -70,6 +75,40 @@ namespace AutoserviceOrders.BLL.Grpc
             );
 
             return response;
+        }
+
+        public override async Task<UpdateOrderStatusResponse>
+UpdateOrderStatus(
+    UpdateOrderStatusRequest request,
+    ServerCallContext context)
+        {
+
+            try
+            {
+
+                await _orderService.UpdateStatusAsync(
+                    request.OrderId,
+                    request.Status);
+
+
+                return new UpdateOrderStatusResponse
+                {
+                    Success = true,
+                    Message = "Статус оновлено"
+                };
+
+            }
+            catch (Exception ex)
+            {
+
+                return new UpdateOrderStatusResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+
+            }
+
         }
 
     }

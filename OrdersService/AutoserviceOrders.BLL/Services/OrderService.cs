@@ -251,6 +251,47 @@ namespace AutoserviceOrders.BLL.Services
             );
         }
 
+        public async Task<bool> UpdateStatusAsync(
+    int orderId,
+    string status)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                var order =
+                    await _unitOfWork.Orders.GetByIdAsync(orderId);
+
+
+                if (order == null)
+                {
+                    await _unitOfWork.RollbackAsync();
+                    return false;
+                }
+
+
+                order.Status = status;
+
+
+                await _unitOfWork.Orders.UpdateAsync(order);
+
+
+                await _unitOfWork.CommitAsync();
+
+
+                await _ordersCache.InvalidateAsync("orders:all");
+                await _ordersCache.InvalidateAsync($"order:{orderId}");
+
+
+                return true;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
 
     }
 

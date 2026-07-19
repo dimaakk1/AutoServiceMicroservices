@@ -19,5 +19,8 @@ namespace AutoserviceOrders.BLL.Services.Interfaces
         Task<IEnumerable<OrderDto>> GetMyOrdersAsync(string userId);
         Task<List<string>> GetTakenSlotsAsync(DateTime date);
         Task<List<OrderDto>> GetOrdersByDateAsync(DateTime date);
+        Task<bool> UpdateStatusAsync(
+    int orderId,
+    string status);
     }
 }

@@ -173,6 +173,10 @@ namespace AutoserviceOrders.BLL.Services
                     order.Status != filter.Status)
                     continue;
 
+                if (filter.Date.HasValue &&
+    order.OrderDate.Date != filter.Date.Value.Date)
+                    continue;
+
                 if (filter.FromDate.HasValue &&
                     order.OrderDate < filter.FromDate.Value)
                     continue;

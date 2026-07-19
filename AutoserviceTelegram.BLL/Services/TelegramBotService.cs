@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AutoserviceTelegram.BLL.Services
 {
@@ -23,16 +24,20 @@ namespace AutoserviceTelegram.BLL.Services
             _bot = new TelegramBotClient(token);
         }
 
+        
         public async Task SendMessageAsync(
-            string message)
+    string message,
+    InlineKeyboardMarkup? keyboard = null)
         {
             long chatId =
                 long.Parse(
                     Environment.GetEnvironmentVariable("AdminChatId")!);
-
             await _bot.SendMessage(
-                chatId,
-                message);
+                chatId: chatId,
+                text: message,
+                replyMarkup: keyboard
+            );
+
         }
     }
 }

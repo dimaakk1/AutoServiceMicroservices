@@ -7,6 +7,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
 using System.Text.Json;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AutoserviceTelegram.BLL.Consumers
 {
@@ -82,9 +83,48 @@ namespace AutoserviceTelegram.BLL.Consumers
                     var order =
                         JsonSerializer.Deserialize<OrderCreatedEvent>(
                             json);
-
+                    var userClient =
+    scope.ServiceProvider.GetRequiredService<UserService.UserServiceClient>();
+                    var user = await userClient.GetUserAsync(new UserRequest
+                    {
+                        UserId = order.UserId
+                    });
                     if (order == null)
                         return;
+
+                    var keyboard =
+new InlineKeyboardMarkup(
+new[]
+{
+    new[]
+    {
+        InlineKeyboardButton.WithCallbackData(
+            "✅ Підтвердити",
+            $"status:{order.OrderId}:Confirmed")
+    },
+
+    new[]
+    {
+        InlineKeyboardButton.WithCallbackData(
+            "🔧 В роботі",
+            $"status:{order.OrderId}:InProgress")
+    },
+
+    new[]
+    {
+        InlineKeyboardButton.WithCallbackData(
+            "🏁 Завершити",
+            $"status:{order.OrderId}:Completed")
+    },
+
+    new[]
+    {
+        InlineKeyboardButton.WithCallbackData(
+            "❌ Скасувати",
+            $"status:{order.OrderId}:Cancelled")
+    }
+
+});
 
                     await telegram.SendMessageAsync(
     $"""
@@ -92,15 +132,19 @@ namespace AutoserviceTelegram.BLL.Consumers
 
 № {order.OrderId}
 
-👤 UserId:
-{order.UserId}
+👤 Користувач:
+{user.Username}
 
 📅 Дата:
 {order.OrderDate:dd.MM.yyyy}
 
 ⏰ Час:
 {order.OrderDate:HH:mm}
-""");
+
+Статус:
+Pending
+""",
+keyboard);
 
                     await _channel!.BasicAckAsync(
                         e.DeliveryTag,

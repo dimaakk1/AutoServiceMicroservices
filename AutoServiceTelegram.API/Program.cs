@@ -16,11 +16,24 @@ public class Program
         DotNetEnv.Env.Load();
         builder.Services.AddScoped<ITelegramBotService, TelegramBotService>();
         builder.Services.AddHostedService<OrderCreatedConsumer>();
+        builder.Services.AddScoped<TelegramCommandHandler>();
+        builder.Services.AddHostedService<TelegramBotWorker>();
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-
+        builder.Services.AddGrpcClient<UserService.UserServiceClient>(o =>
+        {
+            o.Address = new Uri("https://localhost:5004"); // твій UserService
+        });
+        builder.Services.AddGrpcClient<OrderService.OrderServiceClient>(
+options =>
+{
+    options.Address =
+        new Uri(
+        "https://localhost:5003");
+});
+        builder.Services.AddScoped<IOrderGrpcService, OrderGrpcService>();
         var app = builder.Build();
 
         app.MapDefaultEndpoints();
