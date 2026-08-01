@@ -55,7 +55,7 @@ namespace AutoServiceUsers.BLL.Services
             var encodedToken = Uri.EscapeDataString(token);
 
             var link =
-                $"http://192.168.0.204:5000/api/auth/verify-email?userId={user.Id}&token={encodedToken}";
+                $"http://localhost:5000/api/auth/verify-email?userId={user.Id}&token={encodedToken}";
 
             // -------------------------
             // SEND EMAIL

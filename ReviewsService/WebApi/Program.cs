@@ -41,7 +41,7 @@ namespace WebApi
 
             builder.Services.AddGrpcClient<OrderService.OrderServiceClient>(o =>
             {
-                o.Address = new Uri("https://localhost:5003"); // OrdersService
+                o.Address = new Uri(builder.Configuration["Services:OrdersServiceUrl"] ?? "https://localhost:5003");
             });
 
             builder.Services.AddAuthentication(options =>

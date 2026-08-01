@@ -14,7 +14,7 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddGrpc();
-DotNetEnv.Env.Load();
+DotNetEnv.Env.Load(Path.Combine(builder.Environment.ContentRootPath, ".env"));
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(

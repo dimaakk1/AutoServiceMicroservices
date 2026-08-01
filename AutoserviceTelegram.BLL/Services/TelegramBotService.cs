@@ -18,8 +18,9 @@ namespace AutoserviceTelegram.BLL.Services
         {
             _configuration = configuration;
 
-            var token =
-              Environment.GetEnvironmentVariable("BotToken");
+            var token = configuration["TelegramSettings:BotToken"]
+                ?? Environment.GetEnvironmentVariable("BotToken")
+                ?? throw new InvalidOperationException("Telegram bot token is not configured.");
 
             _bot = new TelegramBotClient(token);
         }
@@ -29,9 +30,10 @@ namespace AutoserviceTelegram.BLL.Services
     string message,
     InlineKeyboardMarkup? keyboard = null)
         {
-            long chatId =
-                long.Parse(
-                    Environment.GetEnvironmentVariable("AdminChatId")!);
+            var adminChatId = _configuration["TelegramSettings:AdminChatId"]
+                ?? Environment.GetEnvironmentVariable("AdminChatId")
+                ?? throw new InvalidOperationException("Telegram admin chat ID is not configured.");
+            long chatId = long.Parse(adminChatId);
             await _bot.SendMessage(
                 chatId: chatId,
                 text: message,

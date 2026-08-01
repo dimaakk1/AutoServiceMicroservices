@@ -89,16 +89,16 @@ public class Program
 
         builder.Services.AddGrpcClient<OrderService.OrderServiceClient>(o =>
         {
-            o.Address = new Uri("https://localhost:5003"); // OrdersService
+            o.Address = new Uri(builder.Configuration["Services:OrdersServiceUrl"] ?? "https://localhost:5003");
         });
 
         builder.Services.AddGrpcClient<ReviewService.ReviewServiceClient>(o =>
         {
-            o.Address = new Uri("https://localhost:5002"); // ReviewsService
+            o.Address = new Uri(builder.Configuration["Services:ReviewsServiceUrl"] ?? "https://localhost:5002");
         });
         builder.Services.AddGrpcClient<UserService.UserServiceClient>(o =>
         {
-            o.Address = new Uri("https://localhost:5004"); // твій UserService
+            o.Address = new Uri(builder.Configuration["Services:UsersServiceUrl"] ?? "https://localhost:5004");
         });
         builder.Services.AddScoped<IAggregationService, AggregationService>();
 

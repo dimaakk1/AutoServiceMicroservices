@@ -127,7 +127,7 @@ namespace AutoserviceOrders.API
 
             builder.Services.AddGrpcClient<PartService.PartServiceClient>(o =>
             {
-                o.Address = new Uri("https://localhost:5001"); // URL твого PartService
+                o.Address = new Uri(builder.Configuration["Services:CatalogServiceUrl"] ?? "https://localhost:5001");
             });
 
             builder.Services.AddControllers();

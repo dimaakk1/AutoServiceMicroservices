@@ -12,7 +12,12 @@ namespace AutoserviceOrders.DAL.db
         public static void Initialize(string connectionString)
         {
             // Підключення до master для створення бази, якщо її ще нема
-            using (var masterConnection = new SqlConnection(connectionString))
+            var masterConnectionString = new SqlConnectionStringBuilder(connectionString)
+            {
+                InitialCatalog = "master"
+            }.ConnectionString;
+
+            using (var masterConnection = new SqlConnection(masterConnectionString))
             {
                 masterConnection.Open();
 
@@ -49,15 +54,13 @@ namespace AutoserviceOrders.DAL.db
             FOREIGN KEY (OrderId) REFERENCES Orders(OrderId)
         );
 
-        IF OBJECT_ID('Products') IS NULL
-
         IF OBJECT_ID('OrderItems') IS NULL
         CREATE TABLE OrderItems (
             OrderItemId INT IDENTITY(1,1) PRIMARY KEY,
             OrderId INT NOT NULL,
             ProductId INT NOT NULL,
             Quantity INT NOT NULL,
-            FOREIGN KEY (OrderId) REFERENCES Orders(OrderId),
+            FOREIGN KEY (OrderId) REFERENCES Orders(OrderId)
         );
 
         IF OBJECT_ID('Payments') IS NULL

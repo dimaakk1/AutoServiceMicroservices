@@ -17,7 +17,7 @@ public class Program
         builder.Services.AddSwaggerGen();
         builder.Services.AddGrpcClient<UserService.UserServiceClient>(o =>
         {
-            o.Address = new Uri("https://localhost:5004"); // твій UserService
+            o.Address = new Uri(builder.Configuration["Services:UsersServiceUrl"] ?? "https://localhost:5004");
         });
 
         builder.Services.AddHostedService<OrderCreatedConsumer>();

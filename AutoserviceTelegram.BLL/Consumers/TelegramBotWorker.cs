@@ -26,9 +26,11 @@ namespace AutoserviceTelegram.BLL.Consumers
         {
             _scopeFactory = scopeFactory;
 
-            _bot =
-                new TelegramBotClient(
-                    Environment.GetEnvironmentVariable("BotToken")!);
+            var botToken = config["TelegramSettings:BotToken"]
+                ?? Environment.GetEnvironmentVariable("BotToken")
+                ?? throw new InvalidOperationException("Telegram bot token is not configured.");
+
+            _bot = new TelegramBotClient(botToken);
         }
 
 
