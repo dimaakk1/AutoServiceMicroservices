@@ -9,7 +9,7 @@ namespace AutoserviceAI.BLL.Services
 {
     public interface IAiDiagnosticService
     {
-        Task<string> ChatAsync(
+        Task<AiDiagnosticResponseDto> ChatAsync(
             List<ChatMessageDto> messages);
     }
 }

@@ -28,7 +28,7 @@ namespace AutoServiceCatalog.API.Controllers
 
         [HttpPost]
         public async Task<IActionResult> AddCategory([FromBody] CategoryDto categoryDto)
-        {
+        { 
             try
             {
                 var createdCategory = await _categoryService.AddCategoryAsync(categoryDto);

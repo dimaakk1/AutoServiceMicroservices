@@ -10,7 +10,7 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.AddServiceDefaults();
-        Env.Load();
+        Env.Load(Path.Combine(builder.Environment.ContentRootPath, ".env"));
         // Add services to the container.
         builder.Services.AddHttpClient<IAiDiagnosticService, AiDiagnosticService>();
 

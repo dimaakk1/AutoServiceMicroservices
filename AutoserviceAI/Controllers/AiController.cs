@@ -20,13 +20,8 @@ namespace AutoserviceAI.API.Controllers
         public async Task<IActionResult> Chat(
             [FromBody] ChatRequestDto request)
         {
-            var reply = await _service.ChatAsync(
-                request.Messages);
-
-            return Ok(new
-            {
-                reply
-            });
+            var response = await _service.ChatAsync(request.Messages);
+            return Ok(response);
         }
     }
 }

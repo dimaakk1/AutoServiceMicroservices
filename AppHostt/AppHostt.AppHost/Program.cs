@@ -66,7 +66,9 @@ var usersService = builder
     .WaitFor(usersDb);
 
 var aiService = builder
-    .AddProject<Projects.AutoserviceAI_API>("autoserviceai");
+    .AddProject<Projects.AutoserviceAI_API>("autoserviceai")
+    .WithReference(catalogService)
+    .WaitFor(catalogService);
 
 var telegramService = builder
     .AddProject<Projects.AutoServiceTelegram_API>("autoservicetelegram")
@@ -84,7 +86,9 @@ var apiGateway = builder
     .WithReference(ordersService)
     .WithReference(reviewsService)
     .WithReference(usersService)
+    .WithReference(aiService)
     .WithExternalHttpEndpoints()
+    .WaitFor(aiService)
     .WaitFor(sql)
     .WaitFor(mongo)
     .WaitFor(redis);

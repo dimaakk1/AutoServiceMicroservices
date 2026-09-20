@@ -4,3 +4,5 @@
 **/obj
 frontend/node_modules
 frontend/dist
+.env
+**/.env

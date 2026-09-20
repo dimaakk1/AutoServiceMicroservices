@@ -85,6 +85,7 @@ export default function AiChatting() {
         {
           role: "assistant",
           content: reply,
+          recommendation: response.data.recommendation,
         },
       ]);
     } catch (error: any) {
@@ -179,6 +180,23 @@ export default function AiChatting() {
               >
                 {message.content}
               </div>
+              {message.role === "assistant" && message.recommendation && (
+                <Link
+                  to={`/booking?service=${message.recommendation.serviceId}`}
+                  onClick={() => setOpen(false)}
+                  className="mt-2 block max-w-[85%] rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900 hover:bg-orange-100 transition"
+                >
+                  <span className="block font-semibold">
+                    Рекомендовано: {message.recommendation.name}
+                  </span>
+                  <span className="block text-xs mt-1">
+                    {message.recommendation.reason || "Підійде для описаної несправності."}
+                  </span>
+                  <span className="mt-2 inline-block font-medium text-orange-600">
+                    Записатися · {message.recommendation.price} грн →
+                  </span>
+                </Link>
+              )}
             </div>
           ))}
 
