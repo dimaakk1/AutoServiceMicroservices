@@ -23,6 +23,7 @@ const navItems = [
 
 const authNavItems = [
   { to: "/my-bookings", label: "Мої записи" },
+  { to: "/my-vehicles", label: "Мої автомобілі" },
   { to: "/profile", label: "Профіль" },
 ];
 
@@ -54,7 +55,7 @@ export default function Layout({
           </Link>
 
           {/* NAV DESKTOP */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden xl:flex items-center gap-1">
             {navItems.map((item) => (
               <Link
                 key={item.to}
@@ -75,7 +76,7 @@ export default function Layout({
                   key={item.to}
                   to={item.to}
                   className={`px-3 py-2 rounded-md text-sm ${
-                    location.pathname === item.to
+                    location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted"
                   }`}
@@ -96,7 +97,7 @@ export default function Layout({
           </nav>
 
           {/* USER DESKTOP */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden xl:flex items-center gap-2">
             {user ? (
               <>
                 <span className="text-sm flex items-center gap-1">
@@ -124,7 +125,9 @@ export default function Layout({
 
           {/* MOBILE BUTTON */}
           <button
-            className="md:hidden"
+            className="xl:hidden"
+            aria-label={mobileOpen ? "Закрити меню" : "Відкрити меню"}
+            aria-expanded={mobileOpen}
             onClick={() =>
               setMobileOpen(!mobileOpen)
             }
@@ -135,7 +138,7 @@ export default function Layout({
 
         {/* MOBILE MENU */}
         {mobileOpen && (
-          <div className="md:hidden border-t p-4">
+          <div className="xl:hidden border-t p-4">
             {navItems.map((item) => (
               <Link
                 key={item.to}

@@ -6,6 +6,21 @@ const api = axios.create({
   baseURL: apiBaseUrl,
 });
 
+const isAuthenticationRequest = (url: string | undefined) => {
+  if (!url) return false;
+
+  const pathname = url.split("?")[0].replace(/^https?:\/\/[^/]+/i, "");
+  return /\/auth\/(login|register|refresh)\/?$/.test(pathname);
+};
+
+const redirectToLogin = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+
+  if (window.location.pathname !== "/auth") {
+    window.location.href = "/auth";
+  }
+};
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
@@ -23,13 +38,23 @@ api.interceptors.response.use(
   async (err) => {
     const original = err.config;
 
-    if (err.response?.status === 401 && !original._retry) {
+    // A wrong login/password is also a 401. Let the form show that error;
+    // only protected requests are allowed to refresh a session.
+    if (
+      err.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      !isAuthenticationRequest(original.url)
+    ) {
       original._retry = true;
 
       try {
         const refreshToken = localStorage.getItem("refreshToken");
 
-        if (!refreshToken) throw new Error("No refresh token");
+        if (!refreshToken) {
+          redirectToLogin();
+          return Promise.reject(err);
+        }
 
         const res = await axios.post(
           `${apiBaseUrl}/auth/refresh`,
@@ -44,11 +69,8 @@ api.interceptors.response.use(
         original.headers.Authorization = `Bearer ${accessToken}`;
 
         return api(original);
-      } catch (e) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-
-        window.location.href = "/auth";
+      } catch {
+        redirectToLogin();
       }
     }
 

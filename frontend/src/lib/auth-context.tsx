@@ -33,7 +33,15 @@ const decodeToken = (token: string): User => {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return null;
+    try {
+      return decodeToken(token);
+    } catch {
+      return null;
+    }
+  });
 
   const refreshUser = async () => {
   try {
@@ -70,7 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
 
-    setUser(decodeToken(token));
     refreshUser();
   }, []);
 

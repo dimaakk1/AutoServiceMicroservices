@@ -12,6 +12,9 @@ import Auth from "./pages/Auth";
 import Booking from "./pages/Booking";
 import Profile from "./pages/Profile";
 import MyBookings from "./pages/MyBookings";
+import MyVehicles from "./pages/MyVehicles";
+import VehicleForm from "./pages/VehicleForm";
+import VehicleDetails from "./pages/VehicleDetails";
 import Reviews from "./pages/Reviews";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -84,6 +87,11 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route path="/my-vehicles" element={<ProtectedRoute><MyVehicles /></ProtectedRoute>} />
+            <Route path="/my-vehicles/new" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
+            <Route path="/my-vehicles/:id" element={<ProtectedRoute><VehicleDetails /></ProtectedRoute>} />
+            <Route path="/my-vehicles/:id/edit" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
 
             {/* ADMIN */}
             <Route

@@ -14,6 +14,7 @@ var usersDb = sql.AddDatabase("UsersDb");
 var catalogDb = sql.AddDatabase("CatalogDb");
 
 var ordersDb = sql.AddDatabase("OrdersDb");
+var vehiclesDb = sql.AddDatabase("VehiclesDb");
 
 /* ================= MONGODB ================= */
 
@@ -80,6 +81,11 @@ var telegramService = builder
 
 /* ================= GATEWAY ================= */
 
+var vehicleService = builder
+    .AddProject<Projects.AutoserviceVehicle_API>("autoservicevehicle")
+    .WithReference(vehiclesDb)
+    .WaitFor(vehiclesDb);
+
 var apiGateway = builder
     .AddProject<Projects.ApiGateway>("gateway")
     .WithReference(catalogService)
@@ -87,6 +93,7 @@ var apiGateway = builder
     .WithReference(reviewsService)
     .WithReference(usersService)
     .WithReference(aiService)
+    .WithReference(vehicleService)
     .WithExternalHttpEndpoints()
     .WaitFor(aiService)
     .WaitFor(sql)
@@ -101,6 +108,10 @@ var aggregationApi = builder
     .WithReference(reviewsService)
     .WithReference(redis)
     .WaitFor(redis);
+
+
+
+
 
 
 
