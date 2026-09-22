@@ -2,6 +2,11 @@
 @accessToken = paste-access-token-from-login
 @vehicleId = paste-id-from-create-response
 
+GET {{AutoserviceVehicle_HostAddress}}/api/vehicles/decode/1HGCM82633A004352
+Accept: application/json
+
+###
+
 GET {{AutoserviceVehicle_HostAddress}}/api/vehicles
 Authorization: Bearer {{accessToken}}
 Accept: application/json

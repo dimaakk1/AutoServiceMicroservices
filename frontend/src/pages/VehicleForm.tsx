@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Info, Loader2, Save } from "lucide-react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ArrowLeft, CheckCircle2, Info, Loader2, Save, Search } from "lucide-react";
 import { toast } from "sonner";
-import { createVehicle, getVehicle, updateVehicle, vehicleError } from "../api/vehicle";
+import { createVehicle, decodeVin, getVehicle, updateVehicle, vehicleError, vinDecodeError } from "../api/vehicle";
 import type { SaveVehicle } from "../api/vehicle";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -29,13 +29,20 @@ export default function VehicleForm() {
 
 function Editor({ id }: { id?: string }) {
   const navigate = useNavigate();
-  const [form, setForm] = useState(emptyForm);
+  const [searchParams] = useSearchParams();
+  const [form, setForm] = useState(() => ({
+    ...emptyForm,
+    vin: id ? "" : (searchParams.get("vin") ?? "").trim().toUpperCase().slice(0, 17),
+  }));
   const [loading, setLoading] = useState(Boolean(id));
   const [loadError, setLoadError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [decoding, setDecoding] = useState(false);
+  const [decodeError, setDecodeError] = useState<string | null>(null);
+  const [decoded, setDecoded] = useState(false);
   const backTo = id ? `/my-vehicles/${id}` : "/my-vehicles";
 
   useEffect(() => {
@@ -58,11 +65,43 @@ function Editor({ id }: { id?: string }) {
     setForm((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: undefined }));
     setError(null);
+    if (field === "vin") {
+      setDecodeError(null);
+      setDecoded(false);
+    }
+  };
+
+  const decode = async () => {
+    const vin = form.vin.trim().toUpperCase();
+    if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+      setErrors((current) => ({ ...current, vin: "Введіть 17 латинських літер або цифр, без I, O та Q." }));
+      document.getElementById("vehicle-vin")?.focus();
+      return;
+    }
+    setDecoding(true);
+    setDecodeError(null);
+    setDecoded(false);
+    setErrors((current) => ({ ...current, vin: undefined }));
+    try {
+      const { data } = await decodeVin(vin);
+      setForm((current) => ({
+        ...current,
+        vin: data.vin,
+        make: data.make ?? current.make,
+        model: data.model ?? current.model,
+        year: data.modelYear === null ? current.year : String(data.modelYear),
+      }));
+      setDecoded(true);
+    } catch (err) {
+      setDecodeError(vinDecodeError(err));
+    } finally {
+      setDecoding(false);
+    }
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (saving) return;
+    if (saving || decoding) return;
     const nextErrors: FieldErrors = {};
     const vin = form.vin.trim().toUpperCase();
     const year = Number(form.year);
@@ -109,11 +148,18 @@ function Editor({ id }: { id?: string }) {
               <p className="text-sm text-muted-foreground">Поля із * обов’язкові.</p>
               <div className="space-y-2">
                 <Label htmlFor="vehicle-vin">VIN-код *</Label>
-                <Input id="vehicle-vin" name="vin" value={form.vin} onChange={(e) => change("vin", e.target.value.trim().toUpperCase())}
-                  placeholder="WVWZZZ1KZAW000001" maxLength={17} required autoCapitalize="characters" autoComplete="off" spellCheck={false}
-                  className="font-mono tracking-wider" aria-invalid={Boolean(errors.vin)} aria-describedby="vehicle-vin-help vehicle-vin-error" />
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Input id="vehicle-vin" name="vin" value={form.vin} onChange={(e) => change("vin", e.target.value.trim().toUpperCase())}
+                    placeholder="WVWZZZ1KZAW000001" maxLength={17} required autoCapitalize="characters" autoComplete="off" spellCheck={false}
+                    className="font-mono tracking-wider" aria-invalid={Boolean(errors.vin)} aria-describedby="vehicle-vin-help vehicle-vin-error" />
+                  <Button type="button" variant="outline" className="shrink-0" disabled={decoding} onClick={decode}>
+                    {decoding ? <Loader2 className="animate-spin" /> : <Search />}{decoding ? "Перевіряємо…" : "Заповнити за VIN"}
+                  </Button>
+                </div>
                 <p id="vehicle-vin-help" className="text-xs text-muted-foreground">17 символів. VIN можна знайти у свідоцтві про реєстрацію авто.</p>
                 <p id="vehicle-vin-error" className="text-sm text-destructive" aria-live="polite">{errors.vin}</p>
+                {decodeError && <p role="alert" className="rounded-lg bg-destructive/5 p-3 text-sm text-destructive">{decodeError}</p>}
+                {decoded && <p className="flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4 shrink-0" /> Отримані дані заповнено. Перевірте їх перед збереженням.</p>}
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 {fields.map((field) => (
@@ -130,11 +176,11 @@ function Editor({ id }: { id?: string }) {
                   </div>
                 ))}
               </div>
-              <div className="flex items-start gap-3 rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><p>Введіть характеристики зі своїх документів. Автоматичне заповнення за VIN поки недоступне.</p></div>
+              <div className="flex items-start gap-3 rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><p>Дані заповнюються з бази NHTSA і можуть бути неповними для деяких авто. Звірте результат із документами — усі поля можна виправити вручну.</p></div>
             </fieldset>
             {error && <p role="alert" className="mx-6 mb-6 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive sm:mx-8">{error}</p>}
             <div className="flex flex-wrap gap-3 border-t p-6 sm:px-8">
-              <Button type="submit" variant="accent" disabled={saving}>{saving ? <Loader2 className="animate-spin" /> : <Save />}{saving ? "Збереження…" : "Зберегти автомобіль"}</Button>
+              <Button type="submit" variant="accent" disabled={saving || decoding}>{saving ? <Loader2 className="animate-spin" /> : <Save />}{saving ? "Збереження…" : "Зберегти автомобіль"}</Button>
               <Button type="button" variant="outline" disabled={saving} onClick={() => navigate(backTo)}>Скасувати</Button>
             </div>
           </form>

@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using AutoserviceVehicle.BLL.DTO;
 using AutoserviceVehicle.DAL.Entities;
 using AutoserviceVehicle.DAL.Repositories;
+using AutoserviceVehicle.BLL.Validation;
 
 namespace AutoserviceVehicle.BLL.Services;
 
@@ -64,7 +65,7 @@ public sealed class VehicleService(IVehicleRepository repository) : IVehicleServ
 
     private static void NormalizeAndValidate(SaveVehicleDto request)
     {
-        request.Vin = request.Vin?.Trim().ToUpperInvariant() ?? string.Empty;
+        request.Vin = VinValidator.Normalize(request.Vin);
         request.Make = request.Make?.Trim() ?? string.Empty;
         request.Model = request.Model?.Trim() ?? string.Empty;
         request.LicensePlate = OptionalText(request.LicensePlate)?.ToUpperInvariant();

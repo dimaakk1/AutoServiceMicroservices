@@ -29,6 +29,11 @@ public partial class Program
             options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
         builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
         builder.Services.AddScoped<IVehicleService, VehicleService>();
+        builder.Services.AddHttpClient<IVinDecoderService, NhtsaVinDecoderService>(client =>
+        {
+            client.BaseAddress = new Uri(builder.Configuration["Nhtsa:BaseUrl"] ?? "https://vpic.nhtsa.dot.gov/api/");
+            client.Timeout = TimeSpan.FromSeconds(20);
+        });
         builder.Services.AddExceptionHandler<VehicleExceptionHandler>();
         builder.Services.AddProblemDetails();
         builder.Services.AddControllers();

@@ -17,6 +17,7 @@ import AiChat from './AiChatting';
 const navItems = [
   { to: "/", label: "Головна" },
   { to: "/services", label: "Послуги" },
+  { to: "/vin-decoder", label: "VIN-декодер" },
   { to: "/reviews", label: "Відгуки" },
   { to: "/booking", label: "Запис" },
 ];

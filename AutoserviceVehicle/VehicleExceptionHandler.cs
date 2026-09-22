@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AutoserviceVehicle.BLL.Services;
 using AutoserviceVehicle.DAL.Repositories;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,8 @@ public sealed class VehicleExceptionHandler(IProblemDetailsService problemDetail
         var status = exception switch
         {
             DuplicateVehicleException => StatusCodes.Status409Conflict,
+            VinNotFoundException => StatusCodes.Status404NotFound,
+            VinProviderUnavailableException => StatusCodes.Status503ServiceUnavailable,
             ValidationException => StatusCodes.Status400BadRequest,
             UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
             DbUpdateConcurrencyException => StatusCodes.Status409Conflict,

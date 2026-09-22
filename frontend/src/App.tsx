@@ -15,6 +15,7 @@ import MyBookings from "./pages/MyBookings";
 import MyVehicles from "./pages/MyVehicles";
 import VehicleForm from "./pages/VehicleForm";
 import VehicleDetails from "./pages/VehicleDetails";
+import VinDecoder from "./pages/VinDecoder";
 import Reviews from "./pages/Reviews";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -92,6 +93,7 @@ export default function App() {
             <Route path="/my-vehicles/new" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
             <Route path="/my-vehicles/:id" element={<ProtectedRoute><VehicleDetails /></ProtectedRoute>} />
             <Route path="/my-vehicles/:id/edit" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
+            <Route path="/vin-decoder" element={<VinDecoder />} />
 
             {/* ADMIN */}
             <Route

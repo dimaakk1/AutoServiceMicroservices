@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using AutoserviceVehicle.BLL.Validation;
 
 namespace AutoserviceVehicle.BLL.DTO;
 
@@ -21,9 +22,8 @@ public sealed class SaveVehicleDto : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var vin = Vin?.Trim().ToUpperInvariant() ?? string.Empty;
-        if (vin.Length != 17 || vin.Any(c => !(c is >= 'A' and <= 'Z' or >= '0' and <= '9') || c is 'I' or 'O' or 'Q'))
-            yield return new ValidationResult("VIN має містити 17 латинських літер або цифр, без I, O та Q.", [nameof(Vin)]);
+        if (!VinValidator.IsValid(Vin))
+            yield return new ValidationResult(VinValidator.ErrorMessage, [nameof(Vin)]);
         if (Year > DateTime.UtcNow.Year + 1)
             yield return new ValidationResult("Рік авто не може бути більшим за наступний календарний рік.", [nameof(Year)]);
     }

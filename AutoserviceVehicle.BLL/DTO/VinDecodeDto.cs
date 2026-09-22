@@ -1,0 +1,25 @@
+namespace AutoserviceVehicle.BLL.DTO;
+
+public sealed record VinDecodeDto(
+    string Vin,
+    string? Make,
+    string? Model,
+    int? ModelYear,
+    string? Manufacturer,
+    string? VehicleType,
+    string? BodyClass,
+    int? Doors,
+    string? FuelType,
+    decimal? EngineDisplacementLiters,
+    int? EngineCylinders,
+    string? EngineModel,
+    string? Transmission,
+    int? TransmissionSpeeds,
+    string? DriveType,
+    string? Series,
+    string? Trim,
+    string? PlantCountry,
+    string? PlantCity,
+    string? PlantCompany,
+    bool IsComplete,
+    IReadOnlyList<string> Warnings);

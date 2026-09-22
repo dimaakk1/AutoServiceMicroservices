@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text;
 using AutoserviceVehicle.BLL.DTO;
+using AutoserviceVehicle.BLL.Services;
 using AutoserviceVehicle.DAL.DB;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -14,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
@@ -131,6 +133,28 @@ public sealed class VehicleApiTests : IDisposable
         Assert.Equal(HttpStatusCode.Forbidden, (await client.GetAsync("/api/vehicles")).StatusCode);
     }
 
+    [Fact]
+    public async Task VinDecoderIsPublicAndReturnsVehicleDetails()
+    {
+        using var client = _app.CreateClient();
+
+        var response = await client.GetAsync("/api/vehicles/decode/WVWZZZ1KZAW000001");
+        var decoded = await response.Content.ReadFromJsonAsync<VinDecodeDto>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(decoded);
+        Assert.Equal("Volkswagen", decoded.Make);
+        Assert.Equal("Golf", decoded.Model);
+        Assert.Equal(2010, decoded.ModelYear);
+    }
+
+    [Fact]
+    public async Task VinDecoderRejectsInvalidVinWithoutAuthentication()
+    {
+        using var client = _app.CreateClient();
+        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/vehicles/decode/invalid")).StatusCode);
+    }
+
     [Theory]
     [InlineData(true, false)]
     [InlineData(false, true)]
@@ -155,11 +179,18 @@ internal sealed class VehicleApplication : WebApplicationFactory<Program>
         builder.UseSetting("Database:ApplyMigrations", "false");
         builder.UseSetting("Jwt:Key", "vehicle-tests-only-signing-key-1234567890");
         builder.UseSetting("ConnectionStrings:VehiclesDb", "Server=unused;Database=unused");
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddDebug();
+        });
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<VehicleDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<VehicleDbContext>>();
+            services.RemoveAll<IVinDecoderService>();
             services.AddDbContext<VehicleDbContext>(options => options.UseSqlite(_connection));
+            services.AddSingleton<IVinDecoderService, FakeVinDecoderService>();
         });
     }
 
@@ -182,5 +213,19 @@ internal sealed class VehicleApplication : WebApplicationFactory<Program>
     {
         base.Dispose(disposing);
         if (disposing) _connection.Dispose();
+    }
+}
+
+internal sealed class FakeVinDecoderService : IVinDecoderService
+{
+    public Task<VinDecodeDto> DecodeAsync(string vin, CancellationToken cancellationToken = default)
+    {
+        if (vin != "WVWZZZ1KZAW000001")
+            throw new System.ComponentModel.DataAnnotations.ValidationException("Некоректний VIN.");
+
+        return Task.FromResult(new VinDecodeDto(
+            vin, "Volkswagen", "Golf", 2010, "Volkswagen AG", "PASSENGER CAR", "Hatchback/Liftback/Notchback",
+            5, "Gasoline", 1.6m, 4, null, "Automatic", 6, "FWD", null, null, "Germany", "Wolfsburg",
+            null, true, []));
     }
 }

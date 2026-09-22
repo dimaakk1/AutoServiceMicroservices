@@ -9,9 +9,14 @@ namespace AutoserviceVehicle.API.Controllers;
 [ApiController]
 [Route("api/vehicles")]
 [Authorize(Policy = "VehicleOwner")]
-public sealed class VehiclesController(IVehicleService service) : ControllerBase
+public sealed class VehiclesController(IVehicleService service, IVinDecoderService vinDecoder) : ControllerBase
 {
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+    [HttpGet("decode/{vin}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<VinDecodeDto>> DecodeVin(string vin, CancellationToken cancellationToken) =>
+        Ok(await vinDecoder.DecodeAsync(vin, cancellationToken));
 
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<VehicleDto>>> GetAll(CancellationToken cancellationToken) =>
