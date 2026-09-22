@@ -364,4 +364,5 @@ FodyWeavers.xsd
 
 .env
 
-docker-compose.yml
+# Legacy frontend build/cache left by the old repository layout.
+/frontend/

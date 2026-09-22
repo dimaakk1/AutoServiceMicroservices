@@ -1,0 +1,347 @@
+services:
+  # Infrastructure Services
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "${SQLSERVER_PASSWORD:-Your_password123!}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "${SQLSERVER_PORT:-1433}:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    networks:
+      - microservices-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bash -c '</dev/tcp/localhost/1433'"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  mongodb:
+    image: mongo:7
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - microservices-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - microservices-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  # Microservices
+  catalog-service:
+    build:
+      context: .
+      dockerfile: src/Services/Catalog/API/Dockerfile
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${CATALOG_PORT:-5001}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_Kestrel__Endpoints__Http__Url: "http://+:8080"
+      ASPNETCORE_Kestrel__Endpoints__Http__Protocols: Http1
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Url: "http://+:8081"
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols: Http2
+      ConnectionStrings__CatalogDb: "Server=sqlserver;Database=CatalogDb;User Id=sa;Password=${SQLSERVER_PASSWORD:-Your_password123!};TrustServerCertificate=True;"
+      ConnectionStrings__redis: "redis:6379"
+    restart: unless-stopped
+
+  users-service:
+    build:
+      context: .
+      dockerfile: src/Services/Users/API/Dockerfile
+    env_file:
+      - src/Services/Users/API/.env
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "${USERS_PORT:-5002}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_Kestrel__Endpoints__Http__Url: "http://+:8080"
+      ASPNETCORE_Kestrel__Endpoints__Http__Protocols: Http1
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Url: "http://+:8081"
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols: Http2
+      ConnectionStrings__UsersDb: "Server=sqlserver;Database=UsersDb;User Id=sa;Password=${SQLSERVER_PASSWORD:-Your_password123!};TrustServerCertificate=True;"
+      JwtSettings__Secret: "${JWT_SECRET:-local-development-jwt-secret-at-least-32-characters}"
+      JwtSettings__ExpirationMinutes: "60"
+      PublicUrls__ApiBaseUrl: "${PUBLIC_API_BASE_URL:-http://localhost:8080}"
+      PublicUrls__FrontendBaseUrl: "${PUBLIC_FRONTEND_BASE_URL:-http://localhost:5173}"
+    restart: unless-stopped
+
+  orders-service:
+    build:
+      context: .
+      dockerfile: src/Services/Orders/API/Dockerfile
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      vehicle-service:
+        condition: service_started
+    ports:
+      - "${ORDERS_PORT:-5003}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_Kestrel__Endpoints__Http__Url: "http://+:8080"
+      ASPNETCORE_Kestrel__Endpoints__Http__Protocols: Http1
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Url: "http://+:8081"
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols: Http2
+      ConnectionStrings__OrdersDb: "Server=sqlserver;Database=OrdersDb;User Id=sa;Password=${SQLSERVER_PASSWORD:-Your_password123!};TrustServerCertificate=True;"
+      ConnectionStrings__redis: "redis:6379"
+      ConnectionStrings__rabbitmq: "amqp://guest:guest@rabbitmq:5672"
+      PublicKey: "${LIQPAY_PUBLIC_KEY:-}"
+      PrivateKey: "${LIQPAY_PRIVATE_KEY:-}"
+      CallbackUrl: "http://orders-service:8080/api/payments/callback"
+      ResultUrl: "http://localhost:5173/payment-success"
+      Services__CatalogServiceUrl: "http://catalog-service:8081"
+      Services__VehicleServiceUrl: "http://vehicle-service:8081"
+    restart: unless-stopped
+
+  reviews-service:
+    build:
+      context: .
+      dockerfile: src/Services/Reviews/API/Dockerfile
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${REVIEWS_PORT:-5004}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_Kestrel__Endpoints__Http__Url: "http://+:8080"
+      ASPNETCORE_Kestrel__Endpoints__Http__Protocols: Http1
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Url: "http://+:8081"
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols: Http2
+      ConnectionStrings__mongo: "mongodb://mongodb:27017"
+      ConnectionStrings__redis: "redis:6379"
+      MongoDb__DatabaseName: "ReviewsDb"
+      MongoDb__ConnectionString: "mongodb://mongodb:27017"
+      Services__OrdersServiceUrl: "http://orders-service:8081"
+    restart: unless-stopped
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: src/Services/AI/API/Dockerfile
+    env_file:
+      - src/Services/AI/API/.env
+    depends_on:
+      catalog-service:
+        condition: service_started
+    ports:
+      - "${AI_PORT:-5005}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Services__CatalogUrl: "http://catalog-service:8080"
+    restart: unless-stopped
+
+  vehicle-service:
+    build:
+      context: .
+      dockerfile: src/Services/Vehicles/API/Dockerfile
+    env_file:
+      - src/Services/Vehicles/API/.env
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    ports:
+      - "${VEHICLE_PORT:-5118}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_Kestrel__Endpoints__Http__Url: "http://+:8080"
+      ASPNETCORE_Kestrel__Endpoints__Http__Protocols: Http1
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Url: "http://+:8081"
+      ASPNETCORE_Kestrel__Endpoints__Grpc__Protocols: Http2
+      ConnectionStrings__VehiclesDb: "Server=sqlserver;Database=VehiclesDb;User Id=sa;Password=${SQLSERVER_PASSWORD:-Your_password123!};TrustServerCertificate=True;"
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: src/Services/Notifications/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__rabbitmq: "amqp://guest:guest@rabbitmq:5672"
+      Services__UsersServiceUrl: "http://users-service:8081"
+      Email__Address: "${EMAIL_ADDRESS:-}"
+      Email__Password: "${EMAIL_PASSWORD:-}"
+      Email__SmtpServer: "smtp.gmail.com"
+      Email__SmtpPort: "587"
+    restart: unless-stopped
+
+  telegram-service:
+    build:
+      context: .
+      dockerfile: src/Services/Telegram/API/Dockerfile
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      orders-service:
+        condition: service_started
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__rabbitmq: "amqp://guest:guest@rabbitmq:5672"
+      TelegramSettings__BotToken: "${TELEGRAM_BOT_TOKEN:-}"
+      TelegramSettings__AdminChatId: "${TELEGRAM_ADMIN_CHAT_ID:-}"
+      OrderServiceUrl: "http://orders-service:8080"
+      Services__UsersServiceUrl: "http://users-service:8081"
+      Services__OrdersServiceUrl: "http://orders-service:8081"
+    restart: unless-stopped
+
+  aggregation-service:
+    build:
+      context: .
+      dockerfile: src/Aggregator/Dockerfile
+    depends_on:
+      orders-service:
+        condition: service_started
+      reviews-service:
+        condition: service_started
+      redis:
+        condition: service_healthy
+    ports:
+      - "${AGGREGATION_PORT:-5006}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__redis: "redis:6379"
+      Services__OrdersServiceUrl: "http://orders-service:8081"
+      Services__ReviewsServiceUrl: "http://reviews-service:8081"
+      Services__UsersServiceUrl: "http://users-service:8081"
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: src/Gateway/Dockerfile
+    depends_on:
+      - catalog-service
+      - users-service
+      - orders-service
+      - reviews-service
+      - aggregation-service
+      - ai-service
+      - vehicle-service
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    networks:
+      - microservices-network
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Services__CatalogUrl: "http://catalog-service:8080"
+      Services__UsersUrl: "http://users-service:8080"
+      Services__OrdersUrl: "http://orders-service:8080"
+      Services__ReviewsUrl: "http://reviews-service:8080"
+      Services__AiUrl: "http://ai-service:8080"
+      ReverseProxy__Clusters__vehicles-cluster__Destinations__vehicle-service__Address: "http://vehicle-service:8080/"
+      Services__AggregationUrl: "http://aggregation-service:8080"
+      ReverseProxy__Clusters__auth-cluster__Destinations__auth-service__Address: "http://users-service:8080/"
+      ReverseProxy__Clusters__orders-cluster__Destinations__orders-service__Address: "http://orders-service:8080/"
+      ReverseProxy__Clusters__catalog-cluster__Destinations__catalog-service__Address: "http://catalog-service:8080/"
+      ReverseProxy__Clusters__reviews-cluster__Destinations__reviews-service__Address: "http://reviews-service:8080/"
+      ReverseProxy__Clusters__aggregation-cluster__Destinations__aggregation-service__Address: "http://aggregation-service:8080/"
+      ReverseProxy__Clusters__ai-cluster__Destinations__ai-service__Address: "http://ai-service:8080/"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./src/Frontend
+      dockerfile: dockerfile
+      args:
+        VITE_API_URL: /api
+    depends_on:
+      - gateway
+    ports:
+      - "${FRONTEND_PORT:-5173}:80"
+    networks:
+      - microservices-network
+    restart: unless-stopped
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  sql-data:
+  mongo-data:
+  rabbitmq-data:
