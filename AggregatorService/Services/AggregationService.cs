@@ -67,6 +67,10 @@ namespace AggregatorService.Services
                 Email = user.Email,
                 Status = order.Status,
                 OrderDate = DateTime.Parse(order.OrderDate),
+                VehicleId = EmptyToNull(order.VehicleId),
+                VehicleDisplayName = EmptyToNull(order.VehicleDisplayName),
+                VehicleVin = EmptyToNull(order.VehicleVin),
+                VehicleLicensePlate = EmptyToNull(order.VehicleLicensePlate),
 
                 Items = order.Items.Select(i => new OrderItemDto
                 {
@@ -118,6 +122,10 @@ namespace AggregatorService.Services
                     Email = user.Email,
                     Status = order.Status,
                     OrderDate = orderDate,
+                    VehicleId = EmptyToNull(order.VehicleId),
+                    VehicleDisplayName = EmptyToNull(order.VehicleDisplayName),
+                    VehicleVin = EmptyToNull(order.VehicleVin),
+                    VehicleLicensePlate = EmptyToNull(order.VehicleLicensePlate),
 
                     Items = order.Items.Select(i => new OrderItemDto
                     {
@@ -166,6 +174,10 @@ namespace AggregatorService.Services
                     Email = user.Email,
                     Status = order.Status,
                     OrderDate = DateTime.Parse(order.OrderDate),
+                    VehicleId = EmptyToNull(order.VehicleId),
+                    VehicleDisplayName = EmptyToNull(order.VehicleDisplayName),
+                    VehicleVin = EmptyToNull(order.VehicleVin),
+                    VehicleLicensePlate = EmptyToNull(order.VehicleLicensePlate),
 
                     Items = order.Items.Select(i => new OrderItemDto
                     {
@@ -211,6 +223,10 @@ namespace AggregatorService.Services
                     Email = user.Email,
                     Status = order.Status,
                     OrderDate = DateTime.Parse(order.OrderDate),
+                    VehicleId = EmptyToNull(order.VehicleId),
+                    VehicleDisplayName = EmptyToNull(order.VehicleDisplayName),
+                    VehicleVin = EmptyToNull(order.VehicleVin),
+                    VehicleLicensePlate = EmptyToNull(order.VehicleLicensePlate),
 
                     Items = order.Items.Select(i => new OrderItemDto
                     {
@@ -256,5 +272,7 @@ namespace AggregatorService.Services
                 return null;
             }
         }
+
+        private static string? EmptyToNull(string value) => string.IsNullOrWhiteSpace(value) ? null : value;
     }
 }

@@ -28,7 +28,11 @@ namespace AutoserviceOrders.BLL.Grpc
                 OrderId = order.OrderId,
                 UserId = order.UserId,
                 Status = order.Status,
-                OrderDate = order.OrderDate.ToString("O")
+                OrderDate = order.OrderDate.ToString("O"),
+                VehicleId = order.VehicleId?.ToString() ?? string.Empty,
+                VehicleDisplayName = order.VehicleDisplayName ?? string.Empty,
+                VehicleVin = order.VehicleVin ?? string.Empty,
+                VehicleLicensePlate = order.VehicleLicensePlate ?? string.Empty
             };
         }
 
@@ -58,6 +62,10 @@ namespace AutoserviceOrders.BLL.Grpc
                     UserId = o.UserId, // 🔥 FIX
                     Status = o.Status,
                     OrderDate = o.OrderDate.ToString("O"),
+                    VehicleId = o.VehicleId?.ToString() ?? string.Empty,
+                    VehicleDisplayName = o.VehicleDisplayName ?? string.Empty,
+                    VehicleVin = o.VehicleVin ?? string.Empty,
+                    VehicleLicensePlate = o.VehicleLicensePlate ?? string.Empty,
 
                     Items =
                     {

@@ -1,5 +1,6 @@
 ﻿using AutoServiceUsers.BLL.DTO;
 using AutoServiceUsers.BLL.Services.Interfaces;
+using AutoServiceUsers.BLL.Configuration;
 using AutoServiceUsers.DAL.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,15 +17,18 @@ namespace AutoServiceUsers.BLL.Services
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtTokenService _jwtService;
         private readonly IEmailService _emailService;
+        private readonly PublicUrlOptions _publicUrls;
 
         public AuthService(
             UserManager<ApplicationUser> userManager,
             IJwtTokenService jwtService,
-            IEmailService emailService)
+            IEmailService emailService,
+            PublicUrlOptions? publicUrls = null)
         {
             _userManager = userManager;
             _jwtService = jwtService;
             _emailService = emailService;
+            _publicUrls = publicUrls ?? new PublicUrlOptions();
         }
 
         // -------------------------
@@ -52,10 +56,7 @@ namespace AutoServiceUsers.BLL.Services
             // EMAIL CONFIRM TOKEN
             // -------------------------
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken = Uri.EscapeDataString(token);
-
-            var link =
-                $"http://localhost:5000/api/auth/verify-email?userId={user.Id}&token={encodedToken}";
+            var link = _publicUrls.BuildEmailVerificationUrl(user.Id, token);
 
             // -------------------------
             // SEND EMAIL
@@ -222,8 +223,9 @@ namespace AutoServiceUsers.BLL.Services
             if (user == null)
                 throw new Exception("User not found");
 
+            // Reopening a confirmation link for an already confirmed account is successful.
             if (user.EmailConfirmed)
-                throw new Exception("Email already confirmed");
+                return;
 
             var decodedToken = Uri.UnescapeDataString(dto.Token);
 

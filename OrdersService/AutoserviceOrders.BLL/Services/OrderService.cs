@@ -14,7 +14,7 @@ namespace AutoserviceOrders.BLL.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly RabbitMqPublisher _publisher;
+        private readonly IOrderCreatedPublisher _publisher;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly TwoLevelCacheService<List<OrderDto>> _ordersCache;
@@ -22,7 +22,7 @@ namespace AutoserviceOrders.BLL.Services
     IUnitOfWork unitOfWork,
     IMapper mapper,
     TwoLevelCacheService<List<OrderDto>> ordersCache,
-    RabbitMqPublisher publisher)
+    IOrderCreatedPublisher publisher)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;

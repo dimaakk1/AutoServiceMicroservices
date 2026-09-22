@@ -1,5 +1,6 @@
 ﻿using AutoServiceUsers.BLL.DTO;
 using AutoServiceUsers.BLL.Services.Interfaces;
+using AutoServiceUsers.BLL.Configuration;
 using AutoServiceUsers.DAL.DB;
 using AutoServiceUsers.DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -16,10 +17,12 @@ namespace AutoServiceUsers.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly PublicUrlOptions _publicUrls;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, PublicUrlOptions publicUrls)
         {
             _authService = authService;
+            _publicUrls = publicUrls;
         }
 
         // -----------------------------
@@ -110,11 +113,11 @@ namespace AutoServiceUsers.API.Controllers
 
                 await _authService.VerifyEmailAsync(dto);
 
-                return Redirect("http://192.168.0.206:5173/email-confirmed?status=success");
+                return Redirect(_publicUrls.BuildEmailConfirmationResultUrl(success: true));
             }
             catch
             {
-                return Redirect("http://192.168.0.206:5173/email-confirmed?status=error");
+                return Redirect(_publicUrls.BuildEmailConfirmationResultUrl(success: false));
             }
         }
 

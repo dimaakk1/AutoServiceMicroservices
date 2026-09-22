@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AutoserviceOrders.BLL.Services
 {
-    public class RabbitMqPublisher
+    public class RabbitMqPublisher : IOrderCreatedPublisher
     {
         private readonly IConfiguration _configuration;
 

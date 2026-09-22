@@ -1,5 +1,6 @@
 using AutoServiceUsers.BLL.DTO;
 using AutoServiceUsers.BLL.Services;
+using AutoServiceUsers.BLL.Configuration;
 using AutoServiceUsers.BLL.Services.Interfaces;
 using AutoServiceUsers.DAL.Entities;
 using AutoServiceUsers.Tests.Common;
@@ -20,7 +21,11 @@ public class AuthServiceTests
 
     public AuthServiceTests()
     {
-        _sut = new AuthService(_userManager.Object, _jwt.Object, _email.Object);
+        _sut = new AuthService(_userManager.Object, _jwt.Object, _email.Object, new PublicUrlOptions
+        {
+            ApiBaseUrl = "https://api.example.test",
+            FrontendBaseUrl = "https://app.example.test"
+        });
     }
 
     [Fact]
@@ -48,6 +53,11 @@ public class AuthServiceTests
         _userManager.Verify(m => m.CreateAsync(It.Is<ApplicationUser>(u =>
             u.UserName == dto.Username && u.Email == dto.Email && !u.EmailConfirmed), dto.Password), Times.Once);
         _email.Verify(e => e.SendEmailAsync(dto.Email, It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+        _email.Verify(e => e.SendEmailAsync(
+            dto.Email,
+            It.IsAny<string>(),
+            It.Is<string>(body => body.Contains(
+                "https://api.example.test/api/auth/verify-email?userId=", StringComparison.Ordinal))), Times.Once);
     }
 
     [Fact]
@@ -176,14 +186,14 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task VerifyEmailAsync_AlreadyConfirmed_Throws()
+    public async Task VerifyEmailAsync_AlreadyConfirmed_CompletesSuccessfully()
     {
         var user = new ApplicationUser { Id = "uid", EmailConfirmed = true };
         _userManager.Setup(m => m.FindByIdAsync("uid")).ReturnsAsync(user);
 
-        var act = () => _sut.VerifyEmailAsync(new VerifyEmailDto { UserId = "uid", Token = "t" });
+        await _sut.VerifyEmailAsync(new VerifyEmailDto { UserId = "uid", Token = "t" });
 
-        await act.Should().ThrowAsync<Exception>().WithMessage("Email already confirmed");
+        _userManager.Verify(m => m.ConfirmEmailAsync(It.IsAny<ApplicationUser>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option csharp_namespace = "VehicleGrpc";
+
+package vehicle;
+
+service VehicleRegistry {
+  rpc GetOwnedVehicle (GetOwnedVehicleRequest) returns (VehicleBookingReply);
+}
+
+message GetOwnedVehicleRequest {
+  string vehicle_id = 1;
+  string user_id = 2;
+}
+
+message VehicleBookingReply {
+  string vehicle_id = 1;
+  string vin = 2;
+  string make = 3;
+  string model = 4;
+  int32 year = 5;
+  string license_plate = 6;
+}

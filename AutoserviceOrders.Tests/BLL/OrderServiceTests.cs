@@ -6,6 +6,7 @@ using FluentAssertions;
 using Moq;
 using Xunit;
 using OrderBLL = AutoserviceOrders.BLL.Services.OrderService;
+using AutoserviceOrders.BLL.Services;
 
 namespace AutoserviceOrders.Tests.BLL;
 
@@ -13,6 +14,7 @@ public class OrderServiceTests
 {
     private readonly UnitOfWorkMockBuilder _uow = new();
     private readonly Mock<IMapper> _mapper = new();
+    private readonly Mock<IOrderCreatedPublisher> _publisher = new();
     private readonly OrderBLL _sut;
 
     public OrderServiceTests()
@@ -20,7 +22,8 @@ public class OrderServiceTests
         _sut = new OrderBLL(
             _uow.UnitOfWork.Object,
             _mapper.Object,
-            TestCacheFactory.CreateOrdersCache());
+            TestCacheFactory.CreateOrdersCache(),
+            _publisher.Object);
     }
 
     [Fact]

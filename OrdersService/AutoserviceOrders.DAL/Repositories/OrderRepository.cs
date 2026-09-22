@@ -27,8 +27,8 @@ namespace AutoserviceOrders.DAL.Repositories
         public async Task<int> AddAsync(Order order)
         {
             const string sql = @"
-INSERT INTO Orders (OrderDate, Status, UserId)
-VALUES (@OrderDate, @Status, @UserId);
+INSERT INTO Orders (OrderDate, Status, UserId, VehicleId, VehicleDisplayName, VehicleVin, VehicleLicensePlate)
+VALUES (@OrderDate, @Status, @UserId, @VehicleId, @VehicleDisplayName, @VehicleVin, @VehicleLicensePlate);
 SELECT SCOPE_IDENTITY();";
 
             await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
@@ -36,6 +36,10 @@ SELECT SCOPE_IDENTITY();";
             cmd.Parameters.AddWithValue("@OrderDate", order.OrderDate);
             cmd.Parameters.AddWithValue("@Status", order.Status);
             cmd.Parameters.AddWithValue("@UserId", order.UserId);
+            cmd.Parameters.AddWithValue("@VehicleId", (object?)order.VehicleId ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@VehicleDisplayName", (object?)order.VehicleDisplayName ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@VehicleVin", (object?)order.VehicleVin ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@VehicleLicensePlate", (object?)order.VehicleLicensePlate ?? DBNull.Value);
 
             var result = await cmd.ExecuteScalarAsync();
             return Convert.ToInt32(result);
@@ -52,13 +56,7 @@ SELECT SCOPE_IDENTITY();";
 
             if (await reader.ReadAsync())
             {
-                return new Order
-                {
-                    OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
-                    OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
-                    Status = reader["Status"]?.ToString() ?? "",
-                    UserId = reader["UserId"]?.ToString() ?? "" // 🔥 ВАЖЛИВО
-                };
+                return ReadOrder(reader);
             }
 
             return null;
@@ -74,13 +72,7 @@ SELECT SCOPE_IDENTITY();";
 
             while (await reader.ReadAsync())
             {
-                orders.Add(new Order
-                {
-                    OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
-                    OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
-                    Status = reader["Status"]?.ToString() ?? string.Empty,
-                    UserId = reader["UserId"]?.ToString() ?? string.Empty   // 🔥 FIX
-                });
+                orders.Add(ReadOrder(reader));
             }
 
             return orders;
@@ -125,16 +117,26 @@ SELECT SCOPE_IDENTITY();";
 
             while (await reader.ReadAsync())
             {
-                orders.Add(new Order
-                {
-                    OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
-                    OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
-                    Status = reader["Status"]?.ToString() ?? "",
-                    UserId = reader["UserId"]?.ToString() ?? ""
-                });
+                orders.Add(ReadOrder(reader));
             }
 
             return orders;
+        }
+
+        private static Order ReadOrder(SqlDataReader reader)
+        {
+            var vehicleIdOrdinal = reader.GetOrdinal("VehicleId");
+            return new Order
+            {
+                OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
+                OrderDate = reader.GetDateTime(reader.GetOrdinal("OrderDate")),
+                Status = reader["Status"]?.ToString() ?? string.Empty,
+                UserId = reader["UserId"]?.ToString() ?? string.Empty,
+                VehicleId = reader.IsDBNull(vehicleIdOrdinal) ? null : reader.GetGuid(vehicleIdOrdinal),
+                VehicleDisplayName = reader["VehicleDisplayName"] as string,
+                VehicleVin = reader["VehicleVin"] as string,
+                VehicleLicensePlate = reader["VehicleLicensePlate"] as string
+            };
         }
     }
 }

@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import axios from "axios";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
 
@@ -14,6 +15,8 @@ import {
 } from "../api/order";
 
 import { getServices } from "../api/service";
+import { getVehicles, vehicleError } from "../api/vehicle";
+import type { Vehicle } from "../api/vehicle";
 
 import {
   Check,
@@ -21,6 +24,8 @@ import {
   CalendarDays,
   Clock3,
   Wrench,
+  Car,
+  Plus,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -35,7 +40,7 @@ type Service = {
   categoryName: string;
 };
 
-const steps = ["Послуга", "Дата", "Підтвердження"];
+const steps = ["Послуга", "Автомобіль і час", "Підтвердження"];
 
 const timeSlots = [
   "09:00",
@@ -61,6 +66,10 @@ export default function Booking() {
 
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehiclesLoading, setVehiclesLoading] = useState(true);
+  const [vehiclesError, setVehiclesError] = useState<string | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState("");
 
    // ✅ MULTI SELECT (замість одного)
   const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>(
@@ -80,6 +89,15 @@ export default function Booking() {
       .then((res) => setServices(res.data))
       .catch(() => toast.error("Помилка завантаження"))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getVehicles(controller.signal)
+      .then((res) => { if (!controller.signal.aborted) setVehicles(res.data); })
+      .catch((error: unknown) => { if (!controller.signal.aborted) setVehiclesError(vehicleError(error)); })
+      .finally(() => { if (!controller.signal.aborted) setVehiclesLoading(false); });
+    return () => controller.abort();
   }, []);
 
 
@@ -106,6 +124,11 @@ useEffect(() => {
   const selectedServices = useMemo(() => {
     return services.filter((s) => selectedServiceIds.includes(s.serviceId));
   }, [selectedServiceIds, services]);
+
+  const selectedVehicle = useMemo(
+    () => vehicles.find((vehicle) => vehicle.id === selectedVehicleId) ?? null,
+    [selectedVehicleId, vehicles]
+  );
 
 
   const isSlotTaken = (time: string) => {
@@ -155,6 +178,7 @@ const handleConfirm = async () => {
     const orderRes = await createOrder({
       orderDate: dateTime,
       status: "Pending",
+      vehicleId: selectedVehicleId || null,
     });
 
     const orderId = orderRes.data?.orderId;
@@ -170,8 +194,13 @@ const handleConfirm = async () => {
     toast.success("Запис успішно створено");
     navigate("/my-bookings");
 
-  } catch {
-    toast.error("Помилка створення запису");
+  } catch (error: unknown) {
+    const responseData = axios.isAxiosError(error) ? error.response?.data : null;
+    const message = responseData && typeof responseData === "object" && "message" in responseData
+      && typeof responseData.message === "string"
+      ? responseData.message
+      : "Помилка створення запису";
+    toast.error(message);
   } finally {
     setSubmitting(false);
   }
@@ -322,6 +351,50 @@ const handleConfirm = async () => {
 
               <Card className="shadow-sm border-orange-100">
                 <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                      <Car className="h-5 w-5 text-orange-500" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold">Оберіть автомобіль</h2>
+                      <p className="text-sm text-muted-foreground">Необов’язково — запис можна створити без автомобіля</p>
+                    </div>
+                  </div>
+
+                  {vehiclesLoading ? (
+                    <p className="text-sm text-muted-foreground">Завантаження автомобілів…</p>
+                  ) : vehiclesError ? (
+                    <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+                      <p className="text-sm text-destructive">{vehiclesError}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">Ви все одно можете продовжити запис без автомобіля.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <select
+                        value={selectedVehicleId}
+                        onChange={(event) => setSelectedVehicleId(event.target.value)}
+                        className="h-12 w-full rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        aria-label="Автомобіль для запису"
+                      >
+                        <option value="">Без автомобіля</option>
+                        {vehicles.map((vehicle) => (
+                          <option key={vehicle.id} value={vehicle.id}>
+                            {vehicle.make} {vehicle.model} ({vehicle.year}){vehicle.licensePlate ? ` · ${vehicle.licensePlate}` : ""}
+                          </option>
+                        ))}
+                      </select>
+                      {vehicles.length === 0 && <p className="text-sm text-muted-foreground">У вашому гаражі ще немає автомобілів.</p>}
+                    </div>
+                  )}
+
+                  <Button type="button" variant="outline" className="mt-4" onClick={() => navigate("/my-vehicles/new")}>
+                    <Plus className="h-4 w-4" /> Додати автомобіль
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-sm border-orange-100">
+                <CardContent className="p-6">
 
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
@@ -432,6 +505,13 @@ const handleConfirm = async () => {
                     </div>
 
                     <div>
+                      <p className="text-sm text-muted-foreground mb-1">Автомобіль</p>
+                      <p className="font-semibold">
+                        {selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}${selectedVehicle.licensePlate ? ` · ${selectedVehicle.licensePlate}` : ""}` : "Без автомобіля"}
+                      </p>
+                    </div>
+
+                    <div>
                       <p className="text-sm text-muted-foreground mb-1">
                         Дата
                       </p>
@@ -522,6 +602,13 @@ const handleConfirm = async () => {
 
                   <p className="font-semibold">
                     {selectedServices.map((s) => s.categoryName).join(", ")}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-muted/40 p-5">
+                  <p className="text-sm text-muted-foreground mb-2">Автомобіль</p>
+                  <p className="font-semibold">
+                    {selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}${selectedVehicle.licensePlate ? ` · ${selectedVehicle.licensePlate}` : ""}` : "Без автомобіля"}
                   </p>
                 </div>
 

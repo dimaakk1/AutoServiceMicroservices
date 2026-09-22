@@ -123,8 +123,13 @@ namespace AutoserviceOrders.BLL.Services
                 var orderDto = new OrderWithItemsDto
                 {
                     OrderId = order.OrderId,
+                    UserId = order.UserId,
                     OrderDate = order.OrderDate,
                     Status = order.Status,
+                    VehicleId = order.VehicleId,
+                    VehicleDisplayName = order.VehicleDisplayName,
+                    VehicleVin = order.VehicleVin,
+                    VehicleLicensePlate = order.VehicleLicensePlate,
                     Items = new List<OrderItemWithProductDto>()
                 };
 
@@ -195,6 +200,10 @@ namespace AutoserviceOrders.BLL.Services
                     UserId = order.UserId, // 🔥 FIX
                     OrderDate = order.OrderDate,
                     Status = order.Status,
+                    VehicleId = order.VehicleId,
+                    VehicleDisplayName = order.VehicleDisplayName,
+                    VehicleVin = order.VehicleVin,
+                    VehicleLicensePlate = order.VehicleLicensePlate,
                     Items = new List<OrderItemWithProductDto>()
                 };
 

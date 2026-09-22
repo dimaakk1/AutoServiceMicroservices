@@ -12,11 +12,13 @@ export const getOrdersWithItems = () => {
 export const createOrder = (data: {
   orderDate: string;
   status: string;
+  vehicleId: string | null;
 }) => {
   return api.post("/Orders/Order", {
     orderId: 0,
     orderDate: data.orderDate,
     status: data.status,
+    vehicleId: data.vehicleId,
   });
 };
 

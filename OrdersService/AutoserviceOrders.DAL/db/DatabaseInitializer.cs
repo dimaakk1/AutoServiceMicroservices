@@ -43,8 +43,21 @@ namespace AutoserviceOrders.DAL.db
             OrderId INT IDENTITY(1,1) PRIMARY KEY,
             OrderDate DATETIME DEFAULT GETDATE(),
             Status NVARCHAR(50),
-            UserId NVARCHAR(450)
+            UserId NVARCHAR(450),
+            VehicleId UNIQUEIDENTIFIER NULL,
+            VehicleDisplayName NVARCHAR(250) NULL,
+            VehicleVin NVARCHAR(17) NULL,
+            VehicleLicensePlate NVARCHAR(20) NULL
         );
+
+        IF COL_LENGTH('Orders', 'VehicleId') IS NULL
+            ALTER TABLE Orders ADD VehicleId UNIQUEIDENTIFIER NULL;
+        IF COL_LENGTH('Orders', 'VehicleDisplayName') IS NULL
+            ALTER TABLE Orders ADD VehicleDisplayName NVARCHAR(250) NULL;
+        IF COL_LENGTH('Orders', 'VehicleVin') IS NULL
+            ALTER TABLE Orders ADD VehicleVin NVARCHAR(17) NULL;
+        IF COL_LENGTH('Orders', 'VehicleLicensePlate') IS NULL
+            ALTER TABLE Orders ADD VehicleLicensePlate NVARCHAR(20) NULL;
 
         IF OBJECT_ID('OrderDetails') IS NULL
         CREATE TABLE OrderDetails (

@@ -13,6 +13,10 @@ namespace AutoserviceOrders.BLL.DTO
 
         public DateTime OrderDate { get; set; }
         public string Status { get; set; } = "";
+        public Guid? VehicleId { get; set; }
+        public string? VehicleDisplayName { get; set; }
+        public string? VehicleVin { get; set; }
+        public string? VehicleLicensePlate { get; set; }
 
         public List<OrderItemWithProductDto> Items { get; set; } = new();
     }

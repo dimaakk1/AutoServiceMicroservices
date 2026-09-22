@@ -25,11 +25,15 @@ message OrderItemResponse {
 
 message OrderResponse {
     int32 orderId = 1;
-    string userId = 2;        //  «¿Ã≤—“‹ customerId
+    string userId = 2;        //  –ó–ê–ú–Ü–°–¢–¨ customerId
     string status = 3;
     string orderDate = 4;
 
     repeated OrderItemResponse items = 5;
+    string vehicleId = 6;
+    string vehicleDisplayName = 7;
+    string vehicleVin = 8;
+    string vehicleLicensePlate = 9;
 }
 
 message OrderListResponse {

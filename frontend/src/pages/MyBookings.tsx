@@ -10,17 +10,34 @@ import {
   CheckCircle2,
   AlertCircle,
   Wrench,
+  Car,
 } from "lucide-react";
 
 import { toast } from "sonner";
 
 import { getOrdersWithItems, updateOrder } from "../api/order";
 
+type BookingItem = {
+  orderItemId: number;
+  productName: string;
+  quantity: number;
+  totalPrice: number;
+};
+
+type BookingOrder = {
+  orderId: number;
+  orderDate: string;
+  status: string;
+  vehicleDisplayName?: string | null;
+  vehicleLicensePlate?: string | null;
+  items: BookingItem[];
+};
+
 export default function MyBookings() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<BookingOrder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,11 +75,11 @@ export default function MyBookings() {
     }
   };
 
-  const handlePayment = async (order: any) => {
+  const handlePayment = async (order: BookingOrder) => {
   try {
     const total =
       order.items?.reduce(
-        (sum: number, item: any) => sum + item.totalPrice,
+        (sum: number, item: BookingItem) => sum + item.totalPrice,
         0
       ) || 100;
 
@@ -232,7 +249,7 @@ export default function MyBookings() {
               .map((order) => {
                 const total =
                   order.items?.reduce(
-                    (sum: number, i: any) =>
+                    (sum: number, i: BookingItem) =>
                       sum + i.totalPrice,
                     0
                   ) || 0;
@@ -285,8 +302,17 @@ export default function MyBookings() {
 
                     <div className="p-6">
 
+                      <div className="mb-5 flex items-start gap-3 rounded-xl border bg-muted/30 p-4">
+                        <Car className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground">Автомобіль</p>
+                          <p className="mt-1 font-semibold">{order.vehicleDisplayName || "Не вказано"}</p>
+                          {order.vehicleLicensePlate && <p className="mt-1 text-sm text-muted-foreground">Номер: {order.vehicleLicensePlate}</p>}
+                        </div>
+                      </div>
+
                       <div className="space-y-4">
-                        {order.items?.map((item: any) => (
+                        {order.items?.map((item: BookingItem) => (
                           <div
                             key={item.orderItemId}
                             className="flex items-center justify-between rounded-xl border p-4 bg-muted/30"

@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Grpc.Core;
+using VehicleGrpc;
+using GrpcStatusCode = Grpc.Core.StatusCode;
 
 namespace AutoserviceOrders.API.Controllers
 {
@@ -15,10 +18,12 @@ namespace AutoserviceOrders.API.Controllers
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly VehicleRegistry.VehicleRegistryClient _vehicleClient;
 
-        public OrderController(IOrderService orderService)
+        public OrderController(IOrderService orderService, VehicleRegistry.VehicleRegistryClient vehicleClient)
         {
             _orderService = orderService;
+            _vehicleClient = vehicleClient;
         }
 
         [HttpPost]
@@ -36,11 +41,44 @@ namespace AutoserviceOrders.API.Controllers
             orderDto.OrderDate = DateTime.SpecifyKind(orderDto.OrderDate, DateTimeKind.Utc);
             try
             {
+                if (orderDto.VehicleId.HasValue)
+                {
+                    var vehicle = await _vehicleClient.GetOwnedVehicleAsync(new GetOwnedVehicleRequest
+                    {
+                        VehicleId = orderDto.VehicleId.Value.ToString(),
+                        UserId = userId
+                    }, deadline: DateTime.UtcNow.AddSeconds(5), cancellationToken: HttpContext.RequestAborted);
+
+                    orderDto.VehicleId = Guid.Parse(vehicle.VehicleId);
+                    orderDto.VehicleDisplayName = $"{vehicle.Make} {vehicle.Model} ({vehicle.Year})";
+                    orderDto.VehicleVin = vehicle.Vin;
+                    orderDto.VehicleLicensePlate = string.IsNullOrWhiteSpace(vehicle.LicensePlate)
+                        ? null
+                        : vehicle.LicensePlate;
+                }
+                else
+                {
+                    orderDto.VehicleDisplayName = null;
+                    orderDto.VehicleVin = null;
+                    orderDto.VehicleLicensePlate = null;
+                }
+
                 var id = await _orderService.CreateOrderAsync(orderDto);
 
                 orderDto.OrderId = id;
 
                 return CreatedAtAction(nameof(GetById), new { id }, orderDto);
+            }
+            catch (RpcException ex) when (ex.StatusCode is GrpcStatusCode.NotFound or GrpcStatusCode.InvalidArgument)
+            {
+                return BadRequest(new { message = "Обраний автомобіль не знайдено у вашому гаражі." });
+            }
+            catch (RpcException ex) when (ex.StatusCode is GrpcStatusCode.Unavailable or GrpcStatusCode.DeadlineExceeded)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+                {
+                    message = "Не вдалося перевірити автомобіль. Спробуйте ще раз або створіть запис без автомобіля."
+                });
             }
             catch (Exception ex)
             {

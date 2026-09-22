@@ -1,6 +1,7 @@
 
 using AutoServiceUsers.BLL.Grpc;
 using AutoServiceUsers.BLL.Services;
+using AutoServiceUsers.BLL.Configuration;
 using AutoServiceUsers.BLL.Services.Interfaces;
 using AutoServiceUsers.DAL.DB;
 using AutoServiceUsers.DAL.Entities;
@@ -15,6 +16,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.Services.AddGrpc();
 DotNetEnv.Env.Load(Path.Combine(builder.Environment.ContentRootPath, ".env"));
+var publicUrls = new PublicUrlOptions
+{
+    ApiBaseUrl = builder.Configuration[$"{PublicUrlOptions.SectionName}:ApiBaseUrl"]
+        ?? "http://localhost:5000",
+    FrontendBaseUrl = builder.Configuration[$"{PublicUrlOptions.SectionName}:FrontendBaseUrl"]
+        ?? "http://localhost:5173"
+};
+publicUrls.Validate();
+builder.Services.AddSingleton(publicUrls);
 // DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
@@ -75,7 +85,7 @@ builder.Services.AddSwaggerGen(c =>
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Description = "Введіть JWT токен: Bearer {your token}",
+        Description = "Р’РІРµРґС–С‚СЊ JWT С‚РѕРєРµРЅ: Bearer {your token}",
 
         Reference = new OpenApiReference
         {
@@ -111,11 +121,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Асинхронний Seed ролей
+// РђСЃРёРЅС…СЂРѕРЅРЅРёР№ Seed СЂРѕР»РµР№
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate(); // <- створює всі таблиці автоматично   
+    db.Database.Migrate(); // <- СЃС‚РІРѕСЂСЋС” РІСЃС– С‚Р°Р±Р»РёС†С– Р°РІС‚РѕРјР°С‚РёС‡РЅРѕ
 }
 
 
@@ -137,4 +147,4 @@ await IdentityDataSeeder.SeedAsync(app.Services);
 
 app.Run();
 
-// Асинхронний метод для seed
+// РђСЃРёРЅС…СЂРѕРЅРЅРёР№ РјРµС‚РѕРґ РґР»СЏ seed

@@ -17,6 +17,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Part;
+using VehicleGrpc;
 using System.Data;
 using System.Text;
 
@@ -58,7 +59,7 @@ namespace AutoserviceOrders.API
             builder.Services.AddScoped<IPaymentService, PaymentService>();
             builder.Services.AddScoped<ILiqPayService, LiqPayService>();
             builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-            builder.Services.AddScoped<RabbitMqPublisher>();
+            builder.Services.AddScoped<IOrderCreatedPublisher, RabbitMqPublisher>();
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -108,7 +109,7 @@ namespace AutoserviceOrders.API
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
-                    Description = "Ââåä³òü JWT òîêåí: Bearer {your token}",
+                    Description = "Ð’Ð²ÐµÐ´Ñ–Ñ‚ÑŒ JWT Ñ‚Ð¾ÐºÐµÐ½: Bearer {your token}",
 
                     Reference = new OpenApiReference
                     {
@@ -128,6 +129,10 @@ namespace AutoserviceOrders.API
             builder.Services.AddGrpcClient<PartService.PartServiceClient>(o =>
             {
                 o.Address = new Uri(builder.Configuration["Services:CatalogServiceUrl"] ?? "https://localhost:5001");
+            });
+            builder.Services.AddGrpcClient<VehicleRegistry.VehicleRegistryClient>(o =>
+            {
+                o.Address = new Uri(builder.Configuration["Services:VehicleServiceUrl"] ?? "https://localhost:7290");
             });
 
             builder.Services.AddControllers();

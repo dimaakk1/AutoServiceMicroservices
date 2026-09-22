@@ -4,6 +4,7 @@ COPY AutoserviceVehicle/AutoserviceVehicle.API.csproj AutoserviceVehicle/
 COPY AutoserviceVehicle.BLL/AutoserviceVehicle.BLL.csproj AutoserviceVehicle.BLL/
 COPY AutoserviceVehicle.DAL/AutoserviceVehicle.DAL.csproj AutoserviceVehicle.DAL/
 COPY AppHostt/AppHostt.ServiceDefaults/AppHostt.ServiceDefaults.csproj AppHostt/AppHostt.ServiceDefaults/
+COPY Vehicle.proto ./
 RUN dotnet restore AutoserviceVehicle/AutoserviceVehicle.API.csproj
 COPY AutoserviceVehicle/ AutoserviceVehicle/
 COPY AutoserviceVehicle.BLL/ AutoserviceVehicle.BLL/
@@ -16,5 +17,6 @@ WORKDIR /app
 COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
+EXPOSE 8081
 USER app
 ENTRYPOINT ["dotnet", "AutoserviceVehicle.API.dll"]

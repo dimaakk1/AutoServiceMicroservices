@@ -10,6 +10,10 @@
 
         public DateTime OrderDate { get; set; }
         public string Status { get; set; }
+        public string? VehicleId { get; set; }
+        public string? VehicleDisplayName { get; set; }
+        public string? VehicleVin { get; set; }
+        public string? VehicleLicensePlate { get; set; }
 
         public IEnumerable<OrderItemDto> Items { get; set; }
 

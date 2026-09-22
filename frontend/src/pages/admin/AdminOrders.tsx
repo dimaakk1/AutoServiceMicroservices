@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../lib/auth-context";
 
@@ -48,12 +48,22 @@ type Order = {
   email: string;
   orderDate: string;
   status: string;
+  vehicleId?: string | null;
+  vehicleDisplayName?: string | null;
+  vehicleVin?: string | null;
+  vehicleLicensePlate?: string | null;
 
   paymentStatus?: string | null;
   paymentId?: number;
 
   items: OrderItem[];
   review: Review | null;
+};
+
+type Payment = {
+  orderId: number;
+  paymentId: number;
+  status: string;
 };
 
 
@@ -80,7 +90,7 @@ export default function AdminOrders() {
   ];
 
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
   try {
     setLoading(true);
 
@@ -97,9 +107,9 @@ export default function AdminOrders() {
 
     const payments = paymentsRes.data;
 
-    const ordersWithPayments = ordersRes.data.map((order: any) => {
+    const ordersWithPayments = ordersRes.data.map((order: Order) => {
       const payment = payments.find(
-        (p: any) => p.orderId === order.orderId
+        (p: Payment) => p.orderId === order.orderId
       );
 
       return {
@@ -115,11 +125,11 @@ export default function AdminOrders() {
   } finally {
     setLoading(false);
   }
-};
+  }, [filters]);
 
   useEffect(() => {
     if (user?.role === "Admin") loadOrders();
-  }, [user, filters]);
+  }, [user, loadOrders]);
 
 
   const updateStatus = async (orderId: number, status: string) => {
@@ -271,6 +281,10 @@ export default function AdminOrders() {
     {o.items.map(i => i.productName).join(", ")}
   </div>
 
+  <div className="text-sm text-muted-foreground">
+    {o.vehicleDisplayName || "Автомобіль не вказано"}
+  </div>
+
   <div className="mt-2">
   {o.paymentStatus?.toLowerCase() === "success" ? (
     <Badge className="bg-green-500 text-white">
@@ -338,6 +352,7 @@ export default function AdminOrders() {
               <TableHead className="text-white">ID</TableHead>
               <TableHead className="text-white">Користувач</TableHead>
               <TableHead className="text-white">Дата</TableHead>
+              <TableHead className="text-white">Автомобіль</TableHead>
               <TableHead className="text-white">Послуги</TableHead>
        <TableHead className="text-white">Сума</TableHead>
 <TableHead className="text-white">Оплата</TableHead>
@@ -366,6 +381,11 @@ export default function AdminOrders() {
 
                 <TableCell>
                   {new Date(order.orderDate).toLocaleString()}
+                </TableCell>
+
+                <TableCell className="text-sm">
+                  <div className="font-medium">{order.vehicleDisplayName || "Не вказано"}</div>
+                  {order.vehicleLicensePlate && <div className="text-xs text-muted-foreground">{order.vehicleLicensePlate}</div>}
                 </TableCell>
 
                 <TableCell className="text-sm space-y-1">

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using AutoserviceVehicle.API;
+using AutoserviceVehicle.API.Grpc;
 using AutoserviceVehicle.BLL.Services;
 using AutoserviceVehicle.DAL.DB;
 using AutoserviceVehicle.DAL.Repositories;
@@ -36,6 +37,7 @@ public partial class Program
         });
         builder.Services.AddExceptionHandler<VehicleExceptionHandler>();
         builder.Services.AddProblemDetails();
+        builder.Services.AddGrpc();
         builder.Services.AddControllers();
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
@@ -84,6 +86,7 @@ public partial class Program
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapDefaultEndpoints();
+        app.MapGrpcService<VehicleRegistryGrpcService>();
         app.MapControllers();
         await app.RunAsync();
     }

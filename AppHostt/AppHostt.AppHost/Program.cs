@@ -45,14 +45,22 @@ var catalogService = builder
     .WaitFor(catalogDb)
     .WaitFor(redis);
 
+var vehicleService = builder
+    .AddProject<Projects.AutoserviceVehicle_API>("autoservicevehicle")
+    .WithReference(vehiclesDb)
+    .WaitFor(vehiclesDb);
+
 var ordersService = builder
     .AddProject<Projects.AutoserviceOrders_API>("orders-service")
     .WithReference(ordersDb)
     .WithReference(redis)
     .WithReference(rabbitmq)
+    .WithReference(vehicleService)
+    .WithEnvironment("Services__VehicleServiceUrl", vehicleService.GetEndpoint("https"))
     .WaitFor(ordersDb)
     .WaitFor(redis)
-    .WaitFor(rabbitmq);
+    .WaitFor(rabbitmq)
+    .WaitFor(vehicleService);
 
 var reviewsService = builder
     .AddProject<Projects.WebApi>("reviews-service")
@@ -64,6 +72,8 @@ var reviewsService = builder
 var usersService = builder
     .AddProject<Projects.AutoServiceUsers_API>("users-service")
     .WithReference(usersDb)
+    .WithEnvironment("PublicUrls__ApiBaseUrl", "http://localhost:5000")
+    .WithEnvironment("PublicUrls__FrontendBaseUrl", "http://localhost:5173")
     .WaitFor(usersDb);
 
 var aiService = builder
@@ -80,11 +90,6 @@ var telegramService = builder
 
 
 /* ================= GATEWAY ================= */
-
-var vehicleService = builder
-    .AddProject<Projects.AutoserviceVehicle_API>("autoservicevehicle")
-    .WithReference(vehiclesDb)
-    .WaitFor(vehiclesDb);
 
 var apiGateway = builder
     .AddProject<Projects.ApiGateway>("gateway")
