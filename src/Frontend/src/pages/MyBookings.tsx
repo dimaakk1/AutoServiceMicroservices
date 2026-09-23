@@ -175,7 +175,7 @@ export default function MyBookings() {
 
           <Button
             onClick={() => navigate("/auth")}
-            className="bg-orange-500 hover:bg-orange-600 text-white"
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
           >
             Увійти
           </Button>
@@ -212,7 +212,7 @@ export default function MyBookings() {
 
           <Button
             onClick={() => navigate("/booking")}
-            className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl px-6"
+            className="bg-accent px-6 text-accent-foreground hover:bg-accent/90"
           >
             Новий запис
           </Button>
@@ -221,8 +221,8 @@ export default function MyBookings() {
         {orders.length === 0 ? (
           <div className="border rounded-2xl bg-card p-14 text-center shadow-sm">
 
-            <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-5">
-              <CalendarDays className="h-8 w-8 text-orange-500" />
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center border border-accent/30 bg-accent/10">
+              <CalendarDays className="h-8 w-8 text-accent" />
             </div>
 
             <h2 className="text-2xl font-semibold mb-3">
@@ -235,7 +235,7 @@ export default function MyBookings() {
 
             <Button
               onClick={() => navigate("/booking")}
-              className="bg-orange-500 hover:bg-orange-600 text-white"
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               Записатися
             </Button>
@@ -271,8 +271,8 @@ export default function MyBookings() {
 
                           <div className="flex items-center gap-3 mb-3">
 
-                            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                              <Wrench className="h-6 w-6 text-orange-500" />
+                            <div className="flex h-12 w-12 items-center justify-center border border-accent/30 bg-accent/10">
+                              <Wrench className="h-6 w-6 text-accent" />
                             </div>
 
                             <div>
@@ -303,7 +303,7 @@ export default function MyBookings() {
                     <div className="p-6">
 
                       <div className="mb-5 flex items-start gap-3 rounded-xl border bg-muted/30 p-4">
-                        <Car className="mt-0.5 h-5 w-5 shrink-0 text-orange-500" />
+                        <Car className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
                         <div>
                           <p className="text-xs uppercase tracking-wider text-muted-foreground">Автомобіль</p>
                           <p className="mt-1 font-semibold">{order.vehicleDisplayName || "Не вказано"}</p>

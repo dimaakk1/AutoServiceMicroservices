@@ -44,7 +44,7 @@ function StarRating({ value }: { value: number }) {
           key={s}
           className={`h-4 w-4 ${
             s <= value
-              ? "fill-orange-500 text-orange-500"
+              ? "fill-accent text-accent"
               : "text-gray-300"
           }`}
         />
@@ -119,7 +119,7 @@ export default function ReviewsAdmin() {
 
         <Link
           to="/admin"
-          className="text-muted-foreground hover:text-orange-500 transition"
+          className="text-muted-foreground transition hover:text-accent"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -128,7 +128,7 @@ export default function ReviewsAdmin() {
           Відгуки
         </h1>
 
-       <Badge className="ml-auto bg-orange-500 text-white">
+       <Badge className="ml-auto bg-accent text-accent-foreground">
           {filtered.length}
         </Badge>
 
@@ -180,7 +180,7 @@ export default function ReviewsAdmin() {
                 <div className="flex items-center gap-3">
 
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <User className="h-5 w-5 text-orange-500" />
+                    <User className="h-5 w-5 text-accent" />
                   </div>
 
                   <div>

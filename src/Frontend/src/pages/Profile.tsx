@@ -158,8 +158,8 @@ export default function Profile() {
             <Card className="rounded-2xl border shadow-sm">
               <CardHeader className="border-b bg-muted/30 rounded-t-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center">
-                    <User className="h-5 w-5 text-orange-500" />
+                  <div className="flex h-11 w-11 items-center justify-center border border-accent/30 bg-accent/10">
+                    <User className="h-5 w-5 text-accent" />
                   </div>
 
                   <div>
@@ -235,7 +235,7 @@ export default function Profile() {
                   <Button
                     type="submit"
                     disabled={saving}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-11"
+                    className="h-11 w-full bg-accent text-accent-foreground hover:bg-accent/90"
                   >
                     <Save className="h-4 w-4 mr-2" />
 
@@ -250,8 +250,8 @@ export default function Profile() {
             <Card className="rounded-2xl border shadow-sm">
               <CardHeader className="border-b bg-muted/30 rounded-t-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-orange-100 flex items-center justify-center">
-                    <LockKeyhole className="h-5 w-5 text-orange-500" />
+                  <div className="flex h-11 w-11 items-center justify-center border border-accent/30 bg-accent/10">
+                    <LockKeyhole className="h-5 w-5 text-accent" />
                   </div>
 
                   <div>
@@ -309,7 +309,7 @@ export default function Profile() {
                   <Button
                     type="submit"
                     disabled={savingPass}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-xl h-11"
+                    className="h-11 w-full bg-accent text-accent-foreground hover:bg-accent/90"
                   >
                     <LockKeyhole className="h-4 w-4 mr-2" />
 
@@ -325,12 +325,12 @@ export default function Profile() {
           <div className="space-y-6">
 
             <Card className="rounded-2xl border shadow-sm overflow-hidden">
-              <div className="h-24 bg-gradient-to-r from-orange-500 to-orange-400" />
+              <div className="h-24 bg-gradient-accent" />
 
               <CardContent className="relative pt-0 pb-6">
 
-                <div className="w-20 h-20 rounded-2xl bg-white border-4 border-white shadow-md flex items-center justify-center -mt-10 mb-4">
-                  <User className="h-9 w-9 text-orange-500" />
+                <div className="-mt-10 mb-4 flex h-20 w-20 items-center justify-center border-4 border-card bg-card shadow-md">
+                  <User className="h-9 w-9 text-accent" />
                 </div>
 
                 <h2 className="text-2xl font-bold">

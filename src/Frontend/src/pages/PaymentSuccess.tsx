@@ -47,7 +47,7 @@ export default function PaymentSuccess() {
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button
               onClick={() => navigate("/my-bookings")}
-              className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl"
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
               <CalendarDays className="h-4 w-4 mr-2" />
               Мої записи

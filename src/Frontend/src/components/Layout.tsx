@@ -1,224 +1,156 @@
-
-import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../lib/auth-context";
-import {
-  Car,
-  Menu,
-  X,
-  LogOut,
-  User,
-  Shield,
-} from "lucide-react";
-import { Button } from "../components/ui/button";
 import { useState } from "react";
-
-import AiChat from './AiChatting';
+import { Link, useLocation } from "react-router-dom";
+import {
+  CalendarDays,
+  Car,
+  Gauge,
+  LogOut,
+  Menu,
+  MessageSquare,
+  ScanLine,
+  Shield,
+  User,
+  Wrench,
+  X,
+} from "lucide-react";
+import { useAuth } from "../lib/auth-context";
+import { Button } from "./ui/button";
+import AiChat from "./AiChatting";
 
 const navItems = [
-  { to: "/", label: "Головна" },
-  { to: "/services", label: "Послуги" },
-  { to: "/vin-decoder", label: "VIN-декодер" },
-  { to: "/reviews", label: "Відгуки" },
-  { to: "/booking", label: "Запис" },
+  { to: "/", label: "Головна", icon: Gauge },
+  { to: "/services", label: "Послуги", icon: Wrench },
+  { to: "/vin-decoder", label: "VIN-декодер", icon: ScanLine },
+  { to: "/reviews", label: "Відгуки", icon: MessageSquare },
+  { to: "/booking", label: "Запис", icon: CalendarDays },
 ];
 
 const authNavItems = [
   { to: "/my-bookings", label: "Мої записи" },
-  { to: "/my-vehicles", label: "Мої автомобілі" },
+  { to: "/my-vehicles", label: "Мої авто" },
   { to: "/profile", label: "Профіль" },
 ];
 
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const isAdmin = user?.role === "Admin";
 
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
-
-  const isAdmin =
-    user?.role === "Admin";
+  const active = (to: string) =>
+    to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur">
-        <div className="container flex h-16 items-center justify-between">
-          <Link
-            to="/"
-            className="flex items-center gap-2 font-bold text-xl"
-          >
-            <Car className="h-6 w-6 text-accent" />
-            <span>АвтоПро</span>
+    <div className="flex min-h-screen flex-col bg-background">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
+        <div className="container flex min-h-16 items-stretch justify-between px-4 sm:px-6 lg:px-8">
+          <Link to="/" className="flex items-center gap-3 border-r border-border pr-5 lg:pr-7">
+            <span className="grid h-10 w-10 place-items-center bg-accent font-display text-2xl text-accent-foreground">A</span>
+            <span>
+              <strong className="block font-display text-2xl uppercase leading-none">АвтоПро</strong>
+              <small className="technical-label mt-1 hidden sm:block">Service station</small>
+            </span>
           </Link>
 
-          {/* NAV DESKTOP */}
-          <nav className="hidden xl:flex items-center gap-1">
+          <nav className="ml-auto hidden items-stretch xl:flex">
             {navItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`px-3 py-2 rounded-md text-sm ${
-                  location.pathname === item.to
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
+                className={`flex items-center border-l border-border px-3 text-[11px] font-semibold uppercase transition-colors 2xl:px-4 ${
+                  active(item.to)
+                    ? "border-b-2 border-b-accent bg-primary text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
                 {item.label}
               </Link>
             ))}
-
-            {user &&
-              authNavItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`px-3 py-2 rounded-md text-sm ${
-                    location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
-
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="px-3 py-2 text-accent flex items-center gap-1"
-              >
-                <Shield className="h-4 w-4" />
-                Адмін
-              </Link>
-            )}
-          </nav>
-
-          {/* USER DESKTOP */}
-          <div className="hidden xl:flex items-center gap-2">
-            {user ? (
-              <>
-                <span className="text-sm flex items-center gap-1">
-                  <User className="h-4 w-4" />
-                  {user.name}
-                </span>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  Вийти
-                </Button>
-              </>
-            ) : (
-              <Link to="/auth">
-                <Button size="sm">
-                  Увійти
-                </Button>
-              </Link>
-            )}
-          </div>
-
-          {/* MOBILE BUTTON */}
-          <button
-            className="xl:hidden"
-            aria-label={mobileOpen ? "Закрити меню" : "Відкрити меню"}
-            aria-expanded={mobileOpen}
-            onClick={() =>
-              setMobileOpen(!mobileOpen)
-            }
-          >
-            {mobileOpen ? <X /> : <Menu />}
-          </button>
-        </div>
-
-        {/* MOBILE MENU */}
-        {mobileOpen && (
-          <div className="xl:hidden border-t p-4">
-            {navItems.map((item) => (
+            {user && authNavItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
-                onClick={() =>
-                  setMobileOpen(false)
-                }
-                className="block py-2"
+                className={`flex items-center border-l border-border px-3 text-[11px] font-semibold uppercase transition-colors 2xl:px-4 ${
+                  active(item.to)
+                    ? "border-b-2 border-b-accent bg-primary text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               >
                 {item.label}
               </Link>
             ))}
-
-            {user &&
-              authNavItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() =>
-                    setMobileOpen(false)
-                  }
-                  className="block py-2"
-                >
-                  {item.label}
-                </Link>
-              ))}
-
             {isAdmin && (
-              <Link
-                to="/admin"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
-                className="block py-2 text-accent"
-              >
-                Адмін
+              <Link to="/admin" className="flex items-center gap-1 border-l border-border px-4 text-[11px] font-semibold uppercase text-accent">
+                <Shield className="h-3.5 w-3.5" /> Адмін
               </Link>
             )}
+          </nav>
 
+          <div className="hidden items-center gap-3 border-l border-border pl-4 xl:flex">
             {user ? (
-              <button
-                onClick={() => {
-                  logout();
-                  setMobileOpen(false);
-                }}
-                className="text-red-500 py-2"
-              >
-                Вийти ({user.name})
-              </button>
+              <>
+                <span className="flex max-w-32 items-center gap-1 truncate text-xs text-muted-foreground">
+                  <User className="h-4 w-4 shrink-0" /> {user.name}
+                </span>
+                <Button variant="ghost" size="icon" onClick={logout} aria-label="Вийти">
+                  <LogOut />
+                </Button>
+              </>
             ) : (
-              <Link
-                to="/auth"
-                onClick={() =>
-                  setMobileOpen(false)
-                }
-                className="text-accent py-2 block"
-              >
-                Увійти
-              </Link>
+              <Button asChild size="sm"><Link to="/auth">Увійти</Link></Button>
             )}
           </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="self-center xl:hidden"
+            onClick={() => setMobileOpen((value) => !value)}
+            aria-label={mobileOpen ? "Закрити меню" : "Відкрити меню"}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X /> : <Menu />}
+          </Button>
+        </div>
+
+        {mobileOpen && (
+          <nav className="grid border-t bg-card p-3 xl:hidden">
+            {[...navItems, ...(user ? authNavItems : [])].map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 border-l-2 px-4 py-3 text-xs font-semibold uppercase ${
+                  active(item.to) ? "border-accent bg-primary" : "border-transparent text-muted-foreground"
+                }`}
+              >
+                {"icon" in item && item.icon ? <item.icon className="h-4 w-4" /> : null}
+                {item.label}
+              </Link>
+            ))}
+            {isAdmin && (
+              <Link to="/admin" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 border-l-2 border-transparent px-4 py-3 text-xs font-semibold uppercase text-accent">
+                <Shield className="h-4 w-4" /> Адмін-панель
+              </Link>
+            )}
+            {user ? (
+              <Button variant="ghost" className="mt-2 justify-start" onClick={() => { logout(); setMobileOpen(false); }}>
+                <LogOut /> Вийти
+              </Button>
+            ) : (
+              <Button asChild className="mt-2"><Link to="/auth" onClick={() => setMobileOpen(false)}>Увійти</Link></Button>
+            )}
+          </nav>
         )}
       </header>
 
-      {/* CONTENT */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
+      {user && !isAdmin && <AiChat />}
 
-      {/* AI CHAT */}
-      {user && !isAdmin && (
-        <AiChat />
-      )}
-
-      {/* FOOTER */}
-      <footer className="border-t bg-primary text-primary-foreground">
-        <div className="container py-8 text-center text-sm opacity-80">
-          © 2026 АвтоПро — Професійний
-          автосервіс. Усі права захищено.
+      <footer className="border-t bg-card">
+        <div className="container flex flex-col gap-3 py-7 text-[10px] font-semibold uppercase text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span className="flex items-center gap-2"><Car className="h-4 w-4 text-accent" /> © 2026 АвтоПро / Професійний автосервіс</span>
+          <span className="text-accent">Діагностика · Ремонт · Обслуговування</span>
         </div>
       </footer>
     </div>

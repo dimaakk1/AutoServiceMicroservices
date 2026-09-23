@@ -12,7 +12,7 @@ export function Calendar({
   return (
     <DayPicker
       className={cn(
-        "p-4 bg-white rounded-xl border shadow-sm",
+        "border bg-card p-4 text-card-foreground shadow-card",
         className
       )}
       classNames={{
@@ -25,16 +25,16 @@ export function Calendar({
           "flex items-center justify-center mb-3 gap-3",
 
         caption_label:
-          "text-sm font-semibold text-orange-600",
+          "text-sm font-semibold text-accent",
 
         /* ❗ FIX: прибрали absolute */
         nav: "flex items-center gap-2",
 
         button_previous:
-          "h-8 w-8 flex items-center justify-center rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 transition",
+          "h-8 w-8 flex items-center justify-center border border-border text-accent hover:bg-muted transition",
 
         button_next:
-          "h-8 w-8 flex items-center justify-center rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 transition",
+          "h-8 w-8 flex items-center justify-center border border-border text-accent hover:bg-muted transition",
 
         /* GRID */
         month_grid: "w-full",
@@ -49,13 +49,13 @@ export function Calendar({
         day: "w-10 h-10 flex items-center justify-center",
 
         day_button:
-          "w-10 h-10 rounded-lg flex items-center justify-center text-sm transition hover:bg-orange-100",
+          "w-10 h-10 flex items-center justify-center text-sm transition hover:bg-muted",
 
         selected:
-          "bg-orange-500 text-white rounded-lg hover:bg-orange-600",
+          "bg-accent text-accent-foreground hover:bg-accent/90",
 
         today:
-          "bg-orange-100 text-orange-700 font-semibold rounded-lg",
+          "bg-accent/10 text-accent font-semibold",
 
         outside: "opacity-40",
         disabled: "opacity-30 cursor-not-allowed",

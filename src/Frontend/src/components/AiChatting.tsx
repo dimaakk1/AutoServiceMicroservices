@@ -106,6 +106,7 @@ export default function AiChatting() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <button
+          aria-label="AI діагностика"
           className="
             fixed
             bottom-6
@@ -114,12 +115,13 @@ export default function AiChatting() {
             flex
             items-center
             gap-2
-            rounded-full
-            bg-orange-500
-            text-white
+            border
+            border-accent/40
+            bg-accent
+            text-accent-foreground
             px-5
             py-3
-            shadow-xl
+            shadow-glow
             hover:scale-105
             transition
           "
@@ -133,8 +135,8 @@ export default function AiChatting() {
       </SheetTrigger>
 
       <SheetContent className="p-0 flex flex-col sm:max-w-md">
-        <SheetHeader className="border-b p-4 bg-orange-500 text-white">
-          <SheetTitle className="flex items-center gap-3 text-white">
+        <SheetHeader className="border-b border-accent/30 bg-primary p-4 text-primary-foreground">
+          <SheetTitle className="flex items-center gap-3 text-primary-foreground">
             <div className="bg-white/20 p-2 rounded-lg">
               <Wrench className="h-5 w-5" />
             </div>
@@ -173,7 +175,7 @@ export default function AiChatting() {
                   whitespace-pre-wrap
                   ${
                     message.role === "user"
-                      ? "bg-orange-500 text-white rounded-br-sm"
+                      ? "bg-accent text-accent-foreground rounded-br-sm"
                       : "bg-muted rounded-bl-sm"
                   }
                 `}
@@ -184,7 +186,7 @@ export default function AiChatting() {
                 <Link
                   to={`/booking?service=${message.recommendation.serviceId}`}
                   onClick={() => setOpen(false)}
-                  className="mt-2 block max-w-[85%] rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-900 hover:bg-orange-100 transition"
+                  className="mt-2 block max-w-[85%] border border-accent/30 bg-accent/10 p-3 text-sm text-foreground transition hover:bg-accent/15"
                 >
                   <span className="block font-semibold">
                     Рекомендовано: {message.recommendation.name}
@@ -192,7 +194,7 @@ export default function AiChatting() {
                   <span className="block text-xs mt-1">
                     {message.recommendation.reason || "Підійде для описаної несправності."}
                   </span>
-                  <span className="mt-2 inline-block font-medium text-orange-600">
+                  <span className="mt-2 inline-block font-medium text-accent">
                     Записатися · {message.recommendation.price} грн →
                   </span>
                 </Link>
@@ -279,7 +281,7 @@ export default function AiChatting() {
             <Link
               to="/booking"
               onClick={() => setOpen(false)}
-              className="text-xs text-orange-500 font-medium"
+              className="text-xs font-medium text-accent"
             >
               Записатись →
             </Link>

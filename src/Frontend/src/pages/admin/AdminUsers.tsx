@@ -116,7 +116,7 @@ export default function UsersAdmin() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-orange-500">
+      <div className="flex min-h-screen items-center justify-center text-accent">
         Завантаження...
       </div>
     );
@@ -130,7 +130,7 @@ export default function UsersAdmin() {
         <div className="flex items-center gap-4 mb-6">
           <Link
           to="/admin"
-          className="text-muted-foreground hover:text-orange-500 transition"
+          className="text-muted-foreground transition hover:text-accent"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -139,7 +139,7 @@ export default function UsersAdmin() {
               Користувачі
             </h1>
         
-      <Badge className="ml-auto bg-orange-500 text-white">
+      <Badge className="ml-auto bg-accent text-accent-foreground">
           {users.length}
         </Badge>
 
@@ -163,7 +163,7 @@ export default function UsersAdmin() {
             <Card
               key={u.userId}
               className={`shadow-md hover:shadow-lg transition border ${
-                u.isBlocked ? "border-red-200" : "border-orange-100"
+                u.isBlocked ? "border-destructive/40" : "border-accent/20"
               }`}
             >
               <CardContent className="p-5">
@@ -172,8 +172,8 @@ export default function UsersAdmin() {
 
                   <div className="flex items-center gap-3">
 
-                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                      <User className="text-orange-600" />
+                    <div className="flex h-10 w-10 items-center justify-center border border-accent/30 bg-accent/10">
+                      <User className="text-accent" />
                     </div>
 
                     <div>
@@ -247,7 +247,7 @@ export default function UsersAdmin() {
         {selectedUser && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
 
-            <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden">
+            <div className="w-full max-w-3xl overflow-hidden border border-border bg-card text-card-foreground shadow-2xl">
 
               <div className="flex justify-between items-center p-5 border-b">
                 <div>
@@ -271,21 +271,21 @@ export default function UsersAdmin() {
 
                 <div className="grid grid-cols-3 gap-3">
 
-                  <div className="bg-orange-50 rounded-xl p-3">
+                  <div className="border border-accent/20 bg-accent/10 p-3">
                     <p className="text-sm">Замовлення</p>
                     <p className="text-xl font-bold">
                       {userOrders.length}
                     </p>
                   </div>
 
-                  <div className="bg-orange-50 rounded-xl p-3">
+                  <div className="border border-accent/20 bg-accent/10 p-3">
                     <p className="text-sm">Відгуки</p>
                     <p className="text-xl font-bold">
                       {userOrders.filter(o => o.review).length}
                     </p>
                   </div>
 
-                  <div className="bg-orange-50 rounded-xl p-3">
+                  <div className="border border-accent/20 bg-accent/10 p-3">
                     <p className="text-sm">Рейтинг</p>
                     <p className="text-xl font-bold">
                       {(
@@ -333,7 +333,7 @@ export default function UsersAdmin() {
                           </p>
 
                           {o.review && (
-                            <p className="text-orange-600 mt-1">
+                            <p className="mt-1 text-accent">
                               ⭐ {o.review.rating} — {o.review.comment}
                             </p>
                           )}

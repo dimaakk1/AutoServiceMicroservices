@@ -42,7 +42,7 @@ export default function EmailConfirmed() {
       <div className="w-full max-w-md">
 
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg">
+          <div className="flex h-16 w-16 items-center justify-center bg-accent shadow-glow">
             <Wrench className="h-8 w-8 text-white" />
           </div>
         </div>
@@ -52,7 +52,7 @@ export default function EmailConfirmed() {
 
             {status === "loading" && (
               <>
-                <Loader2 className="h-10 w-10 animate-spin text-orange-500 mx-auto" />
+                <Loader2 className="mx-auto h-10 w-10 animate-spin text-accent" />
 
                 <h2 className="text-2xl font-semibold">
                   Перевірка email...
@@ -78,7 +78,7 @@ export default function EmailConfirmed() {
 
                 <Button
                   onClick={() => navigate("/auth")}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                  className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
                 >
                   Перейти до входу
                 </Button>
@@ -99,7 +99,7 @@ export default function EmailConfirmed() {
 
                 <Button
                   onClick={() => navigate("/auth")}
-                  className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+                  className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
                 >
                   Повернутись до авторизації
                 </Button>

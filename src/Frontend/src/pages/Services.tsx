@@ -11,6 +11,7 @@ import {
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
+import { PageHeader } from "../components/PageHeader";
 import api from "../api/api";
 
 type Service = {
@@ -63,24 +64,11 @@ export default function Services() {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* HEADER */}
-      <section className="relative overflow-hidden py-16 border-b border-border">
-        <div className="container">
-
-          <div className="max-w-2xl">
-          
-
-            <h1 className="text-4xl md:text-5xl font-bold">
-              Все для вашого авто
-            </h1>
-
-            <p className="text-muted-foreground mt-4">
-              Діагностика, ремонт і обслуговування з фіксованими цінами та прозорими умовами.
-            </p>
-          </div>
-
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Каталог послуг"
+        title="Все, що ваше авто може попросити"
+        description="Діагностика, ремонт і обслуговування з фіксованими цінами та прозорими умовами."
+      />
 
       {/* FILTERS */}
       <section className="py-10">
@@ -107,7 +95,7 @@ export default function Services() {
                   />
                 </div>
 
-                <Button onClick={handleSearch} className="bg-accent text-black hover:bg-accent/90">
+                <Button onClick={handleSearch} className="bg-accent text-accent-foreground hover:bg-accent/90">
                   Пошук
                 </Button>
 
@@ -165,8 +153,8 @@ export default function Services() {
                   <CardContent className="p-6 flex flex-col h-full">
 
                     {/* ICON */}
-                    <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-5 group-hover:bg-accent transition-colors">
-                      <Wrench className="h-5 w-5 text-accent group-hover:text-black" />
+                    <div className="mb-5 flex h-12 w-12 items-center justify-center border border-accent/30 bg-accent/10 transition-colors group-hover:bg-accent">
+                      <Wrench className="h-5 w-5 text-accent group-hover:text-accent-foreground" />
                     </div>
 
                     {/* TITLE */}

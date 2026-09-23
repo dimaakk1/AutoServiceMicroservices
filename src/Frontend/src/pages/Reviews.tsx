@@ -83,7 +83,7 @@ function StarRating({
                 : "h-6 w-6"
             } ${
               star <= value
-                ? "fill-orange-500 text-orange-500"
+                ? "fill-accent text-accent"
                 : "text-gray-300"
             }`}
           />
@@ -289,7 +289,7 @@ export default function Reviews() {
           <div className="flex items-center gap-3 text-muted-foreground">
 
             <div className="flex items-center gap-1">
-              <Star className="h-5 w-5 fill-orange-500 text-orange-500" />
+              <Star className="h-5 w-5 fill-accent text-accent" />
 
               <span className="font-semibold text-foreground">
                 {avgRating}
@@ -313,7 +313,7 @@ export default function Reviews() {
             }}
             className={
               mode === "all"
-                ? "bg-orange-500 hover:bg-orange-600 text-white"
+                ? "bg-accent text-accent-foreground hover:bg-accent/90"
                 : ""
             }
             variant={
@@ -332,7 +332,7 @@ export default function Reviews() {
             }}
             className={
               mode === "mine"
-                ? "bg-orange-500 hover:bg-orange-600 text-white"
+                ? "bg-accent text-accent-foreground hover:bg-accent/90"
                 : ""
             }
             variant={
@@ -353,8 +353,8 @@ export default function Reviews() {
 
               <div className="flex items-center gap-2 mb-6">
 
-                <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                  <MessageSquare className="h-5 w-5 text-orange-500" />
+                <div className="flex h-10 w-10 items-center justify-center border border-accent/30 bg-accent/10">
+                  <MessageSquare className="h-5 w-5 text-accent" />
                 </div>
 
                 <div>
@@ -446,7 +446,7 @@ export default function Reviews() {
 
                   </div>
 
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white">
+                  <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
                     Надіслати відгук
                   </Button>
 
@@ -472,8 +472,8 @@ export default function Reviews() {
 
                   <div className="flex gap-4">
 
-                    <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
-                      <User className="h-6 w-6 text-orange-500" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-accent/30 bg-accent/10">
+                      <User className="h-6 w-6 text-accent" />
                     </div>
 
                     <div>
@@ -518,7 +518,7 @@ export default function Reviews() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-orange-200 hover:bg-orange-50"
+                            className="border-accent/30 hover:bg-accent/10"
                             onClick={() =>
                               setEditReview(
                                 order.review!
@@ -633,7 +633,7 @@ export default function Reviews() {
                 </Button>
 
                 <Button
-                  className="bg-orange-500 hover:bg-orange-600 text-white"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
                   onClick={handleUpdate}
                 >
                   Зберегти

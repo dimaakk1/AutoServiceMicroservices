@@ -174,7 +174,7 @@ export default function AdminOrders() {
 
   if (loading) {
     return (
-      <div className="container py-10 text-center text-orange-500">
+      <div className="container py-10 text-center text-accent">
         Завантаження...
       </div>
     );
@@ -187,7 +187,7 @@ export default function AdminOrders() {
       <div className="flex items-center gap-4 mb-6">
         <Link
           to="/admin"
-          className="text-muted-foreground hover:text-orange-500 transition"
+          className="text-muted-foreground transition hover:text-accent"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -196,7 +196,7 @@ export default function AdminOrders() {
           Замовлення
         </h1>
 
-        <Badge className="ml-auto bg-orange-500 text-white">
+        <Badge className="ml-auto bg-accent text-accent-foreground">
           {orders.length}
         </Badge>
       </div>
@@ -347,7 +347,7 @@ export default function AdminOrders() {
       <div className="border rounded-xl overflow-hidden shadow-sm">
 
         <Table>
-          <TableHeader className="bg-orange-500">
+          <TableHeader className="bg-accent">
             <TableRow>
               <TableHead className="text-white">ID</TableHead>
               <TableHead className="text-white">Користувач</TableHead>
@@ -368,7 +368,7 @@ export default function AdminOrders() {
                 className="hover:bg-muted/40 transition"
               >
 
-                <TableCell className="font-semibold text-orange-600">
+                <TableCell className="font-semibold text-accent">
                   #{order.orderId}
                 </TableCell>
 

@@ -175,7 +175,7 @@ export default function AdminServices() {
 
         <Link
           to="/admin"
-          className="text-muted-foreground hover:text-orange-500 transition"
+          className="text-muted-foreground transition hover:text-accent"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -186,7 +186,7 @@ export default function AdminServices() {
 
         <Button
           onClick={openCreate}
-          className="ml-auto bg-orange-500 hover:bg-orange-600"
+          className="ml-auto bg-accent text-accent-foreground hover:bg-accent/90"
         >
           <Plus className="w-4 h-4 mr-1" />
           Додати
@@ -304,7 +304,7 @@ export default function AdminServices() {
             </select>
 
             <Button
-              className="w-full bg-orange-500 hover:bg-orange-600"
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
               onClick={saveService}
             >
               <Save className="h-4 w-4 mr-1" />
@@ -335,7 +335,7 @@ export default function AdminServices() {
 
             <Button
               onClick={saveCategory}
-              className="bg-orange-500 hover:bg-orange-600 w-full"
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
             >
               Зберегти
             </Button>

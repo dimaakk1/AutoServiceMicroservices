@@ -63,7 +63,7 @@ export default function AdminDashboard() {
       value: stats.orders,
       icon: ClipboardList,
       to: "/admin/orders",
-      accent: "text-orange-500",
+      accent: "text-accent",
     },
     {
       title: "Послуги",
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="container py-20 text-center text-orange-500">
+      <div className="container py-20 text-center text-accent">
         Завантаження...
       </div>
     );
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
       <div className="flex items-center gap-4 mb-8">
         <Link
           to="/"
-          className="text-muted-foreground hover:text-orange-500 transition"
+          className="text-muted-foreground transition hover:text-accent"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <Link key={c.to} to={c.to}>
-            <Card className="border hover:shadow-md hover:border-orange-300 transition cursor-pointer">
+            <Card className="cursor-pointer border transition hover:border-accent/40 hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {c.title}
@@ -143,7 +143,7 @@ export default function AdminDashboard() {
 
           <CardContent className="flex flex-wrap gap-3">
             <Link to="/admin/orders">
-              <button className="px-4 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 transition">
+              <button className="bg-accent px-4 py-2 text-accent-foreground transition hover:bg-accent/90">
                 Замовлення
               </button>
             </Link>

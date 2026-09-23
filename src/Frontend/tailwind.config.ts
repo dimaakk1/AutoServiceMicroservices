@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ["Inter", "system-ui", "sans-serif"],
-        body: ["Roboto", "system-ui", "sans-serif"],
+        display: ["Bebas Neue", "Arial Narrow", "sans-serif"],
+        body: ["Barlow", "system-ui", "sans-serif"],
+        mono: ["Barlow", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

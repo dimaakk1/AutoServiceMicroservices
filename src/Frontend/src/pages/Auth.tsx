@@ -1,106 +1,60 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import {
-  loginUser,
-  registerUser,
-} from "../api/auth";
-
+import { Car, Clock, ShieldCheck, Sparkles } from "lucide-react";
+import { toast } from "sonner";
+import { loginUser, registerUser } from "../api/auth";
 import { useAuth } from "../lib/auth-context";
-
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 
-import {
-  Card,
-  CardContent,
-} from "../components/ui/card";
-
-import {
-  LockKeyhole,
-  Mail,
-  User,
-  ShieldCheck,
-  Wrench,
-} from "lucide-react";
-
-import { toast } from "sonner";
-
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
-
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
-
   const [awaitingVerification, setAwaitingVerification] = useState(false);
-
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (loading) return;
-
     setLoading(true);
 
     try {
       if (isLogin) {
-        const res = await loginUser(username, password);
-
-        const accessToken = res.data?.accessToken;
-        const refreshToken = res.data?.refreshToken;
+        const response = await loginUser(username, password);
+        const accessToken = response.data?.accessToken;
+        const refreshToken = response.data?.refreshToken;
 
         if (!accessToken || !refreshToken) {
           toast.error("Сервер не повернув токени авторизації");
           return;
         }
 
-        login(accessToken, refreshToken);
-
+        await login(accessToken, refreshToken);
         toast.success("Вхід виконано успішно");
-
         setUsername("");
         setPassword("");
-
         navigate("/");
-      }
-
-      else {
+      } else {
         await registerUser(username, email, password);
-
-        toast.success(
-          "Реєстрація успішна! Перевір свою пошту для підтвердження акаунта"
-        );
-
+        toast.success("Реєстрація успішна! Перевірте пошту для підтвердження акаунта");
         setAwaitingVerification(true);
-
         setUsername("");
         setEmail("");
         setPassword("");
       }
-    } catch (err: any) {
-      console.error(err);
-
+    } catch (error: any) {
       const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.title ||
-        err?.response?.data?.error ||
-        (typeof err?.response?.data === "string"
-          ? err.response.data
-          : null) ||
-        (err?.response?.status === 401
-          ? "Невірний логін або пароль"
-          : null) ||
-        (err?.response?.status === 403
-          ? "Доступ заборонено. Можливо користувача заблоковано"
-          : null) ||
+        error?.response?.data?.message ||
+        error?.response?.data?.title ||
+        error?.response?.data?.error ||
+        (typeof error?.response?.data === "string" ? error.response.data : null) ||
+        (error?.response?.status === 401 ? "Невірний логін або пароль" : null) ||
+        (error?.response?.status === 403 ? "Доступ заборонено. Можливо, користувача заблоковано" : null) ||
         "Сталася помилка під час авторизації";
 
       toast.error(message);
@@ -109,168 +63,95 @@ export default function Auth() {
     }
   };
 
+  const perks = [
+    { icon: Clock, text: "Онлайн-запис на зручний час" },
+    { icon: ShieldCheck, text: "Безпечний персональний кабінет" },
+    { icon: Sparkles, text: "AI-діагностика та рекомендації" },
+  ];
+
   return (
-    <div className="min-h-screen bg-muted/30 flex items-center justify-center px-4 py-12">
-
-      <div className="w-full max-w-5xl grid lg:grid-cols-2 overflow-hidden rounded-3xl border bg-card shadow-xl">
-
-        <div className="hidden lg:flex relative bg-gradient-to-br from-orange-500 to-orange-400 text-white p-12 flex-col justify-between">
-
-          <div>
-            <div className="w-16 h-16 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur mb-8">
-              <Wrench className="h-8 w-8" />
-            </div>
-
-            <h1 className="text-5xl font-bold leading-tight mb-5">
-              AutoService
-            </h1>
-
-            <p className="text-lg text-white/90 max-w-md leading-relaxed">
-              Онлайн запис на сервіс,
-              керування замовленнями
-              та повний контроль
-              над вашим автомобілем
-            </p>
-          </div>
-
-          <div className="space-y-4">
-
-            <div className="flex items-center gap-3">
-              <ShieldCheck className="h-5 w-5" />
-              <span>Безпечна авторизація</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <User className="h-5 w-5" />
-              <span>Персональний кабінет</span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <LockKeyhole className="h-5 w-5" />
-              <span>Захист даних користувача</span>
-            </div>
-
-          </div>
+    <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-hero p-12 text-primary-foreground lg:flex">
+        <div className="absolute inset-0 bg-grid-dark opacity-30" />
+        <div className="absolute -left-20 -top-20 h-80 w-80 bg-accent/20 blur-3xl" />
+        <div className="relative flex items-center gap-3">
+          <span className="grid h-11 w-11 place-items-center bg-accent font-display text-2xl text-accent-foreground">A</span>
+          <span className="font-display text-3xl uppercase">АвтоПро</span>
         </div>
 
-        <div className="p-8 md:p-12 flex items-center">
+        <div className="relative space-y-9">
+          <div>
+            <div className="technical-label mb-4">Особистий кабінет</div>
+            <h1 className="max-w-xl text-6xl leading-[.92] text-balance">Керуйте обслуговуванням авто з одного місця.</h1>
+          </div>
+          <div className="space-y-3">
+            {perks.map((perk) => (
+              <div key={perk.text} className="flex items-center gap-3 border border-white/10 bg-white/5 p-3 text-sm text-primary-foreground/80">
+                <span className="grid h-9 w-9 place-items-center border border-white/15 bg-white/10"><perk.icon className="h-4 w-4 text-accent" /></span>
+                {perk.text}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="relative text-xs uppercase tracking-widest text-primary-foreground/40">© 2026 АвтоПро</div>
+      </div>
 
-          <div className="w-full">
+      <div className="flex items-center justify-center bg-background p-6 sm:p-12">
+        <div className="w-full max-w-md">
+          <div className="mb-8 flex w-fit border border-border bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => setIsLogin(true)}
+              className={`px-5 py-2 text-xs font-semibold uppercase transition-colors ${isLogin ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Вхід
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsLogin(false)}
+              className={`px-5 py-2 text-xs font-semibold uppercase transition-colors ${!isLogin ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Реєстрація
+            </button>
+          </div>
 
-            <div className="mb-8">
-              <h2 className="text-4xl font-bold tracking-tight mb-3">
-                {isLogin ? "Вхід" : "Реєстрація"}
-              </h2>
+          <div className="technical-label mb-3 flex items-center gap-3"><span className="h-px w-8 bg-accent" />Доступ до системи</div>
+          <h2 className="text-5xl leading-none md:text-6xl">{isLogin ? "З поверненням" : "Створимо акаунт"}</h2>
+          <p className="mb-8 mt-4 text-muted-foreground">{isLogin ? "Введіть свої дані, щоб продовжити." : "Заповніть форму — це займе менше хвилини."}</p>
 
-              <p className="text-muted-foreground text-lg">
-                {isLogin
-                  ? "Увійдіть у свій акаунт"
-                  : "Створіть новий акаунт"}
-              </p>
+          {awaitingVerification && (
+            <div className="mb-5 border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-300">
+              Ми надіслали лист для підтвердження email. Активуйте акаунт перед входом.
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-xs uppercase tracking-wider text-muted-foreground">Ім'я користувача</Label>
+              <Input id="username" value={username} onChange={(event) => setUsername(event.target.value)} required placeholder="Username" className="h-11" />
             </div>
 
-            {awaitingVerification && (
-              <div className="mb-5 p-4 rounded-xl bg-yellow-50 text-yellow-700 text-sm border border-yellow-200">
-                Ми надіслали лист для підтвердження email.
-                Перевір пошту і активуй акаунт перед входом.
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required placeholder="example@email.com" className="h-11" />
               </div>
             )}
 
-            <Card className="border-0 shadow-none">
-              <CardContent className="p-0">
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-xs uppercase tracking-wider text-muted-foreground">Пароль</Label>
+              <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required placeholder="••••••••" className="h-11" />
+            </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
+            <Button type="submit" disabled={loading} className="h-12 w-full bg-accent text-accent-foreground shadow-glow hover:bg-accent/90">
+              {loading ? "Зачекайте..." : isLogin ? "Увійти" : "Створити акаунт"}
+            </Button>
+          </form>
 
-                  <div className="space-y-2">
-                    <Label>Ім’я користувача</Label>
-
-                    <div className="relative">
-                      <User className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-
-                      <Input
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                        placeholder="Username"
-                        className="pl-10 h-11 rounded-xl"
-                      />
-                    </div>
-                  </div>
-
-                  {!isLogin && (
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-
-                        <Input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                          placeholder="example@email.com"
-                          className="pl-10 h-11 rounded-xl"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label>Пароль</Label>
-
-                    <div className="relative">
-                      <LockKeyhole className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
-
-                      <Input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        placeholder="••••••••"
-                        className="pl-10 h-11 rounded-xl"
-                      />
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full h-11 rounded-xl bg-orange-500 hover:bg-orange-600 text-white"
-                  >
-                    {loading
-                      ? "Зачекайте..."
-                      : isLogin
-                      ? "Увійти"
-                      : "Зареєструватися"}
-                  </Button>
-
-                </form>
-
-                <div className="mt-6 text-center text-sm">
-
-                  <span className="text-muted-foreground">
-                    {isLogin
-                      ? "Немає акаунта?"
-                      : "Вже маєте акаунт?"}{" "}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsLogin((prev) => !prev)}
-                    className="font-semibold text-orange-500 hover:text-orange-600 transition"
-                  >
-                    {isLogin ? "Зареєструватися" : "Увійти"}
-                  </button>
-
-                </div>
-
-              </CardContent>
-            </Card>
-
+          <div className="mt-7 flex items-center gap-3 text-xs text-muted-foreground">
+            <Car className="h-4 w-4 text-accent" /> Ваші дані використовуються лише для роботи сервісу.
           </div>
         </div>
-
       </div>
     </div>
   );

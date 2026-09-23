@@ -149,7 +149,7 @@ useEffect(() => {
 
         <Button
           onClick={() => navigate("/auth")}
-          className="bg-orange-500 hover:bg-orange-600"
+          className="bg-accent text-accent-foreground hover:bg-accent/90"
         >
           Увійти
         </Button>
@@ -222,7 +222,7 @@ const handleConfirm = async () => {
 
         {/* HEADER */}
         <div className="mb-10">
-          <Badge className="bg-orange-100 text-orange-600 border-0 mb-4">
+          <Badge className="mb-4 border-0 bg-accent/10 text-accent">
             Онлайн запис
           </Badge>
 
@@ -245,7 +245,7 @@ const handleConfirm = async () => {
                   i < step
                     ? "bg-green-500 text-white"
                     : i === step
-                    ? "bg-orange-500 text-white"
+                    ? "bg-accent text-accent-foreground"
                     : "bg-muted text-muted-foreground"
                 )}
               >
@@ -297,17 +297,17 @@ const handleConfirm = async () => {
                       );
                     }}
                     className={cn(
-                      "cursor-pointer border transition-all hover:border-orange-300 hover:shadow-md",
-                      selected && "border-orange-500 bg-orange-50"
+                      "cursor-pointer border transition-all hover:border-accent/40 hover:shadow-md",
+                      selected && "border-accent bg-accent/10"
                     )}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-                          <Wrench className="h-6 w-6 text-orange-500" />
+                        <div className="flex h-12 w-12 items-center justify-center border border-accent/30 bg-accent/10">
+                          <Wrench className="h-6 w-6 text-accent" />
                         </div>
 
-                        <Badge className="bg-orange-500 text-white border-0">
+                        <Badge className="border-0 bg-accent text-accent-foreground">
                           {s.categoryName}
                         </Badge>
                       </div>
@@ -321,7 +321,7 @@ const handleConfirm = async () => {
                           {s.price} ₴
                         </p>
 
-                        <span className="text-sm text-orange-500 font-medium">
+                        <span className="text-sm font-medium text-accent">
                           Обрати
                         </span>
                       </div>
@@ -335,7 +335,7 @@ const handleConfirm = async () => {
               <Button
                 onClick={() => setStep(1)}
                 disabled={!selectedServiceIds.length}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
               >
                 Далі
               </Button>
@@ -349,11 +349,11 @@ const handleConfirm = async () => {
 
             <div className="space-y-6">
 
-              <Card className="shadow-sm border-orange-100">
+              <Card className="border-accent/20 shadow-card">
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                      <Car className="h-5 w-5 text-orange-500" />
+                    <div className="flex h-10 w-10 items-center justify-center border border-accent/30 bg-accent/10">
+                      <Car className="h-5 w-5 text-accent" />
                     </div>
                     <div>
                       <h2 className="text-xl font-semibold">Оберіть автомобіль</h2>
@@ -393,12 +393,12 @@ const handleConfirm = async () => {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-sm border-orange-100">
+              <Card className="border-accent/20 shadow-card">
                 <CardContent className="p-6">
 
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                      <CalendarDays className="h-5 w-5 text-orange-500" />
+                    <div className="flex h-10 w-10 items-center justify-center border border-accent/30 bg-accent/10">
+                      <CalendarDays className="h-5 w-5 text-accent" />
                     </div>
 
                     <div>
@@ -425,12 +425,12 @@ const handleConfirm = async () => {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-sm border-orange-100">
+              <Card className="border-accent/20 shadow-card">
                 <CardContent className="p-6">
 
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                      <Clock3 className="h-5 w-5 text-orange-500" />
+                    <div className="flex h-10 w-10 items-center justify-center border border-accent/30 bg-accent/10">
+                      <Clock3 className="h-5 w-5 text-accent" />
                     </div>
 
                     <div>
@@ -459,8 +459,8 @@ const handleConfirm = async () => {
                             taken
                               ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200"
                               : selectedTime === t
-                              ? "bg-orange-500 text-white border-orange-500"
-                              : "hover:border-orange-300 hover:bg-orange-50"
+                              ? "border-accent bg-accent text-accent-foreground"
+                              : "hover:border-accent/40 hover:bg-accent/10"
                           )}
                         >
                           {taken ? `${t} • Зайнято` : t}
@@ -475,7 +475,7 @@ const handleConfirm = async () => {
             </div>
 
             <div>
-              <Card className="shadow-sm border-orange-100 sticky top-24">
+              <Card className="sticky top-24 border-accent/20 shadow-card">
                 <CardContent className="p-6">
 
                   <h3 className="text-xl font-bold mb-5">
@@ -499,7 +499,7 @@ const handleConfirm = async () => {
                         Категорія
                       </p>
 
-                      <Badge className="bg-orange-100 text-orange-600 border-0">
+                      <Badge className="border-0 bg-accent/10 text-accent">
                         {selectedServices.map((s) => s.categoryName).join(", ")}
                       </Badge>
                     </div>
@@ -546,7 +546,7 @@ const handleConfirm = async () => {
                   </div>
 
                   <Button
-                    className="w-full mt-6 bg-orange-500 hover:bg-orange-600"
+                    className="mt-6 w-full bg-accent text-accent-foreground hover:bg-accent/90"
                     disabled={!selectedDate || !selectedTime}
                     onClick={() => setStep(2)}
                   >
@@ -562,7 +562,7 @@ const handleConfirm = async () => {
 
         {/* STEP 3 */}
         {step === 2 && (
-          <Card className="shadow-sm border-orange-100">
+          <Card className="border-accent/20 shadow-card">
             <CardContent className="p-8">
 
               <div className="flex items-center gap-4 mb-8">
@@ -654,7 +654,7 @@ const handleConfirm = async () => {
                 </Button>
 
                 <Button
-                  className="bg-orange-500 hover:bg-orange-600"
+                  className="bg-accent text-accent-foreground hover:bg-accent/90"
                   onClick={handleConfirm}
                   disabled={submitting}
                 >
