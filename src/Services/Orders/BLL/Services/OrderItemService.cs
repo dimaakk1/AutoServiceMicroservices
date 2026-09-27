@@ -130,6 +130,10 @@ namespace AutoserviceOrders.BLL.Services
                     VehicleDisplayName = order.VehicleDisplayName,
                     VehicleVin = order.VehicleVin,
                     VehicleLicensePlate = order.VehicleLicensePlate,
+                    MechanicId = order.MechanicId,
+                    MechanicName = order.MechanicName,
+                    WorkStartedAt = order.WorkStartedAt,
+                    WorkCompletedAt = order.WorkCompletedAt,
                     Items = new List<OrderItemWithProductDto>()
                 };
 
@@ -194,6 +198,10 @@ namespace AutoserviceOrders.BLL.Services
                     order.UserId != filter.UserId)
                     continue;
 
+                if (!string.IsNullOrEmpty(filter.MechanicId) &&
+                    order.MechanicId != filter.MechanicId)
+                    continue;
+
                 var dto = new OrderWithItemsDto
                 {
                     OrderId = order.OrderId,
@@ -204,6 +212,10 @@ namespace AutoserviceOrders.BLL.Services
                     VehicleDisplayName = order.VehicleDisplayName,
                     VehicleVin = order.VehicleVin,
                     VehicleLicensePlate = order.VehicleLicensePlate,
+                    MechanicId = order.MechanicId,
+                    MechanicName = order.MechanicName,
+                    WorkStartedAt = order.WorkStartedAt,
+                    WorkCompletedAt = order.WorkCompletedAt,
                     Items = new List<OrderItemWithProductDto>()
                 };
 

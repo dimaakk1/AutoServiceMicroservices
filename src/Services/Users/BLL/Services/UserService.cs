@@ -32,8 +32,10 @@ namespace AutoServiceUsers.BLL.Services
             return new UserDto
             {
                 UserId = user.Id,
-                Username = user.UserName,
-                Email = user.Email,
+                Username = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName,
+                Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "User",
 
                 // 🔥 BLOCK STATUS
                 IsBlocked =
@@ -48,19 +50,22 @@ namespace AutoServiceUsers.BLL.Services
         public async Task<List<UserDto>> GetAllAsync()
         {
             var users = _userManager.Users.ToList();
+            var result = new List<UserDto>();
 
-            return users.Select(user => new UserDto
+            foreach (var user in users)
             {
-                UserId = user.Id,
-                Username = user.UserName,
-                Email = user.Email,
+                result.Add(new UserDto
+                {
+                    UserId = user.Id,
+                    Username = user.UserName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    FullName = user.FullName,
+                    Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "User",
+                    IsBlocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow
+                });
+            }
 
-                // 🔥 BLOCK STATUS
-                IsBlocked =
-                    user.LockoutEnd != null &&
-                    user.LockoutEnd > DateTimeOffset.UtcNow
-
-            }).ToList();
+            return result;
         }
 
         // =======================

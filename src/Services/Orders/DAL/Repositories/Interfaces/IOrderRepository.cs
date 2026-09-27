@@ -15,5 +15,9 @@ namespace AutoserviceOrders.DAL.Repositories.Interfaces
         Task<int> UpdateAsync(Order order);
         Task<int> DeleteAsync(int orderId);
         Task<List<Order>> GetByUserIdAsync(string userId);
+        Task<List<Order>> GetByMechanicIdAsync(string mechanicId);
+        Task<int> AssignMechanicAsync(int orderId, string mechanicId, string mechanicName);
+        Task<int> UpdateStatusAsync(int orderId, string status, DateTime? workStartedAt, DateTime? workCompletedAt);
+        Task<int> UpdateMechanicStatusAsync(int orderId, string mechanicId, string status, DateTime? workStartedAt, DateTime? workCompletedAt);
     }
 }

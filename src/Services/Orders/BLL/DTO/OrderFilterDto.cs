@@ -15,5 +15,6 @@ namespace AutoserviceOrders.BLL.DTO
 
         public DateTime? ToDate { get; set; }
         public string? UserName { get; set; }
+        public string? MechanicId { get; set; }
     }
 }

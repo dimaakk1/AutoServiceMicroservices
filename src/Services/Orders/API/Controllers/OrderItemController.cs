@@ -84,6 +84,22 @@ namespace AutoserviceOrders.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("mechanic-with-items")]
+        [Authorize(Roles = "Mechanic")]
+        public async Task<IActionResult> GetMechanicOrdersWithItems()
+        {
+            var mechanicId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(mechanicId))
+                return Unauthorized();
+
+            var result = await _orderItemService.GetAllOrdersWithItemsAsync(new OrderFilterDto
+            {
+                MechanicId = mechanicId
+            });
+
+            return Ok(result);
+        }
+
 
     }
 }

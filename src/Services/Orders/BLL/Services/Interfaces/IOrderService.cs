@@ -17,10 +17,11 @@ namespace AutoserviceOrders.BLL.Services.Interfaces
         Task<bool> DeleteOrderAsync(int orderId);
         Task<bool> ConfirmOrderAsync(int orderId);
         Task<IEnumerable<OrderDto>> GetMyOrdersAsync(string userId);
+        Task<IEnumerable<OrderDto>> GetMechanicOrdersAsync(string mechanicId);
+        Task<bool> AssignMechanicAsync(int orderId, string mechanicId, string mechanicName);
+        Task<bool> UpdateMechanicStatusAsync(int orderId, string mechanicId, string status);
         Task<List<string>> GetTakenSlotsAsync(DateTime date);
         Task<List<OrderDto>> GetOrdersByDateAsync(DateTime date);
-        Task<bool> UpdateStatusAsync(
-    int orderId,
-    string status);
+        Task<bool> UpdateStatusAsync(int orderId, string status);
     }
 }

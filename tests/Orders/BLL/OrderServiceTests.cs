@@ -248,6 +248,109 @@ public class OrderServiceTests
     }
 
     [Fact]
+    public async Task GetMechanicOrdersAsync_ReturnsOnlyAssignedOrders()
+    {
+        const string mechanicId = "mechanic-1";
+        var orders = new List<Order>
+        {
+            new() { OrderId = 15, MechanicId = mechanicId, Status = "Confirmed" }
+        };
+        var dtos = new List<OrderDto>
+        {
+            new() { OrderId = 15, MechanicId = mechanicId, Status = "Confirmed" }
+        };
+
+        _uow.Orders.Setup(r => r.GetByMechanicIdAsync(mechanicId)).ReturnsAsync(orders);
+        _mapper.Setup(m => m.Map<List<OrderDto>>(orders)).Returns(dtos);
+
+        var result = await _sut.GetMechanicOrdersAsync(mechanicId);
+
+        result.Should().ContainSingle().Which.MechanicId.Should().Be(mechanicId);
+    }
+
+    [Fact]
+    public async Task AssignMechanicAsync_ExistingOrder_ReturnsTrue()
+    {
+        _uow.Orders
+            .Setup(r => r.AssignMechanicAsync(10, "mechanic-2", "Олена Майстер"))
+            .ReturnsAsync(1);
+
+        var result = await _sut.AssignMechanicAsync(10, "mechanic-2", "Олена Майстер");
+
+        result.Should().BeTrue();
+        _uow.UnitOfWork.Verify(u => u.CommitAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateMechanicStatusAsync_InProgress_SetsStartTimeForAssignedMechanic()
+    {
+        _uow.Orders
+            .Setup(r => r.UpdateMechanicStatusAsync(
+                11,
+                "mechanic-3",
+                "InProgress",
+                It.Is<DateTime?>(value => value.HasValue),
+                null))
+            .ReturnsAsync(1);
+
+        var result = await _sut.UpdateMechanicStatusAsync(11, "mechanic-3", "InProgress");
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task UpdateMechanicStatusAsync_InvalidStatus_Throws()
+    {
+        var act = () => _sut.UpdateMechanicStatusAsync(11, "mechanic-3", "Cancelled");
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        _uow.UnitOfWork.Verify(u => u.BeginTransactionAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_Diagnosing_SetsStartTimeWithoutChangingOrderDate()
+    {
+        _uow.Orders
+            .Setup(r => r.UpdateStatusAsync(
+                12,
+                "Diagnosing",
+                It.Is<DateTime?>(value => value.HasValue && value.Value.Kind == DateTimeKind.Utc),
+                null))
+            .ReturnsAsync(1);
+
+        var result = await _sut.UpdateStatusAsync(12, "diagnosing");
+
+        result.Should().BeTrue();
+        _uow.Orders.Verify(r => r.UpdateAsync(It.IsAny<Order>()), Times.Never);
+        _uow.UnitOfWork.Verify(u => u.CommitAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_Completed_SetsCompletionTime()
+    {
+        _uow.Orders
+            .Setup(r => r.UpdateStatusAsync(
+                13,
+                "Completed",
+                null,
+                It.Is<DateTime?>(value => value.HasValue && value.Value.Kind == DateTimeKind.Utc)))
+            .ReturnsAsync(1);
+
+        var result = await _sut.UpdateStatusAsync(13, "Completed");
+
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task UpdateStatusAsync_InvalidStatus_ThrowsBeforeTransaction()
+    {
+        var act = () => _sut.UpdateStatusAsync(13, "Unknown");
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        _uow.UnitOfWork.Verify(u => u.BeginTransactionAsync(), Times.Never);
+    }
+
+    [Fact]
     public async Task GetTakenSlotsAsync_ReturnsDistinctNonCancelledSlots()
     {
         var date = new DateTime(2026, 6, 1);

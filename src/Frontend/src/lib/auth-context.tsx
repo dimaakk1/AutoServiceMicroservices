@@ -10,7 +10,7 @@ type User = {
 
 type AuthContextType = {
   user: User | null;
-  login: (accessToken: string, refreshToken: string) => Promise<void>;
+  login: (accessToken: string, refreshToken: string) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 };
@@ -66,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(decoded);
 
     await refreshUser();
+    return decoded;
   };
 
   const logout = () => {

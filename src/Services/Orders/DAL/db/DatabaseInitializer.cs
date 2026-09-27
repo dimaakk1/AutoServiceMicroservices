@@ -47,7 +47,11 @@ namespace AutoserviceOrders.DAL.db
             VehicleId UNIQUEIDENTIFIER NULL,
             VehicleDisplayName NVARCHAR(250) NULL,
             VehicleVin NVARCHAR(17) NULL,
-            VehicleLicensePlate NVARCHAR(20) NULL
+            VehicleLicensePlate NVARCHAR(20) NULL,
+            MechanicId NVARCHAR(450) NULL,
+            MechanicName NVARCHAR(200) NULL,
+            WorkStartedAt DATETIME2 NULL,
+            WorkCompletedAt DATETIME2 NULL
         );
 
         IF COL_LENGTH('Orders', 'VehicleId') IS NULL
@@ -58,6 +62,14 @@ namespace AutoserviceOrders.DAL.db
             ALTER TABLE Orders ADD VehicleVin NVARCHAR(17) NULL;
         IF COL_LENGTH('Orders', 'VehicleLicensePlate') IS NULL
             ALTER TABLE Orders ADD VehicleLicensePlate NVARCHAR(20) NULL;
+        IF COL_LENGTH('Orders', 'MechanicId') IS NULL
+            ALTER TABLE Orders ADD MechanicId NVARCHAR(450) NULL;
+        IF COL_LENGTH('Orders', 'MechanicName') IS NULL
+            ALTER TABLE Orders ADD MechanicName NVARCHAR(200) NULL;
+        IF COL_LENGTH('Orders', 'WorkStartedAt') IS NULL
+            ALTER TABLE Orders ADD WorkStartedAt DATETIME2 NULL;
+        IF COL_LENGTH('Orders', 'WorkCompletedAt') IS NULL
+            ALTER TABLE Orders ADD WorkCompletedAt DATETIME2 NULL;
 
         IF OBJECT_ID('OrderDetails') IS NULL
         CREATE TABLE OrderDetails (

@@ -12,6 +12,7 @@ import {
   Ban,
   CheckCircle,
   User,
+  Wrench,
   Search,
   X,
 } from "lucide-react";
@@ -22,6 +23,8 @@ type UserDto = {
   username: string;
   email: string;
   isBlocked?: boolean;
+  fullName?: string | null;
+  role: "User" | "Admin" | "Mechanic";
 };
 
 type Order = {
@@ -92,6 +95,24 @@ export default function UsersAdmin() {
       loadUsers();
     } catch {
       toast.error("Помилка");
+    }
+  };
+
+  const changeUserRole = async (user: UserDto) => {
+    const role = user.role === "Mechanic" ? "User" : "Mechanic";
+    try {
+      await api.put(`/users/${user.userId}/role`, { role });
+      setUsers((current) =>
+        current.map((item) => item.userId === user.userId ? { ...item, role } : item)
+      );
+      setSelectedUser((current) =>
+        current?.userId === user.userId ? { ...current, role } : current
+      );
+      toast.success(role === "Mechanic"
+        ? "Користувача призначено майстром. Нова роль активується після повторного входу."
+        : "Роль майстра знято. Зміна активується після повторного входу.");
+    } catch {
+      toast.error("Не вдалося змінити роль");
     }
   };
 
@@ -179,8 +200,12 @@ export default function UsersAdmin() {
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="font-semibold">
-                          {u.username}
+                          {u.fullName || u.username}
                         </p>
+
+                        <Badge variant="outline">
+                          {u.role === "Mechanic" ? "Майстер" : u.role === "Admin" ? "Адміністратор" : "Клієнт"}
+                        </Badge>
 
                         {u.isBlocked && (
                           <span className="text-xs bg-red-500 text-white px-2 py-0.5 rounded">
@@ -207,6 +232,17 @@ export default function UsersAdmin() {
                   >
                     Деталі
                   </Button>
+
+                  {u.role !== "Admin" && (
+                    <Button
+                      size="sm"
+                      variant={u.role === "Mechanic" ? "secondary" : "outline"}
+                      onClick={() => changeUserRole(u)}
+                    >
+                      <Wrench className="mr-1 h-4 w-4" />
+                      {u.role === "Mechanic" ? "Зробити клієнтом" : "Зробити майстром"}
+                    </Button>
+                  )}
 
                   {u.isBlocked ? (
                     <Button
@@ -252,10 +288,10 @@ export default function UsersAdmin() {
               <div className="flex justify-between items-center p-5 border-b">
                 <div>
                   <h2 className="text-xl font-bold">
-                    {selectedUser.username}
+                    {selectedUser.fullName || selectedUser.username}
                   </h2>
                   <p className="text-sm text-muted-foreground">
-                    {selectedUser.email}
+                    {selectedUser.email} · {selectedUser.role === "Mechanic" ? "Майстер" : selectedUser.role}
                   </p>
                 </div>
 

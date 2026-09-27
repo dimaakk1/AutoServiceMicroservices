@@ -217,6 +217,85 @@ namespace AutoserviceOrders.BLL.Services
             return _mapper.Map<List<OrderDto>>(orders);
         }
 
+        public async Task<IEnumerable<OrderDto>> GetMechanicOrdersAsync(string mechanicId)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            var orders = await _unitOfWork.Orders!.GetByMechanicIdAsync(mechanicId);
+            await _unitOfWork.CommitAsync();
+
+            return _mapper.Map<List<OrderDto>>(orders);
+        }
+
+        public async Task<bool> AssignMechanicAsync(int orderId, string mechanicId, string mechanicName)
+        {
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var affected = await _unitOfWork.Orders!.AssignMechanicAsync(
+                    orderId,
+                    mechanicId,
+                    mechanicName.Trim());
+
+                await _unitOfWork.CommitAsync();
+                await InvalidateOrderCacheAsync(orderId);
+                return affected > 0;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> UpdateMechanicStatusAsync(int orderId, string mechanicId, string status)
+        {
+            var allowedStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Confirmed",
+                "Diagnosing",
+                "AwaitingApproval",
+                "InProgress",
+                "QualityCheck",
+                "Completed"
+            };
+
+            if (!allowedStatuses.Contains(status))
+                throw new ArgumentException("Недоступний статус замовлення.", nameof(status));
+
+            var normalizedStatus = allowedStatuses.First(value =>
+                value.Equals(status, StringComparison.OrdinalIgnoreCase));
+
+            var now = DateTime.UtcNow;
+            var startedAt = normalizedStatus is "Diagnosing" or "InProgress" ? now : (DateTime?)null;
+            var completedAt = normalizedStatus == "Completed" ? now : (DateTime?)null;
+
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var affected = await _unitOfWork.Orders!.UpdateMechanicStatusAsync(
+                    orderId,
+                    mechanicId,
+                    normalizedStatus,
+                    startedAt,
+                    completedAt);
+
+                await _unitOfWork.CommitAsync();
+                await InvalidateOrderCacheAsync(orderId);
+                return affected > 0;
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+        }
+
+        private async Task InvalidateOrderCacheAsync(int orderId)
+        {
+            await _ordersCache.InvalidateAsync("orders:all");
+            await _ordersCache.InvalidateAsync($"order:{orderId}");
+        }
+
 
         public async Task<List<string>> GetTakenSlotsAsync(DateTime date)
         {
@@ -252,38 +331,42 @@ namespace AutoserviceOrders.BLL.Services
         }
 
         public async Task<bool> UpdateStatusAsync(
-    int orderId,
-    string status)
+            int orderId,
+            string status)
         {
+            var allowedStatuses = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Pending",
+                "Confirmed",
+                "Diagnosing",
+                "AwaitingApproval",
+                "InProgress",
+                "QualityCheck",
+                "Completed",
+                "Cancelled"
+            };
+
+            if (!allowedStatuses.Contains(status))
+                throw new ArgumentException("Недоступний статус замовлення.", nameof(status));
+
+            var normalizedStatus = allowedStatuses.First(value =>
+                value.Equals(status, StringComparison.OrdinalIgnoreCase));
+            var now = DateTime.UtcNow;
+            var startedAt = normalizedStatus is "Diagnosing" or "InProgress" ? now : (DateTime?)null;
+            var completedAt = normalizedStatus == "Completed" ? now : (DateTime?)null;
+
             await _unitOfWork.BeginTransactionAsync();
 
             try
             {
-                var order =
-                    await _unitOfWork.Orders.GetByIdAsync(orderId);
-
-
-                if (order == null)
-                {
-                    await _unitOfWork.RollbackAsync();
-                    return false;
-                }
-
-
-                order.Status = status;
-
-
-                await _unitOfWork.Orders.UpdateAsync(order);
-
-
+                var affected = await _unitOfWork.Orders.UpdateStatusAsync(
+                    orderId,
+                    normalizedStatus,
+                    startedAt,
+                    completedAt);
                 await _unitOfWork.CommitAsync();
-
-
-                await _ordersCache.InvalidateAsync("orders:all");
-                await _ordersCache.InvalidateAsync($"order:{orderId}");
-
-
-                return true;
+                await InvalidateOrderCacheAsync(orderId);
+                return affected > 0;
             }
             catch
             {

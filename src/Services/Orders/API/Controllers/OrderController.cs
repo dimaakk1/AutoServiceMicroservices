@@ -104,6 +104,72 @@ namespace AutoserviceOrders.API.Controllers
             return Ok(orders);
         }
 
+        [HttpGet("mechanic/my")]
+        [Authorize(Roles = "Mechanic")]
+        public async Task<IActionResult> GetMechanicOrders()
+        {
+            var mechanicId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(mechanicId))
+                return Unauthorized();
+
+            var orders = await _orderService.GetMechanicOrdersAsync(mechanicId);
+            return Ok(orders);
+        }
+
+        [HttpPut("{id}/assign-mechanic")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignMechanic(int id, [FromBody] AssignMechanicDto dto)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            var assigned = await _orderService.AssignMechanicAsync(id, dto.MechanicId, dto.MechanicName);
+            return assigned
+                ? Ok(new { message = "Майстра призначено." })
+                : NotFound();
+        }
+
+        [HttpPut("{id}/mechanic-status")]
+        [Authorize(Roles = "Mechanic")]
+        public async Task<IActionResult> UpdateMechanicStatus(int id, [FromBody] UpdateMechanicOrderStatusDto dto)
+        {
+            var mechanicId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(mechanicId))
+                return Unauthorized();
+
+            try
+            {
+                var updated = await _orderService.UpdateMechanicStatusAsync(id, mechanicId, dto.Status);
+                return updated
+                    ? Ok(new { message = "Статус роботи оновлено." })
+                    : NotFound(new { message = "Замовлення не призначене цьому майстру." });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}/status")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateMechanicOrderStatusDto dto)
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            try
+            {
+                var updated = await _orderService.UpdateStatusAsync(id, dto.Status);
+                return updated
+                    ? Ok(new { message = "Статус замовлення оновлено." })
+                    : NotFound();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPut("{id}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {
@@ -132,6 +198,7 @@ namespace AutoserviceOrders.API.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll()
         {
             var orders = await _orderService.GetAllOrdersAsync();
@@ -139,6 +206,7 @@ namespace AutoserviceOrders.API.Controllers
         }
 
         [HttpPut]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update([FromBody] OrderDto orderDto)
         {
             if (orderDto == null)

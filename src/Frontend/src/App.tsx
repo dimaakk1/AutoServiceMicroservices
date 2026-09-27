@@ -24,6 +24,7 @@ import AdminServices from "./pages/admin/AdminServices";
 import AdminReviews from "./pages/admin/AdminReviews";
 import AdminUsers from "./pages/admin/AdminUsers";
 import EmailConfirmed from "./pages/EmailConfirmed";
+import MechanicDashboard from "./pages/mechanic/MechanicDashboard";
 
 
 export default function App() {
@@ -94,6 +95,15 @@ export default function App() {
             <Route path="/my-vehicles/:id" element={<ProtectedRoute><VehicleDetails /></ProtectedRoute>} />
             <Route path="/my-vehicles/:id/edit" element={<ProtectedRoute><VehicleForm /></ProtectedRoute>} />
             <Route path="/vin-decoder" element={<VinDecoder />} />
+
+            <Route
+              path="/mechanic"
+              element={
+                <ProtectedRoute role="Mechanic">
+                  <MechanicDashboard />
+                </ProtectedRoute>
+              }
+            />
 
             {/* ADMIN */}
             <Route

@@ -34,12 +34,15 @@ namespace AutoServiceUsers.API.Controllers
             if (user == null)
                 return NotFound();
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             return Ok(new
             {
                 user.Id,
                 user.UserName,
                 user.Email,
-                user.FullName
+                user.FullName,
+                Role = roles.FirstOrDefault() ?? "User"
             });
         }
 
@@ -100,22 +103,43 @@ namespace AutoServiceUsers.API.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var users = _userManager.Users
-                .Select(u => new UserDto
+            var users = _userManager.Users.ToList();
+            var result = new List<UserDto>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                result.Add(new UserDto
                 {
-                    UserId = u.Id,
-                    Username = u.UserName,
-                    Email = u.Email,
+                    UserId = user.Id,
+                    Username = user.UserName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    FullName = user.FullName,
+                    Role = roles.FirstOrDefault() ?? "User",
+                    IsBlocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow
+                });
+            }
 
-                    IsBlocked =
-                        u.LockoutEnd != null &&
-                        u.LockoutEnd > DateTimeOffset.UtcNow
-                })
-                .ToList();
+            return Ok(result);
+        }
 
-            return Ok(users);
+        [HttpGet("mechanics")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetMechanics()
+        {
+            var mechanics = await _userManager.GetUsersInRoleAsync("Mechanic");
+
+            return Ok(mechanics.Select(user => new UserDto
+            {
+                UserId = user.Id,
+                Username = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName,
+                Role = "Mechanic",
+                IsBlocked = user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow
+            }));
         }
 
         // 🔹 GET USER BY ID
@@ -128,16 +152,58 @@ namespace AutoServiceUsers.API.Controllers
             if (user == null)
                 return NotFound();
 
+            var roles = await _userManager.GetRolesAsync(user);
+
             return Ok(new UserDto
             {
                 UserId = user.Id,
-                Username = user.UserName,
-                Email = user.Email,
+                Username = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName,
+                Role = roles.FirstOrDefault() ?? "User",
 
                 IsBlocked =
         user.LockoutEnd != null &&
         user.LockoutEnd > DateTimeOffset.UtcNow
             });
+        }
+
+        [HttpPut("{id}/role")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateRole(string id, [FromBody] UpdateUserRoleDto dto)
+        {
+            var role = dto.Role?.Trim();
+            if (role is not ("User" or "Mechanic"))
+                return BadRequest(new { message = "Доступні ролі: User або Mechanic." });
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+                return NotFound();
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Contains("Admin"))
+                return BadRequest(new { message = "Роль адміністратора не можна змінити через цей endpoint." });
+
+            if (currentRoles.Count == 1 && currentRoles[0] == role)
+                return Ok(new { message = "Роль вже встановлена.", role });
+
+            if (currentRoles.Count > 0)
+            {
+                var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                if (!removeResult.Succeeded)
+                    return BadRequest(removeResult.Errors);
+            }
+
+            var addResult = await _userManager.AddToRoleAsync(user, role);
+            if (!addResult.Succeeded)
+            {
+                if (currentRoles.Count > 0)
+                    await _userManager.AddToRolesAsync(user, currentRoles);
+
+                return BadRequest(addResult.Errors);
+            }
+
+            return Ok(new { message = "Роль користувача оновлено.", role });
         }
 
         // 🔹 DELETE USER

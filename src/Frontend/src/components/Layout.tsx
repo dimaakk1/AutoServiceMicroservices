@@ -36,6 +36,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const isAdmin = user?.role === "Admin";
+  const isMechanic = user?.role === "Mechanic";
 
   const active = (to: string) =>
     to === "/" ? location.pathname === "/" : location.pathname.startsWith(to);
@@ -66,7 +67,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 {item.label}
               </Link>
             ))}
-            {user && authNavItems.map((item) => (
+            {user && !isMechanic && authNavItems.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -82,6 +83,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             {isAdmin && (
               <Link to="/admin" className="flex items-center gap-1 border-l border-border px-4 text-[11px] font-semibold uppercase text-accent">
                 <Shield className="h-3.5 w-3.5" /> Адмін
+              </Link>
+            )}
+            {isMechanic && (
+              <Link to="/mechanic" className="flex items-center gap-1 border-l border-border px-4 text-[11px] font-semibold uppercase text-accent">
+                <Wrench className="h-3.5 w-3.5" /> Кабінет майстра
               </Link>
             )}
           </nav>
@@ -115,7 +121,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {mobileOpen && (
           <nav className="grid border-t bg-card p-3 xl:hidden">
-            {[...navItems, ...(user ? authNavItems : [])].map((item) => (
+            {[...navItems, ...(user && !isMechanic ? authNavItems : [])].map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -133,6 +139,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Shield className="h-4 w-4" /> Адмін-панель
               </Link>
             )}
+            {isMechanic && (
+              <Link to="/mechanic" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 border-l-2 border-transparent px-4 py-3 text-xs font-semibold uppercase text-accent">
+                <Wrench className="h-4 w-4" /> Кабінет майстра
+              </Link>
+            )}
             {user ? (
               <Button variant="ghost" className="mt-2 justify-start" onClick={() => { logout(); setMobileOpen(false); }}>
                 <LogOut /> Вийти
@@ -145,7 +156,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1">{children}</main>
-      {user && !isAdmin && <AiChat />}
+      {user?.role === "User" && <AiChat />}
 
       <footer className="border-t bg-card">
         <div className="container flex flex-col gap-3 py-7 text-[10px] font-semibold uppercase text-muted-foreground sm:flex-row sm:items-center sm:justify-between">

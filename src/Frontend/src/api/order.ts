@@ -46,3 +46,20 @@ export const updateOrder = (data: {
     status: data.status,
   });
 };
+
+export const getMechanicOrders = () =>
+  api.get("/Orders/OrderItem/mechanic-with-items");
+
+export const getOrderItems = (orderId: number) =>
+  api.get(`/Orders/OrderItem/order/${orderId}`);
+
+export const assignMechanic = (
+  orderId: number,
+  mechanic: { mechanicId: string; mechanicName: string }
+) => api.put(`/Orders/Order/${orderId}/assign-mechanic`, mechanic);
+
+export const updateMechanicOrderStatus = (orderId: number, status: string) =>
+  api.put(`/Orders/Order/${orderId}/mechanic-status`, { status });
+
+export const updateAdminOrderStatus = (orderId: number, status: string) =>
+  api.put(`/Orders/Order/${orderId}/status`, { status });

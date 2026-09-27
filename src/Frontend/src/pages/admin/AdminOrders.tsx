@@ -25,6 +25,7 @@ import {
 
 import { toast } from "sonner";
 import api from "../../api/api";
+import { updateAdminOrderStatus } from "../../api/order";
 
 
 type Review = {
@@ -52,6 +53,8 @@ type Order = {
   vehicleDisplayName?: string | null;
   vehicleVin?: string | null;
   vehicleLicensePlate?: string | null;
+  mechanicId?: string | null;
+  mechanicName?: string | null;
 
   paymentStatus?: string | null;
   paymentId?: number;
@@ -66,12 +69,20 @@ type Payment = {
   status: string;
 };
 
+type Mechanic = {
+  userId: string;
+  username: string;
+  fullName?: string | null;
+  isBlocked?: boolean;
+};
+
 
 export default function AdminOrders() {
   const { user } = useAuth();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mechanics, setMechanics] = useState<Mechanic[]>([]);
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
@@ -84,7 +95,10 @@ export default function AdminOrders() {
   const statuses = [
     "Pending",
     "Confirmed",
+    "Diagnosing",
+    "AwaitingApproval",
     "InProgress",
+    "QualityCheck",
     "Completed",
     "Cancelled",
   ];
@@ -94,7 +108,7 @@ export default function AdminOrders() {
   try {
     setLoading(true);
 
-    const [ordersRes, paymentsRes] = await Promise.all([
+    const [ordersRes, paymentsRes, mechanicsRes, rawOrdersRes] = await Promise.all([
       api.get("/aggregation/orders", {
         params: {
           status: filters.status || undefined,
@@ -103,17 +117,25 @@ export default function AdminOrders() {
         },
       }),
       api.get("/Orders/payments"),
+      api.get("/users/mechanics"),
+      api.get("/Orders/Order"),
     ]);
 
     const payments = paymentsRes.data;
+    setMechanics(mechanicsRes.data.filter((mechanic: Mechanic) => !mechanic.isBlocked));
 
     const ordersWithPayments = ordersRes.data.map((order: Order) => {
       const payment = payments.find(
         (p: Payment) => p.orderId === order.orderId
       );
+      const rawOrder = rawOrdersRes.data.find(
+        (item: Order) => item.orderId === order.orderId
+      );
 
       return {
         ...order,
+        mechanicId: rawOrder?.mechanicId ?? null,
+        mechanicName: rawOrder?.mechanicName ?? null,
         paymentStatus: payment?.status ?? null,
         paymentId: payment?.paymentId,
       };
@@ -134,11 +156,7 @@ export default function AdminOrders() {
 
   const updateStatus = async (orderId: number, status: string) => {
     try {
-      await api.put("/Orders/Order", {
-        orderId,
-        status,
-        orderDate: new Date().toISOString(),
-      });
+      await updateAdminOrderStatus(orderId, status);
 
       setOrders((prev) =>
         prev.map((o) =>
@@ -149,6 +167,27 @@ export default function AdminOrders() {
       toast.success("Статус оновлено");
     } catch {
       toast.error("Помилка оновлення статусу");
+    }
+  };
+
+  const assignOrderMechanic = async (orderId: number, mechanicId: string) => {
+    const mechanic = mechanics.find((item) => item.userId === mechanicId);
+    if (!mechanic) return;
+
+    const mechanicName = mechanic.fullName || mechanic.username;
+    try {
+      await api.put(`/Orders/Order/${orderId}/assign-mechanic`, {
+        mechanicId,
+        mechanicName,
+      });
+      setOrders((current) => current.map((order) =>
+        order.orderId === orderId
+          ? { ...order, mechanicId, mechanicName }
+          : order
+      ));
+      toast.success("Майстра призначено");
+    } catch {
+      toast.error("Не вдалося призначити майстра");
     }
   };
 
@@ -336,6 +375,22 @@ export default function AdminOrders() {
               </SelectContent>
             </Select>
 
+            <Select
+              value={o.mechanicId || undefined}
+              onValueChange={(value) => assignOrderMechanic(o.orderId, value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Призначити майстра" />
+              </SelectTrigger>
+              <SelectContent>
+                {mechanics.map((mechanic) => (
+                  <SelectItem key={mechanic.userId} value={mechanic.userId}>
+                    {mechanic.fullName || mechanic.username}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
           </div>
         </div>
       ))}
@@ -358,6 +413,7 @@ export default function AdminOrders() {
 <TableHead className="text-white">Оплата</TableHead>
 <TableHead className="text-white">Відгук</TableHead>
 <TableHead className="text-white">Статус</TableHead>
+<TableHead className="text-white">Майстер</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -456,6 +512,24 @@ export default function AdminOrders() {
                       {statuses.map((s) => (
                         <SelectItem key={s} value={s}>
                           {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </TableCell>
+
+                <TableCell>
+                  <Select
+                    value={order.mechanicId || undefined}
+                    onValueChange={(value) => assignOrderMechanic(order.orderId, value)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Не призначено" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mechanics.map((mechanic) => (
+                        <SelectItem key={mechanic.userId} value={mechanic.userId}>
+                          {mechanic.fullName || mechanic.username}
                         </SelectItem>
                       ))}
                     </SelectContent>

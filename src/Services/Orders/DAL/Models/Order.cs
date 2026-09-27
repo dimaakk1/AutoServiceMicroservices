@@ -16,5 +16,9 @@ namespace AutoserviceOrders.DAL.Models
         public string? VehicleDisplayName { get; set; }
         public string? VehicleVin { get; set; }
         public string? VehicleLicensePlate { get; set; }
+        public string? MechanicId { get; set; }
+        public string? MechanicName { get; set; }
+        public DateTime? WorkStartedAt { get; set; }
+        public DateTime? WorkCompletedAt { get; set; }
     }
 }

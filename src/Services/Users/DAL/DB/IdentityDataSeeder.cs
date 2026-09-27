@@ -21,7 +21,7 @@ namespace AutoServiceUsers.DAL.DB
             var config = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
             // ---- Roles ----
-            string[] roles = { "User", "Admin" };
+            string[] roles = { "User", "Admin", "Mechanic" };
 
             foreach (var role in roles)
             {

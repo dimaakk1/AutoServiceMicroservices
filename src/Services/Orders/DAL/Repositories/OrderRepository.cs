@@ -123,9 +123,88 @@ SELECT SCOPE_IDENTITY();";
             return orders;
         }
 
+        public async Task<List<Order>> GetByMechanicIdAsync(string mechanicId)
+        {
+            const string sql = "SELECT * FROM Orders WHERE MechanicId = @MechanicId ORDER BY OrderDate";
+            var orders = new List<Order>();
+
+            await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
+            cmd.Parameters.AddWithValue("@MechanicId", mechanicId);
+
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                orders.Add(ReadOrder(reader));
+
+            return orders;
+        }
+
+        public async Task<int> AssignMechanicAsync(int orderId, string mechanicId, string mechanicName)
+        {
+            const string sql = @"
+                UPDATE Orders
+                SET MechanicId = @MechanicId,
+                    MechanicName = @MechanicName
+                WHERE OrderId = @OrderId";
+
+            await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
+            cmd.Parameters.AddWithValue("@MechanicId", mechanicId);
+            cmd.Parameters.AddWithValue("@MechanicName", mechanicName);
+            cmd.Parameters.AddWithValue("@OrderId", orderId);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> UpdateStatusAsync(
+            int orderId,
+            string status,
+            DateTime? workStartedAt,
+            DateTime? workCompletedAt)
+        {
+            const string sql = @"
+                UPDATE Orders
+                SET Status = @Status,
+                    WorkStartedAt = COALESCE(@WorkStartedAt, WorkStartedAt),
+                    WorkCompletedAt = COALESCE(@WorkCompletedAt, WorkCompletedAt)
+                WHERE OrderId = @OrderId";
+
+            await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
+            cmd.Parameters.AddWithValue("@Status", status);
+            cmd.Parameters.AddWithValue("@WorkStartedAt", (object?)workStartedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@WorkCompletedAt", (object?)workCompletedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@OrderId", orderId);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<int> UpdateMechanicStatusAsync(
+            int orderId,
+            string mechanicId,
+            string status,
+            DateTime? workStartedAt,
+            DateTime? workCompletedAt)
+        {
+            const string sql = @"
+                UPDATE Orders
+                SET Status = @Status,
+                    WorkStartedAt = COALESCE(@WorkStartedAt, WorkStartedAt),
+                    WorkCompletedAt = COALESCE(@WorkCompletedAt, WorkCompletedAt)
+                WHERE OrderId = @OrderId AND MechanicId = @MechanicId";
+
+            await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
+            cmd.Parameters.AddWithValue("@Status", status);
+            cmd.Parameters.AddWithValue("@WorkStartedAt", (object?)workStartedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@WorkCompletedAt", (object?)workCompletedAt ?? DBNull.Value);
+            cmd.Parameters.AddWithValue("@OrderId", orderId);
+            cmd.Parameters.AddWithValue("@MechanicId", mechanicId);
+
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
         private static Order ReadOrder(SqlDataReader reader)
         {
             var vehicleIdOrdinal = reader.GetOrdinal("VehicleId");
+            var workStartedAtOrdinal = reader.GetOrdinal("WorkStartedAt");
+            var workCompletedAtOrdinal = reader.GetOrdinal("WorkCompletedAt");
             return new Order
             {
                 OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
@@ -135,7 +214,11 @@ SELECT SCOPE_IDENTITY();";
                 VehicleId = reader.IsDBNull(vehicleIdOrdinal) ? null : reader.GetGuid(vehicleIdOrdinal),
                 VehicleDisplayName = reader["VehicleDisplayName"] as string,
                 VehicleVin = reader["VehicleVin"] as string,
-                VehicleLicensePlate = reader["VehicleLicensePlate"] as string
+                VehicleLicensePlate = reader["VehicleLicensePlate"] as string,
+                MechanicId = reader["MechanicId"] as string,
+                MechanicName = reader["MechanicName"] as string,
+                WorkStartedAt = reader.IsDBNull(workStartedAtOrdinal) ? null : reader.GetDateTime(workStartedAtOrdinal),
+                WorkCompletedAt = reader.IsDBNull(workCompletedAtOrdinal) ? null : reader.GetDateTime(workCompletedAtOrdinal)
             };
         }
     }

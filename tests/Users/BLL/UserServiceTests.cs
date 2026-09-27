@@ -15,6 +15,9 @@ public class UserServiceTests
 
     public UserServiceTests()
     {
+        _userManager
+            .Setup(m => m.GetRolesAsync(It.IsAny<ApplicationUser>()))
+            .ReturnsAsync(new List<string> { "User" });
         _sut = new UserBLL(_userManager.Object);
     }
 
@@ -37,6 +40,7 @@ public class UserServiceTests
         result.UserId.Should().Be(userId);
         result.Username.Should().Be("testuser");
         result.Email.Should().Be("test@example.com");
+        result.Role.Should().Be("User");
         result.IsBlocked.Should().BeFalse();
     }
 

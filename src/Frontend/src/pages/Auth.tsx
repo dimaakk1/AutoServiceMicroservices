@@ -34,11 +34,11 @@ export default function Auth() {
           return;
         }
 
-        await login(accessToken, refreshToken);
+        const loggedInUser = await login(accessToken, refreshToken);
         toast.success("Вхід виконано успішно");
         setUsername("");
         setPassword("");
-        navigate("/");
+        navigate(loggedInUser.role === "Mechanic" ? "/mechanic" : loggedInUser.role === "Admin" ? "/admin" : "/");
       } else {
         await registerUser(username, email, password);
         toast.success("Реєстрація успішна! Перевірте пошту для підтвердження акаунта");
