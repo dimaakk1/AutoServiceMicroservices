@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 import {
   getProfile,
@@ -27,6 +28,7 @@ import {
 } from "lucide-react";
 
 import { toast } from "sonner";
+import { PageHeader } from "../components/PageHeader";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -54,7 +56,7 @@ export default function Profile() {
         setEmail(res.data.email || "");
         setUsername(res.data.userName || "");
         setFullName(res.data.fullName || "");
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
 
         toast.error(
@@ -84,11 +86,11 @@ export default function Profile() {
       });
 
       toast.success("Профіль оновлено");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
 
       const message =
-        err.response?.data?.message ||
+        (axios.isAxiosError(err) && typeof err.response?.data?.message === "string" && err.response.data.message) ||
         "Помилка оновлення профілю";
 
       toast.error(message);
@@ -114,11 +116,11 @@ export default function Profile() {
 
       setCurrentPassword("");
       setNewPassword("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
 
       const message =
-        err.response?.data?.message ||
+        (axios.isAxiosError(err) && typeof err.response?.data?.message === "string" && err.response.data.message) ||
         "Помилка зміни пароля";
 
       toast.error(message);
@@ -138,25 +140,20 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="container max-w-5xl py-12">
-
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold tracking-tight mb-2">
-            Мій профіль
-          </h1>
-
-          <p className="text-muted-foreground text-lg">
-            Керуйте особистими даними та безпекою акаунта
-          </p>
-        </div>
+    <div className="min-h-screen bg-muted/20">
+      <PageHeader
+        eyebrow="Особистий кабінет"
+        title="Мій профіль"
+        description="Особисті дані, контактна інформація та налаштування безпеки вашого акаунта."
+      />
+      <div className="container max-w-5xl py-10 md:py-14">
 
         <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
 
           <div className="space-y-8">
 
-            <Card className="rounded-2xl border shadow-sm">
-              <CardHeader className="border-b bg-muted/30 rounded-t-2xl">
+            <Card className="border border-border shadow-card">
+              <CardHeader className="border-b bg-muted/30">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center border border-accent/30 bg-accent/10">
                     <User className="h-5 w-5 text-accent" />
@@ -247,8 +244,8 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl border shadow-sm">
-              <CardHeader className="border-b bg-muted/30 rounded-t-2xl">
+            <Card className="border border-border shadow-card">
+              <CardHeader className="border-b bg-muted/30">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center border border-accent/30 bg-accent/10">
                     <LockKeyhole className="h-5 w-5 text-accent" />
@@ -324,7 +321,7 @@ export default function Profile() {
 
           <div className="space-y-6">
 
-            <Card className="rounded-2xl border shadow-sm overflow-hidden">
+            <Card className="overflow-hidden border border-border shadow-card">
               <div className="h-24 bg-gradient-accent" />
 
               <CardContent className="relative pt-0 pb-6">
@@ -342,7 +339,7 @@ export default function Profile() {
                 </p>
 
                 {fullName && (
-                  <div className="mt-5 rounded-xl bg-muted/50 p-4">
+                  <div className="mt-5 border border-border bg-muted/50 p-4">
                     <p className="text-sm text-muted-foreground mb-1">
                       Повне ім’я
                     </p>
@@ -355,7 +352,7 @@ export default function Profile() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-2xl border shadow-sm">
+            <Card className="border border-border shadow-card">
               <CardContent className="p-6">
                 <h3 className="font-semibold text-lg mb-4">
                   Інформація
@@ -370,7 +367,7 @@ export default function Profile() {
                       Статус акаунта
                     </span>
 
-                    <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                    <span className="border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
                       Активний
                     </span>
                   </div>

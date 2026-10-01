@@ -6,6 +6,7 @@ import type { Vehicle } from "../api/vehicle";
 import { Button } from "../components/ui/button";
 import DeleteVehicleDialog from "../components/DeleteVehicleDialog";
 import VehicleLoadState from "../components/VehicleLoadState";
+import { PageHeader } from "../components/PageHeader";
 
 export default function MyVehicles() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -23,24 +24,23 @@ export default function MyVehicles() {
   }, [attempt]);
 
   return (
-    <div className="min-h-[70vh] bg-muted/30">
-      <div className="container max-w-5xl py-8 sm:py-12">
-        <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="mb-2 text-sm font-medium text-accent">Особистий гараж</p>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Мої автомобілі</h1>
-            <p className="mt-3 text-muted-foreground">Зберігайте дані своїх авто та оновлюйте їх у зручний момент.</p>
-          </div>
-          <Button asChild variant="accent" className="rounded-xl self-start shrink-0">
+    <div className="min-h-[70vh] bg-muted/20">
+      <PageHeader
+        eyebrow="Особистий гараж"
+        title="Мої автомобілі"
+        description="Зберігайте VIN, характеристики й актуальний пробіг та обирайте автомобіль під час запису."
+      >
+          <Button asChild variant="accent" className="shrink-0">
             <Link to="/my-vehicles/new"><Plus /> Додати автомобіль</Link>
           </Button>
-        </div>
+      </PageHeader>
+      <div className="container max-w-5xl py-10 md:py-14">
 
         {loading || error ? (
           <VehicleLoadState loading={loading} error={error} onRetry={() => { setLoading(true); setError(null); setAttempt((n) => n + 1); }} />
         ) : vehicles.length === 0 ? (
-          <div className="rounded-2xl border bg-card px-6 py-16 text-center shadow-sm">
-            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-accent"><Car className="h-8 w-8" /></div>
+          <div className="border border-border bg-card px-6 py-16 text-center shadow-card">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center border border-accent/30 bg-accent/10 text-accent"><Car className="h-8 w-8" /></div>
             <h2 className="mb-3 text-2xl font-semibold">Ваш гараж поки порожній</h2>
             <p className="mx-auto mb-7 max-w-md text-muted-foreground">Додайте перше авто: вкажіть VIN, марку, модель і рік. Пробіг та інші деталі можна доповнити пізніше.</p>
             <Button asChild variant="accent"><Link to="/my-vehicles/new"><Plus /> Додати перше авто</Link></Button>
@@ -50,9 +50,9 @@ export default function MyVehicles() {
             <p className="mb-4 text-sm text-muted-foreground">Автомобілів у списку: {vehicles.length}</p>
             <div className="grid gap-5 md:grid-cols-2">
               {vehicles.map((vehicle) => (
-                <article key={vehicle.id} className="flex min-w-0 flex-col rounded-2xl border bg-card shadow-sm">
+                <article key={vehicle.id} className="flex min-w-0 flex-col border border-border bg-card shadow-card transition-colors hover:border-accent/40">
                   <div className="flex items-start gap-4 border-b p-6">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent"><Car className="h-6 w-6" /></div>
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center border border-accent/30 bg-accent/10 text-accent"><Car className="h-6 w-6" /></div>
                     <div className="min-w-0">
                       <h2 className="break-words text-xl font-semibold"><Link className="hover:text-accent" to={`/my-vehicles/${vehicle.id}`}>{vehicle.make} {vehicle.model}</Link></h2>
                       <p className="mt-1 text-sm text-muted-foreground">{vehicle.year} рік{vehicle.color ? ` · ${vehicle.color}` : ""}</p>

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import heroImage from "../assets/hero-workshop.jpg";
+import { DriftScrollSection } from "./DriftDemo";
 
 const facts = [
   { value: "12+", label: "років досвіду" },
@@ -40,6 +41,8 @@ export default function Index() {
 
   return (
     <div>
+      <DriftScrollSection />
+
       <section className="border-b border-border bg-card">
         <div className="container grid border-x border-border p-0 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,.6fr)]">
           <div className="relative flex min-h-[590px] flex-col justify-end overflow-hidden border-b border-border lg:border-b-0 lg:border-r">

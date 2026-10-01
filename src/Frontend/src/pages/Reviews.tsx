@@ -28,6 +28,7 @@ import {
 
 import { toast } from "sonner";
 import api from "../api/api";
+import { PageHeader } from "../components/PageHeader";
 
 
 type Review = {
@@ -277,32 +278,21 @@ export default function Reviews() {
 
   return (
     <div className="min-h-screen bg-muted/20">
-
-      <div className="container py-12 max-w-6xl">
-
-        <div className="mb-10">
-
-          <h1 className="text-4xl font-bold mb-3">
-            Відгуки клієнтів
-          </h1>
-
-          <div className="flex items-center gap-3 text-muted-foreground">
-
-            <div className="flex items-center gap-1">
-              <Star className="h-5 w-5 fill-accent text-accent" />
-
-              <span className="font-semibold text-foreground">
-                {avgRating}
-              </span>
-            </div>
-
-            <span>
-              ({reviews.length} відгуків)
-            </span>
-
+      <PageHeader
+        eyebrow="Досвід клієнтів"
+        title="Відгуки про сервіс"
+        description="Реальні оцінки завершених робіт, враження клієнтів і відповіді нашої команди."
+      >
+        <div className="flex items-center gap-3 border border-accent/30 bg-accent/10 px-5 py-3">
+          <Star className="h-5 w-5 fill-accent text-accent" />
+          <div>
+            <div className="font-display text-2xl leading-none text-foreground">{avgRating}</div>
+            <div className="technical-label mt-1 text-muted-foreground">{reviews.length} відгуків</div>
           </div>
-
         </div>
+      </PageHeader>
+
+      <div className="container max-w-6xl py-10 md:py-14">
 
         <div className="flex gap-3 mb-8">
 
@@ -347,7 +337,7 @@ export default function Reviews() {
         </div>
 
         {user && (
-          <Card className="mb-10 shadow-sm border-0">
+          <Card className="mb-10 border border-border bg-card shadow-card">
 
             <CardContent className="p-6">
 
@@ -463,7 +453,7 @@ export default function Reviews() {
           {reviews.map((order) => (
             <Card
               key={order.orderId}
-              className="shadow-sm border-0 hover:shadow-md transition"
+              className="border border-border bg-card shadow-card transition-colors hover:border-accent/40"
             >
 
               <CardContent className="p-6">
@@ -571,7 +561,7 @@ export default function Reviews() {
         {editReview && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
 
-            <div className="bg-background rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-5">
+            <div className="w-full max-w-md space-y-5 border border-border bg-background p-6 shadow-elevated">
 
               <div>
                 <h2 className="text-2xl font-bold mb-1">

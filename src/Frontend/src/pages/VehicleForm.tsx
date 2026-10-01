@@ -9,6 +9,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import VehicleLoadState from "../components/VehicleLoadState";
+import { PageHeader } from "../components/PageHeader";
 
 const emptyForm = { vin: "", make: "", model: "", year: "", mileageKm: "", licensePlate: "", color: "" };
 type Field = keyof typeof emptyForm;
@@ -135,14 +136,18 @@ function Editor({ id }: { id?: string }) {
   };
 
   return (
-    <div className="min-h-[70vh] bg-muted/30">
-      <div className="container max-w-4xl py-8 sm:py-12">
-        <Link to={backTo} className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> {id ? "До автомобіля" : "Мої автомобілі"}</Link>
-        <h1 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">{id ? "Редагування автомобіля" : "Новий автомобіль"}</h1>
-        <p className="mb-8 text-muted-foreground">{id ? "Оновіть характеристики або поточний пробіг вашого авто." : "Заповніть основні дані, щоб зберегти авто у своєму гаражі."}</p>
+    <div className="min-h-[70vh] bg-muted/20">
+      <PageHeader
+        eyebrow="Особистий гараж"
+        title={id ? "Редагування автомобіля" : "Новий автомобіль"}
+        description={id ? "Оновіть характеристики або поточний пробіг вашого авто." : "Заповніть основні дані, щоб зберегти авто у своєму гаражі."}
+      >
+        <Button asChild variant="outline"><Link to={backTo}><ArrowLeft /> {id ? "До автомобіля" : "Мої автомобілі"}</Link></Button>
+      </PageHeader>
+      <div className="container max-w-4xl py-10 md:py-14">
 
         {loading || loadError ? <VehicleLoadState loading={loading} error={loadError} onRetry={() => { setLoading(true); setLoadError(null); setAttempt((n) => n + 1); }} /> : (
-          <form noValidate onSubmit={submit} className="rounded-2xl border bg-card shadow-sm" aria-busy={saving}>
+          <form noValidate onSubmit={submit} className="border border-border bg-card shadow-card" aria-busy={saving}>
             <fieldset disabled={saving} className="space-y-6 p-6 sm:p-8">
               <legend className="sr-only">Дані автомобіля</legend>
               <p className="text-sm text-muted-foreground">Поля із * обов’язкові.</p>
@@ -159,7 +164,7 @@ function Editor({ id }: { id?: string }) {
                 <p id="vehicle-vin-help" className="text-xs text-muted-foreground">17 символів. VIN можна знайти у свідоцтві про реєстрацію авто.</p>
                 <p id="vehicle-vin-error" className="text-sm text-destructive" aria-live="polite">{errors.vin}</p>
                 {decodeError && <p role="alert" className="rounded-lg bg-destructive/5 p-3 text-sm text-destructive">{decodeError}</p>}
-                {decoded && <p className="flex items-center gap-2 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700"><CheckCircle2 className="h-4 w-4 shrink-0" /> Отримані дані заповнено. Перевірте їх перед збереженням.</p>}
+                {decoded && <p className="flex items-center gap-2 border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-400"><CheckCircle2 className="h-4 w-4 shrink-0" /> Отримані дані заповнено. Перевірте їх перед збереженням.</p>}
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 {fields.map((field) => (
@@ -176,9 +181,9 @@ function Editor({ id }: { id?: string }) {
                   </div>
                 ))}
               </div>
-              <div className="flex items-start gap-3 rounded-xl bg-muted/50 p-4 text-sm text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><p>Дані заповнюються з бази NHTSA і можуть бути неповними для деяких авто. Звірте результат із документами — усі поля можна виправити вручну.</p></div>
+              <div className="flex items-start gap-3 border border-border bg-muted/50 p-4 text-sm text-muted-foreground"><Info className="mt-0.5 h-4 w-4 shrink-0" /><p>Дані заповнюються з бази NHTSA і можуть бути неповними для деяких авто. Звірте результат із документами — усі поля можна виправити вручну.</p></div>
             </fieldset>
-            {error && <p role="alert" className="mx-6 mb-6 rounded-xl border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive sm:mx-8">{error}</p>}
+            {error && <p role="alert" className="mx-6 mb-6 border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive sm:mx-8">{error}</p>}
             <div className="flex flex-wrap gap-3 border-t p-6 sm:px-8">
               <Button type="submit" variant="accent" disabled={saving || decoding}>{saving ? <Loader2 className="animate-spin" /> : <Save />}{saving ? "Збереження…" : "Зберегти автомобіль"}</Button>
               <Button type="button" variant="outline" disabled={saving} onClick={() => navigate(backTo)}>Скасувати</Button>

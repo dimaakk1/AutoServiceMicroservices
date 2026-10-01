@@ -16,6 +16,7 @@ import {
 import { toast } from "sonner";
 
 import { getOrdersWithItems, updateOrder } from "../api/order";
+import { PageHeader } from "../components/PageHeader";
 
 type BookingItem = {
   orderItemId: number;
@@ -123,7 +124,7 @@ export default function MyBookings() {
         return {
           label: "Очікує",
           className:
-            "bg-yellow-100 text-yellow-700 border-yellow-200",
+            "border-amber-500/30 bg-amber-500/10 text-amber-400",
           icon: Clock3,
         };
 
@@ -131,7 +132,7 @@ export default function MyBookings() {
         return {
           label: "Підтверджено",
           className:
-            "bg-blue-100 text-blue-700 border-blue-200",
+            "border-blue-500/30 bg-blue-500/10 text-blue-400",
           icon: CheckCircle2,
         };
 
@@ -139,7 +140,7 @@ export default function MyBookings() {
         return {
           label: "Завершено",
           className:
-            "bg-green-100 text-green-700 border-green-200",
+            "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
           icon: CheckCircle2,
         };
 
@@ -147,7 +148,7 @@ export default function MyBookings() {
         return {
           label: "Скасовано",
           className:
-            "bg-red-100 text-red-700 border-red-200",
+            "border-red-500/30 bg-red-500/10 text-red-400",
           icon: AlertCircle,
         };
 
@@ -155,7 +156,7 @@ export default function MyBookings() {
         return {
           label: status,
           className:
-            "bg-gray-100 text-gray-700 border-gray-200",
+            "border-border bg-muted/60 text-muted-foreground",
           icon: Clock3,
         };
     }
@@ -164,7 +165,7 @@ export default function MyBookings() {
   if (!user) {
     return (
       <div className="container py-24 text-center">
-        <div className="max-w-md mx-auto border rounded-2xl p-10 shadow-sm bg-card">
+        <div className="mx-auto max-w-md border border-border bg-card p-10 shadow-card">
           <h2 className="text-3xl font-bold mb-4">
             Потрібен вхід
           </h2>
@@ -195,31 +196,23 @@ export default function MyBookings() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="container py-12 max-w-5xl">
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-10">
-
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight mb-2">
-              Мої записи
-            </h1>
-
-            <p className="text-muted-foreground text-lg">
-              Переглядайте статус ваших замовлень та керуйте ними
-            </p>
-          </div>
-
+    <div className="min-h-screen bg-muted/20">
+      <PageHeader
+        eyebrow="Особистий кабінет"
+        title="Мої записи"
+        description="Статуси замовлень, вибрані послуги, оплата та керування візитами в одному місці."
+      >
           <Button
             onClick={() => navigate("/booking")}
-            className="bg-accent px-6 text-accent-foreground hover:bg-accent/90"
+            className="px-6"
           >
             Новий запис
           </Button>
-        </div>
+      </PageHeader>
+      <div className="container max-w-5xl py-10 md:py-14">
 
         {orders.length === 0 ? (
-          <div className="border rounded-2xl bg-card p-14 text-center shadow-sm">
+          <div className="border border-border bg-card p-14 text-center shadow-card">
 
             <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center border border-accent/30 bg-accent/10">
               <CalendarDays className="h-8 w-8 text-accent" />
@@ -260,7 +253,7 @@ export default function MyBookings() {
                 return (
                   <div
                     key={order.orderId}
-                    className="rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all"
+                    className="border border-border bg-card shadow-card transition-colors hover:border-accent/40"
                   >
                     {/* TOP */}
                     <div className="p-6 border-b">
@@ -302,7 +295,7 @@ export default function MyBookings() {
 
                     <div className="p-6">
 
-                      <div className="mb-5 flex items-start gap-3 rounded-xl border bg-muted/30 p-4">
+                      <div className="mb-5 flex items-start gap-3 border border-border bg-muted/30 p-4">
                         <Car className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
                         <div>
                           <p className="text-xs uppercase tracking-wider text-muted-foreground">Автомобіль</p>
@@ -315,7 +308,7 @@ export default function MyBookings() {
                         {order.items?.map((item: BookingItem) => (
                           <div
                             key={item.orderItemId}
-                            className="flex items-center justify-between rounded-xl border p-4 bg-muted/30"
+                            className="flex items-center justify-between border border-border bg-muted/30 p-4"
                           >
                             <div>
                               <p className="font-semibold">
@@ -352,7 +345,7 @@ export default function MyBookings() {
   {order.status === "Pending" && (
     <Button
       onClick={() => handlePayment(order)}
-      className="bg-green-600 hover:bg-green-700 text-white rounded-xl"
+      className="bg-green-600 text-white hover:bg-green-700"
     >
       Оплатити
     </Button>
@@ -363,7 +356,7 @@ export default function MyBookings() {
     <Button
       variant="outline"
       onClick={() => handleCancel(order.orderId)}
-      className="border-red-200 text-red-600 hover:bg-red-50 rounded-xl"
+      className="border-red-500/30 text-red-400 hover:bg-red-500/10"
     >
       <XCircle className="h-4 w-4 mr-2" />
       Скасувати запис

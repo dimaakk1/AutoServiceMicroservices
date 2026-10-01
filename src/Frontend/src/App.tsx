@@ -25,6 +25,7 @@ import AdminReviews from "./pages/admin/AdminReviews";
 import AdminUsers from "./pages/admin/AdminUsers";
 import EmailConfirmed from "./pages/EmailConfirmed";
 import MechanicDashboard from "./pages/mechanic/MechanicDashboard";
+import DriftDemo from "./pages/DriftDemo";
 
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
 
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/drift-demo" element={<DriftDemo />} />
 
             <Route
               path="/services"

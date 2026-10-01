@@ -30,6 +30,7 @@ import {
 
 import { toast } from "sonner";
 import { cn } from "../lib/utils";
+import { PageHeader } from "../components/PageHeader";
 
 /* ================= TYPES ================= */
 
@@ -217,23 +218,13 @@ const handleConfirm = async () => {
 
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <div className="container py-12 max-w-5xl">
-
-        {/* HEADER */}
-        <div className="mb-10">
-          <Badge className="mb-4 border-0 bg-accent/10 text-accent">
-            Онлайн запис
-          </Badge>
-
-          <h1 className="text-4xl font-bold mb-3">
-            Запис на сервіс
-          </h1>
-
-          <p className="text-muted-foreground max-w-2xl">
-            Оберіть послугу, дату та час для запису вашого автомобіля.
-          </p>
-        </div>
+    <div className="min-h-screen bg-muted/20">
+      <PageHeader
+        eyebrow="Онлайн-запис"
+        title="Запис на сервіс"
+        description="Оберіть послугу, автомобіль, дату та зручний час — система покаже лише доступні слоти."
+      />
+      <div className="container max-w-5xl py-10 md:py-14">
 
         <div className="flex items-center gap-3 mb-10 flex-wrap">
           {steps.map((s, i) => (
@@ -241,7 +232,7 @@ const handleConfirm = async () => {
 
               <div
                 className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition",
+                  "flex h-10 w-10 items-center justify-center border text-sm font-bold transition",
                   i < step
                     ? "bg-green-500 text-white"
                     : i === step
@@ -364,7 +355,7 @@ const handleConfirm = async () => {
                   {vehiclesLoading ? (
                     <p className="text-sm text-muted-foreground">Завантаження автомобілів…</p>
                   ) : vehiclesError ? (
-                    <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+                    <div className="border border-destructive/20 bg-destructive/5 p-4">
                       <p className="text-sm text-destructive">{vehiclesError}</p>
                       <p className="mt-2 text-xs text-muted-foreground">Ви все одно можете продовжити запис без автомобіля.</p>
                     </div>
@@ -567,7 +558,7 @@ const handleConfirm = async () => {
 
               <div className="flex items-center gap-4 mb-8">
 
-                <div className="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center">
+                <div className="flex h-14 w-14 items-center justify-center border border-emerald-500/30 bg-emerald-500/10">
                   <Check className="h-7 w-7 text-green-600" />
                 </div>
 
@@ -585,7 +576,7 @@ const handleConfirm = async () => {
 
               <div className="grid md:grid-cols-2 gap-5 mb-8">
 
-                <div className="rounded-xl bg-muted/40 p-5">
+                <div className="border border-border bg-muted/40 p-5">
                   <p className="text-sm text-muted-foreground mb-2">
                     Послуга
                   </p>
@@ -595,7 +586,7 @@ const handleConfirm = async () => {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-muted/40 p-5">
+                <div className="border border-border bg-muted/40 p-5">
                   <p className="text-sm text-muted-foreground mb-2">
                     Категорія
                   </p>
@@ -605,14 +596,14 @@ const handleConfirm = async () => {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-muted/40 p-5">
+                <div className="border border-border bg-muted/40 p-5">
                   <p className="text-sm text-muted-foreground mb-2">Автомобіль</p>
                   <p className="font-semibold">
                     {selectedVehicle ? `${selectedVehicle.make} ${selectedVehicle.model}${selectedVehicle.licensePlate ? ` · ${selectedVehicle.licensePlate}` : ""}` : "Без автомобіля"}
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-muted/40 p-5">
+                <div className="border border-border bg-muted/40 p-5">
                   <p className="text-sm text-muted-foreground mb-2">
                     Дата
                   </p>
@@ -622,7 +613,7 @@ const handleConfirm = async () => {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-muted/40 p-5">
+                <div className="border border-border bg-muted/40 p-5">
                   <p className="text-sm text-muted-foreground mb-2">
                     Час
                   </p>
