@@ -89,58 +89,71 @@ namespace AggregatorService.Services
         // ======================================================
         public async Task<List<OrderWithReviewDto>> GetAllOrdersWithReviewAsync(OrderAggregationFilterRequest filter)
         {
+            var to = filter.ToDate;
+            if (to.HasValue && to.Value.TimeOfDay == TimeSpan.Zero && to.Value.Date < DateTime.MaxValue.Date)
+                to = to.Value.AddDays(1).AddTicks(-1);
+
+            var deadline = DateTime.UtcNow.AddSeconds(15);
             var ordersResponse = await _orderClient.GetAllOrdersAsync(
                 new OrderFilterRequest
                 {
                     UserId = filter.UserId ?? "",
-                    Status = filter.Status ?? ""
-                });
+                    Status = filter.Status ?? "",
+                    Date = filter.Date?.ToString("O") ?? "",
+                    FromDate = filter.FromDate?.ToString("O") ?? "",
+                    ToDate = to?.ToString("O") ?? "",
+                    Offset = filter.Page.HasValue ? (filter.Page.Value - 1) * filter.PageSize : 0,
+                    Limit = filter.Page.HasValue ? filter.PageSize + 1 : 0
+                }, deadline: deadline);
 
             var result = new List<OrderWithReviewDto>();
-
-            foreach (var order in ordersResponse.Orders)
+            var users = new Dictionary<string, Task<UserResponse>>();
+            foreach (var batch in ordersResponse.Orders.Chunk(8))
             {
-                var orderDate = DateTime.Parse(order.OrderDate);
+                foreach (var order in batch)
+                    if (!users.ContainsKey(order.UserId))
+                        users[order.UserId] = _userClient.GetUserAsync(
+                            new UserRequest { UserId = order.UserId }, deadline: deadline).ResponseAsync;
 
-                // 🔥 DATE FILTER (ВАЖЛИВО)
-                if (filter.FromDate.HasValue && orderDate < filter.FromDate.Value)
-                    continue;
-
-                if (filter.ToDate.HasValue && orderDate > filter.ToDate.Value)
-                    continue;
-
-                var user = await _userClient.GetUserAsync(
-                    new UserRequest { UserId = order.UserId });
-
-                var review = await GetReview(order.OrderId);
-
-                result.Add(new OrderWithReviewDto
+                var rows = await Task.WhenAll(batch.Select(async order =>
                 {
-                    OrderId = order.OrderId,
-                    UserId = order.UserId,
-                    Username = user.Username,
-                    Email = user.Email,
-                    Status = order.Status,
-                    OrderDate = orderDate,
-                    VehicleId = EmptyToNull(order.VehicleId),
-                    VehicleDisplayName = EmptyToNull(order.VehicleDisplayName),
-                    VehicleVin = EmptyToNull(order.VehicleVin),
-                    VehicleLicensePlate = EmptyToNull(order.VehicleLicensePlate),
-
-                    Items = order.Items.Select(i => new OrderItemDto
+                    var user = await users[order.UserId];
+                    var review = await GetReview(order.OrderId, deadline);
+                    return new OrderWithReviewDto
                     {
-                        ProductId = i.ProductId,
-                        ProductName = i.ProductName,
-                        Quantity = i.Quantity,
-                        Price = (decimal)i.Price
-                    }).ToList(),
-
-                    Review = review
-                });
+                        OrderId = order.OrderId,
+                        UserId = order.UserId,
+                        Username = user.Username,
+                        Email = user.Email,
+                        Status = order.Status,
+                        OrderDate = DateTime.Parse(order.OrderDate),
+                        VehicleId = EmptyToNull(order.VehicleId),
+                        VehicleDisplayName = EmptyToNull(order.VehicleDisplayName),
+                        VehicleVin = EmptyToNull(order.VehicleVin),
+                        VehicleLicensePlate = EmptyToNull(order.VehicleLicensePlate),
+                        MechanicId = EmptyToNull(order.MechanicId),
+                        MechanicName = EmptyToNull(order.MechanicName),
+                        WorkStartedAt = ReadTimestamp(order.WorkStartedAt),
+                        WorkCompletedAt = ReadTimestamp(order.WorkCompletedAt),
+                        PlannedCompletionAt = ReadTimestamp(order.PlannedCompletionAt),
+                        Items = order.Items.Select(i => new OrderItemDto
+                        {
+                            ProductId = i.ProductId,
+                            ProductName = i.ProductName,
+                            Quantity = i.Quantity,
+                            Price = (decimal)i.Price
+                        }).ToList(),
+                        Review = review
+                    };
+                }));
+                result.AddRange(rows);
             }
-
             return result;
         }
+
+        private static DateTime? ReadTimestamp(string value) =>
+            DateTime.TryParse(value, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind, out var date) ? date : null;
 
         // ======================================================
         // ONLY REVIEWED ORDERS
@@ -246,12 +259,12 @@ namespace AggregatorService.Services
         // ======================================================
         // REVIEW HELPER
         // ======================================================
-        private async Task<ReviewDto?> GetReview(int orderId)
+        private async Task<ReviewDto?> GetReview(int orderId, DateTime? deadline = null)
         {
             try
             {
                 using var call = _reviewClient.GetReviewsByOrderId(
-                    new ReviewRequest { OrderId = orderId });
+                    new ReviewRequest { OrderId = orderId }, deadline: deadline);
 
                 await foreach (var r in call.ResponseStream.ReadAllAsync())
                 {

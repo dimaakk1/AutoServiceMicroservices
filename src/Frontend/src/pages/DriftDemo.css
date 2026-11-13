@@ -20,6 +20,7 @@
 }
 
 .drift-video,
+.drift-video-poster,
 .drift-color-grade,
 .drift-vignette,
 .drift-scanlines {
@@ -46,6 +47,15 @@
   transition: opacity .22s ease-out;
 }
 
+.drift-video-poster {
+  z-index: -5;
+  background: url("/videos/drift-demo-poster.webp") center / cover no-repeat;
+  transform: scale(1.025);
+  opacity: 1;
+  transition: opacity .22s ease-out;
+}
+
+.drift-video-poster-hidden { opacity: 0; }
 .drift-video-ready { opacity: 1; }
 
 .drift-color-grade {

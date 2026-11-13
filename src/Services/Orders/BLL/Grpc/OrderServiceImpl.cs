@@ -44,9 +44,11 @@ namespace AutoserviceOrders.BLL.Grpc
             {
                 UserId = request.UserId,
                 Status = request.Status,
-                Date = string.IsNullOrEmpty(request.Date)
-        ? null
-        : DateTime.Parse(request.Date)
+                Date = ParseDate(request.Date),
+                FromDate = ParseDate(request.FromDate),
+                ToDate = ParseDate(request.ToDate),
+                Offset = request.Offset,
+                Limit = request.Limit > 0 ? request.Limit : null
             };
 
 
@@ -66,6 +68,11 @@ namespace AutoserviceOrders.BLL.Grpc
                     VehicleDisplayName = o.VehicleDisplayName ?? string.Empty,
                     VehicleVin = o.VehicleVin ?? string.Empty,
                     VehicleLicensePlate = o.VehicleLicensePlate ?? string.Empty,
+                    MechanicId = o.MechanicId ?? string.Empty,
+                    MechanicName = o.MechanicName ?? string.Empty,
+                    WorkStartedAt = o.WorkStartedAt?.ToString("O") ?? string.Empty,
+                    WorkCompletedAt = o.WorkCompletedAt?.ToString("O") ?? string.Empty,
+                    PlannedCompletionAt = o.PlannedCompletionAt?.ToString("O") ?? string.Empty,
 
                     Items =
                     {
@@ -83,6 +90,15 @@ namespace AutoserviceOrders.BLL.Grpc
             );
 
             return response;
+        }
+
+        private static DateTime? ParseDate(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return null;
+            if (DateTime.TryParse(value, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind, out var date))
+                return date;
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid order date filter."));
         }
 
         public override async Task<UpdateOrderStatusResponse>

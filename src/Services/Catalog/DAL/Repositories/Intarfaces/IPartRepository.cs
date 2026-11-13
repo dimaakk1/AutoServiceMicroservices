@@ -14,6 +14,7 @@ namespace AutoServiceCatalog.DAL.Repositories.Intarfaces
         Task<List<Service>> GetServicesAbovePriceAsync(decimal price);
         Task<List<Service>> GetServicesBelowPriceAsync(decimal price);
         Task<List<Service>> SearchByNameAsync(string keyword);
+        Task<List<Service>> GetByIdsAsync(int[] ids, CancellationToken cancellationToken);
 
         Task<PagedResult<Service>> GetServicesAsync(PartQueryParameters parameters);
     }

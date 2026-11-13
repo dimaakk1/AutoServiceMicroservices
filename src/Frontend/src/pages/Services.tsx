@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Search,
@@ -28,37 +28,37 @@ export default function Services() {
   const [keyword, setKeyword] = useState("");
   const [price, setPrice] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    loadAll();
-  }, []);
-
-  const loadAll = async () => {
+  const loadServices = useCallback(async (path = "/Catalog/Service", params?: Record<string, string>) => {
     try {
       setLoading(true);
-      const res = await api.get("/Catalog/Service");
+      setError(false);
+      const res = await api.get<Service[]>(path, { params });
       setServices(res.data);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  const loadAll = useCallback(() => loadServices(), [loadServices]);
+  useEffect(() => { void loadAll(); }, [loadAll]);
 
   const handleSearch = async () => {
     if (!keyword.trim()) return loadAll();
-    const res = await api.get(`/Catalog/Service/search?keyword=${keyword}`);
-    setServices(res.data);
+    await loadServices("/Catalog/Service/search", { keyword });
   };
 
   const handleAbove = async () => {
     if (!price) return;
-    const res = await api.get(`/Catalog/Service/price/above/${price}`);
-    setServices(res.data);
+    await loadServices(`/Catalog/Service/price/above/${price}`);
   };
 
   const handleBelow = async () => {
     if (!price) return;
-    const res = await api.get(`/Catalog/Service/price/below/${price}`);
-    setServices(res.data);
+    await loadServices(`/Catalog/Service/price/below/${price}`);
   };
 
   return (
@@ -134,6 +134,11 @@ export default function Services() {
           {loading ? (
             <div className="text-center text-muted-foreground py-20">
               Завантаження...
+            </div>
+          ) : error ? (
+            <div role="alert" className="flex flex-col items-center gap-4 py-16 text-muted-foreground">
+              Не вдалося завантажити каталог послуг.
+              <Button variant="outline" onClick={loadAll}>Спробувати ще раз</Button>
             </div>
           ) : services.length === 0 ? (
             <Card className="border-dashed">

@@ -33,6 +33,10 @@ namespace AutoServiceCatalog.DAL.Repositories
                 .FirstOrDefaultAsync(s => s.ServiceId == id);
         }
 
+        public Task<List<Service>> GetByIdsAsync(int[] ids, CancellationToken cancellationToken) =>
+            _context.Services.AsNoTracking().Include(s => s.Category)
+                .Where(s => ids.Contains(s.ServiceId)).ToListAsync(cancellationToken);
+
 
         public async Task<PagedResult<Service>> GetServicesAsync(
             PartQueryParameters parameters)

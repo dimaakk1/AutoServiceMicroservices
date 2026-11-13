@@ -68,10 +68,17 @@ namespace AutoserviceOrders.API.Controllers
         public async Task<IActionResult> GetWithItems()
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
 
-            var result = await _orderItemService.GetOrdersWithItemsAsync(userId);
-
-            return Ok(result);
+            try
+            {
+                return Ok(await _orderItemService.GetOrdersWithItemsAsync(userId));
+            }
+            catch (Grpc.Core.RpcException ex) when (ex.StatusCode is Grpc.Core.StatusCode.Unavailable or Grpc.Core.StatusCode.DeadlineExceeded)
+            {
+                return StatusCode(503, new { message = "Каталог послуг тимчасово недоступний. Спробуйте ще раз." });
+            }
         }
 
         [HttpGet("admin-with-items")]

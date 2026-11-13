@@ -63,3 +63,6 @@ export const updateMechanicOrderStatus = (orderId: number, status: string) =>
 
 export const updateAdminOrderStatus = (orderId: number, status: string) =>
   api.put(`/Orders/Order/${orderId}/status`, { status });
+
+export const setPlannedCompletion = (orderId: number, plannedCompletionAt: string) =>
+  api.put(`/Orders/Order/${orderId}/planned-completion`, { plannedCompletionAt });

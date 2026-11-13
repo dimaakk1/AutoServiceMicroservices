@@ -6,6 +6,7 @@ namespace AutoserviceOrders.Tests.Common;
 internal sealed class FakePartServiceClient : PartService.PartServiceClient
 {
     private readonly IReadOnlyDictionary<int, PartReply> _catalog;
+    public List<int[]> RequestedBatches { get; } = [];
 
     public FakePartServiceClient(IReadOnlyDictionary<int, PartReply>? catalog = null)
         : base(new StubCallInvoker())
@@ -20,6 +21,14 @@ internal sealed class FakePartServiceClient : PartService.PartServiceClient
             throw new RpcException(new Status(StatusCode.NotFound, $"Part {request.Id} not found"));
         }
 
+        return GrpcResponses.Success(reply);
+    }
+
+    public override AsyncUnaryCall<GetPartsByIdsReply> GetPartsByIdsAsync(GetPartsByIdsRequest request, CallOptions options)
+    {
+        RequestedBatches.Add(request.Ids.ToArray());
+        var reply = new GetPartsByIdsReply();
+        reply.Parts.AddRange(request.Ids.Where(_catalog.ContainsKey).Select(id => _catalog[id]));
         return GrpcResponses.Success(reply);
     }
 

@@ -134,7 +134,8 @@ public class OrderItemServiceTests
         {
             [5] = CreatePart(5, "Oil filter", 25.5)
         };
-        var sut = CreateSut(catalog);
+        var client = new FakePartServiceClient(catalog);
+        var sut = new OrderItemService(_uow.UnitOfWork.Object, _mapper.Object, client);
         const string userId = "user-1";
         var orders = new List<Order>
         {
@@ -148,18 +149,21 @@ public class OrderItemServiceTests
         };
         var items = new List<OrderItem>
         {
-            new() { OrderItemId = 10, OrderId = 1, ProductId = 5, Quantity = 2 }
+            new() { OrderItemId = 10, OrderId = 1, ProductId = 5, Quantity = 2 },
+            new() { OrderItemId = 11, OrderId = 1, ProductId = 5, Quantity = 1 }
         };
 
         _uow.Orders.Setup(r => r.GetByUserIdAsync(userId)).ReturnsAsync(orders);
-        _uow.OrderItems.Setup(r => r.GetAllAsync()).ReturnsAsync(items);
+        _uow.OrderItems.Setup(r => r.GetItemsByOrderIdsAsync(It.Is<int[]>(ids => ids.Length == 1 && ids[0] == 1))).ReturnsAsync(items);
 
         var result = (await sut.GetOrdersWithItemsAsync(userId)).ToList();
 
         result.Should().ContainSingle();
         var order = result[0];
         order.OrderId.Should().Be(1);
-        order.Items.Should().ContainSingle();
+        order.Items.Should().HaveCount(2);
+        client.RequestedBatches.Should().ContainSingle().Which.Should().Equal(5);
+        _uow.OrderItems.Verify(r => r.GetAllAsync(), Times.Never);
         order.Items[0].ProductName.Should().Be("Oil filter");
         order.Items[0].Price.Should().Be(25.5m);
         order.Items[0].TotalPrice.Should().Be(51m);
@@ -171,26 +175,24 @@ public class OrderItemServiceTests
         var sut = CreateSut();
         var from = new DateTime(2026, 5, 1);
         var to = new DateTime(2026, 5, 31);
-        var orders = new List<Order>
-        {
-            new() { OrderId = 1, UserId = "a", Status = "Confirmed", OrderDate = new DateTime(2026, 5, 10) },
-            new() { OrderId = 2, UserId = "b", Status = "Pending", OrderDate = new DateTime(2026, 5, 10) },
-            new() { OrderId = 3, UserId = "a", Status = "Confirmed", OrderDate = new DateTime(2026, 6, 1) }
-        };
-
-        _uow.Orders.Setup(r => r.GetAllAsync()).ReturnsAsync(orders);
-        _uow.OrderItems.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
+        var order = new Order { OrderId = 1, UserId = "a", Status = "Confirmed", OrderDate = new DateTime(2026, 5, 10) };
+        _uow.Orders.Setup(r => r.GetFilteredAsync(new OrderReadFilter("a", null, "Confirmed", null, from, to, 25, 26)))
+            .ReturnsAsync([order]);
+        _uow.OrderItems.Setup(r => r.GetItemsByOrderIdsAsync(It.Is<int[]>(ids => ids.Length == 1 && ids[0] == 1))).ReturnsAsync([]);
 
         var filter = new OrderFilterDto
         {
             UserId = "a",
             Status = "Confirmed",
             FromDate = from,
-            ToDate = to
+            ToDate = to,
+            Offset = 25,
+            Limit = 26
         };
 
         var result = (await sut.GetAllOrdersWithItemsAsync(filter)).ToList();
 
         result.Should().ContainSingle().Which.OrderId.Should().Be(1);
+        _uow.Orders.Verify(r => r.GetAllAsync(), Times.Never);
     }
 }

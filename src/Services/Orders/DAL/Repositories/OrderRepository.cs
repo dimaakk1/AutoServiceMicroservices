@@ -83,7 +83,14 @@ SELECT SCOPE_IDENTITY();";
             const string sql = @"
                 UPDATE Orders
                 SET OrderDate = @OrderDate,
-                    Status = @Status
+                    Status = @Status,
+                    WorkStartedAt = CASE
+                        WHEN @Status IN ('Diagnosing', 'InProgress') AND WorkCompletedAt IS NULL
+                            THEN COALESCE(WorkStartedAt, SYSUTCDATETIME())
+                        ELSE WorkStartedAt END,
+                    WorkCompletedAt = CASE WHEN @Status = 'Completed'
+                        THEN COALESCE(WorkCompletedAt, SYSUTCDATETIME())
+                        ELSE WorkCompletedAt END
                 WHERE OrderId = @OrderId";
 
             await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
@@ -92,6 +99,38 @@ SELECT SCOPE_IDENTITY();";
             cmd.Parameters.AddWithValue("@OrderId", order.OrderId);
 
             return await cmd.ExecuteNonQueryAsync();
+        }
+
+        public async Task<List<Order>> GetFilteredAsync(OrderReadFilter filter)
+        {
+            var sql = @"SELECT * FROM Orders
+                WHERE (@UserId IS NULL OR UserId = @UserId)
+                  AND (@MechanicId IS NULL OR MechanicId = @MechanicId)
+                  AND (@Status IS NULL OR Status = @Status)
+                  AND (@Day IS NULL OR (OrderDate >= @Day AND OrderDate < DATEADD(day, 1, @Day)))
+                  AND (@FromDate IS NULL OR OrderDate >= @FromDate)
+                  AND (@ToDate IS NULL OR OrderDate <= @ToDate)
+                ORDER BY OrderDate DESC, OrderId DESC";
+            if (filter.Limit.HasValue)
+                sql += " OFFSET @Offset ROWS FETCH NEXT @Limit ROWS ONLY";
+
+            await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
+            cmd.Parameters.Add("@UserId", SqlDbType.NVarChar, 450).Value = (object?)filter.UserId ?? DBNull.Value;
+            cmd.Parameters.Add("@MechanicId", SqlDbType.NVarChar, 450).Value = (object?)filter.MechanicId ?? DBNull.Value;
+            cmd.Parameters.Add("@Status", SqlDbType.NVarChar, 50).Value = (object?)filter.Status ?? DBNull.Value;
+            cmd.Parameters.Add("@Day", SqlDbType.DateTime2).Value = (object?)filter.Date?.Date ?? DBNull.Value;
+            cmd.Parameters.Add("@FromDate", SqlDbType.DateTime2).Value = (object?)filter.FromDate ?? DBNull.Value;
+            cmd.Parameters.Add("@ToDate", SqlDbType.DateTime2).Value = (object?)filter.ToDate ?? DBNull.Value;
+            if (filter.Limit.HasValue)
+            {
+                cmd.Parameters.Add("@Offset", SqlDbType.Int).Value = filter.Offset;
+                cmd.Parameters.Add("@Limit", SqlDbType.Int).Value = filter.Limit.Value;
+            }
+            var orders = new List<Order>();
+            await using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+                orders.Add(ReadOrder(reader));
+            return orders;
         }
 
         public async Task<int> DeleteAsync(int orderId)
@@ -163,8 +202,9 @@ SELECT SCOPE_IDENTITY();";
             const string sql = @"
                 UPDATE Orders
                 SET Status = @Status,
-                    WorkStartedAt = COALESCE(@WorkStartedAt, WorkStartedAt),
-                    WorkCompletedAt = COALESCE(@WorkCompletedAt, WorkCompletedAt)
+                    WorkStartedAt = CASE WHEN WorkCompletedAt IS NULL
+                        THEN COALESCE(WorkStartedAt, @WorkStartedAt) ELSE WorkStartedAt END,
+                    WorkCompletedAt = COALESCE(WorkCompletedAt, @WorkCompletedAt)
                 WHERE OrderId = @OrderId";
 
             await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
@@ -186,8 +226,9 @@ SELECT SCOPE_IDENTITY();";
             const string sql = @"
                 UPDATE Orders
                 SET Status = @Status,
-                    WorkStartedAt = COALESCE(@WorkStartedAt, WorkStartedAt),
-                    WorkCompletedAt = COALESCE(@WorkCompletedAt, WorkCompletedAt)
+                    WorkStartedAt = CASE WHEN WorkCompletedAt IS NULL
+                        THEN COALESCE(WorkStartedAt, @WorkStartedAt) ELSE WorkStartedAt END,
+                    WorkCompletedAt = COALESCE(WorkCompletedAt, @WorkCompletedAt)
                 WHERE OrderId = @OrderId AND MechanicId = @MechanicId";
 
             await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
@@ -200,11 +241,32 @@ SELECT SCOPE_IDENTITY();";
             return await cmd.ExecuteNonQueryAsync();
         }
 
+        public async Task<int> SetPlannedCompletionAsync(int orderId, DateTime plannedCompletionUtc, DateTime plannedCompletionShopTime)
+        {
+            const string sql = @"
+                UPDATE Orders
+                SET PlannedCompletionAt = @PlannedCompletionAt
+                WHERE OrderId = @OrderId
+                  AND Status IN ('Pending', 'Confirmed')
+                  AND WorkStartedAt IS NULL AND WorkCompletedAt IS NULL
+                  AND @PlannedCompletionShopTime > OrderDate;";
+
+            await using var cmd = new SqlCommand(sql, SqlConn, SqlTrans);
+            cmd.Parameters.Add("@OrderId", SqlDbType.Int).Value = orderId;
+            cmd.Parameters.Add("@PlannedCompletionAt", SqlDbType.DateTime2).Value = plannedCompletionUtc;
+            cmd.Parameters.Add("@PlannedCompletionShopTime", SqlDbType.DateTime2).Value = plannedCompletionShopTime;
+            return await cmd.ExecuteNonQueryAsync();
+        }
+
+        private static DateTime? ReadUtc(SqlDataReader reader, string column)
+        {
+            var ordinal = reader.GetOrdinal(column);
+            return reader.IsDBNull(ordinal) ? null : DateTime.SpecifyKind(reader.GetDateTime(ordinal), DateTimeKind.Utc);
+        }
+
         private static Order ReadOrder(SqlDataReader reader)
         {
             var vehicleIdOrdinal = reader.GetOrdinal("VehicleId");
-            var workStartedAtOrdinal = reader.GetOrdinal("WorkStartedAt");
-            var workCompletedAtOrdinal = reader.GetOrdinal("WorkCompletedAt");
             return new Order
             {
                 OrderId = reader.GetInt32(reader.GetOrdinal("OrderId")),
@@ -217,8 +279,9 @@ SELECT SCOPE_IDENTITY();";
                 VehicleLicensePlate = reader["VehicleLicensePlate"] as string,
                 MechanicId = reader["MechanicId"] as string,
                 MechanicName = reader["MechanicName"] as string,
-                WorkStartedAt = reader.IsDBNull(workStartedAtOrdinal) ? null : reader.GetDateTime(workStartedAtOrdinal),
-                WorkCompletedAt = reader.IsDBNull(workCompletedAtOrdinal) ? null : reader.GetDateTime(workCompletedAtOrdinal)
+                WorkStartedAt = ReadUtc(reader, "WorkStartedAt"),
+                WorkCompletedAt = ReadUtc(reader, "WorkCompletedAt"),
+                PlannedCompletionAt = ReadUtc(reader, "PlannedCompletionAt")
             };
         }
     }

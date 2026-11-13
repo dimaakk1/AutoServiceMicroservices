@@ -59,6 +59,9 @@ namespace AutoServiceCatalog.BLL.Services
             return result?.FirstOrDefault();
         }
 
+        public async Task<List<ServiceDto>> GetByIdsAsync(int[] ids, CancellationToken cancellationToken) =>
+            _mapper.Map<List<ServiceDto>>(await _unitOfWork.Services.GetByIdsAsync(ids, cancellationToken));
+
         public async Task<ServiceDto> CreateAsync(ServiceCreateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Name))

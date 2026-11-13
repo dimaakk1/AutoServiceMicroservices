@@ -178,12 +178,15 @@ export function DriftScrollSection({ standalone = false }: DriftScrollSectionPro
           <video
             ref={videoRef}
             className="drift-video-source"
-            src="/videos/drift-demo-scrub.mp4"
             preload="auto"
             muted
             playsInline
             aria-hidden="true"
-          />
+          >
+            <source media="(max-width: 720px)" src="/videos/drift-demo-mobile.mp4" type="video/mp4" />
+            <source src="/videos/drift-demo-desktop.mp4" type="video/mp4" />
+          </video>
+          <div className={`drift-video-poster${videoReady ? " drift-video-poster-hidden" : ""}`} aria-hidden="true" />
           <canvas
             ref={canvasRef}
             className={`drift-video${videoReady ? " drift-video-ready" : ""}`}

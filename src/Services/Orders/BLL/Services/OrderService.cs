@@ -290,6 +290,46 @@ namespace AutoserviceOrders.BLL.Services
             }
         }
 
+        public async Task<PlannedCompletionResult> SetPlannedCompletionAsync(int orderId, DateTimeOffset plannedCompletionAt)
+        {
+            // OrderDate stores the shop's selected wall-clock slot, unlike the UTC work timestamps.
+            var shopTimeZone = TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time");
+            var plannedCompletionShopTime = TimeZoneInfo.ConvertTime(plannedCompletionAt, shopTimeZone).DateTime;
+            await _unitOfWork.BeginTransactionAsync();
+            PlannedCompletionResult result;
+            try
+            {
+                var orders = _unitOfWork.Orders!;
+                var affected = await orders.SetPlannedCompletionAsync(orderId, plannedCompletionAt.UtcDateTime, plannedCompletionShopTime);
+                if (affected > 0)
+                {
+                    result = PlannedCompletionResult.Saved;
+                }
+                else
+                {
+                    var order = await orders.GetByIdAsync(orderId);
+                    result = order is null
+                        ? PlannedCompletionResult.NotFound
+                        : order.WorkStartedAt.HasValue || order.WorkCompletedAt.HasValue
+                            || (!string.Equals(order.Status, "Pending", StringComparison.OrdinalIgnoreCase)
+                                && !string.Equals(order.Status, "Confirmed", StringComparison.OrdinalIgnoreCase))
+                            ? PlannedCompletionResult.OrderAlreadyStartedOrClosed
+                            : PlannedCompletionResult.BeforeOrAtAppointment;
+                }
+
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            if (result == PlannedCompletionResult.Saved)
+                await InvalidateOrderCacheAsync(orderId);
+            return result;
+        }
+
         private async Task InvalidateOrderCacheAsync(int orderId)
         {
             await _ordersCache.InvalidateAsync("orders:all");

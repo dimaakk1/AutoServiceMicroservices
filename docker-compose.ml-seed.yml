@@ -1,0 +1,24 @@
+services:
+  sqlserver:
+    volumes: !override
+      - ml-seed-sql-data:/var/opt/mssql
+    ports: !override
+      - "127.0.0.1:11433:1433"
+    environment:
+      MSSQL_SA_PASSWORD: "${ML_SEED_SQL_PASSWORD:?Set ML_SEED_SQL_PASSWORD for the isolated stack}"
+
+  catalog-service:
+    environment:
+      ConnectionStrings__CatalogDb: "Server=sqlserver;Database=CatalogMlSeed;User Id=sa;Password=${ML_SEED_SQL_PASSWORD};TrustServerCertificate=True;"
+  users-service:
+    environment:
+      ConnectionStrings__UsersDb: "Server=sqlserver;Database=UsersMlSeed;User Id=sa;Password=${ML_SEED_SQL_PASSWORD};TrustServerCertificate=True;"
+  vehicle-service:
+    environment:
+      ConnectionStrings__VehiclesDb: "Server=sqlserver;Database=VehiclesMlSeed;User Id=sa;Password=${ML_SEED_SQL_PASSWORD};TrustServerCertificate=True;"
+  orders-service:
+    environment:
+      ConnectionStrings__OrdersDb: "Server=sqlserver;Database=OrdersMlSeed;User Id=sa;Password=${ML_SEED_SQL_PASSWORD};TrustServerCertificate=True;"
+
+volumes:
+  ml-seed-sql-data:

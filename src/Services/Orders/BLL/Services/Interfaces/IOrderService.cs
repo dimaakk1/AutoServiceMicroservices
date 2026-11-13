@@ -23,5 +23,6 @@ namespace AutoserviceOrders.BLL.Services.Interfaces
         Task<List<string>> GetTakenSlotsAsync(DateTime date);
         Task<List<OrderDto>> GetOrdersByDateAsync(DateTime date);
         Task<bool> UpdateStatusAsync(int orderId, string status);
+        Task<PlannedCompletionResult> SetPlannedCompletionAsync(int orderId, DateTimeOffset plannedCompletionAt);
     }
 }

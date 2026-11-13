@@ -27,6 +27,43 @@ public class OrderServiceTests
     }
 
     [Fact]
+    public async Task SetPlannedCompletionAsync_UsesUtcForStorageAndKyivTimeForSlotComparison()
+    {
+        var utc = new DateTime(2026, 11, 9, 10, 0, 0, DateTimeKind.Utc);
+        var shopTime = new DateTime(2026, 11, 9, 12, 0, 0);
+        var submitted = new DateTimeOffset(2026, 11, 9, 11, 0, 0, TimeSpan.FromHours(1));
+        _uow.Orders.Setup(r => r.SetPlannedCompletionAsync(12, utc, shopTime)).ReturnsAsync(1);
+
+        var result = await _sut.SetPlannedCompletionAsync(12, submitted);
+
+        result.Should().Be(PlannedCompletionResult.Saved);
+        _uow.Orders.Verify(r => r.GetByIdAsync(12), Times.Never);
+    }
+
+    [Theory]
+    [InlineData("Confirmed", true, PlannedCompletionResult.OrderAlreadyStartedOrClosed)]
+    [InlineData("Completed", false, PlannedCompletionResult.OrderAlreadyStartedOrClosed)]
+    [InlineData("Pending", false, PlannedCompletionResult.BeforeOrAtAppointment)]
+    public async Task SetPlannedCompletionAsync_RejectedUpdate_ReportsReason(
+        string status, bool hasStarted, PlannedCompletionResult expected)
+    {
+        var planned = new DateTimeOffset(2026, 11, 9, 12, 0, 0, TimeSpan.FromHours(2));
+        _uow.Orders.Setup(r => r.SetPlannedCompletionAsync(12, It.IsAny<DateTime>(), It.IsAny<DateTime>()))
+            .ReturnsAsync(0);
+        _uow.Orders.Setup(r => r.GetByIdAsync(12)).ReturnsAsync(new Order
+        {
+            OrderId = 12,
+            OrderDate = new DateTime(2026, 11, 9, 12, 0, 0),
+            Status = status,
+            WorkStartedAt = hasStarted ? planned.UtcDateTime.AddMinutes(-10) : null
+        });
+
+        var result = await _sut.SetPlannedCompletionAsync(12, planned);
+
+        result.Should().Be(expected);
+    }
+
+    [Fact]
     public async Task CreateOrderAsync_ValidOrder_ReturnsNewId()
     {
         var orderDate = new DateTime(2026, 5, 22, 10, 0, 0, DateTimeKind.Utc);

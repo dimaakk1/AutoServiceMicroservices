@@ -21,6 +21,7 @@ namespace AutoserviceOrders.BLL.DTO
         public string? MechanicName { get; set; }
         public DateTime? WorkStartedAt { get; set; }
         public DateTime? WorkCompletedAt { get; set; }
+        public DateTime? PlannedCompletionAt { get; set; }
 
         public List<OrderItemWithProductDto> Items { get; set; } = new();
     }

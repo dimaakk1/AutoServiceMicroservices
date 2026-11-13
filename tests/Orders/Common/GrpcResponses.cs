@@ -5,7 +5,7 @@ namespace AutoserviceOrders.Tests.Common;
 
 internal static class GrpcResponses
 {
-    public static AsyncUnaryCall<PartReply> Success(PartReply reply) =>
+    public static AsyncUnaryCall<T> Success<T>(T reply) =>
         new(
             Task.FromResult(reply),
             Task.FromResult(new Metadata()),

@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
+import type { FormEvent } from "react";
+import { isAxiosError } from "axios";
 import { Link } from "react-router-dom";
 import { useAuth } from "../../lib/auth-context";
 
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
+import { Input } from "../../components/ui/input";
 
 import {
   Select,
@@ -25,7 +29,7 @@ import {
 
 import { toast } from "sonner";
 import api from "../../api/api";
-import { updateAdminOrderStatus } from "../../api/order";
+import { setPlannedCompletion, updateAdminOrderStatus } from "../../api/order";
 
 
 type Review = {
@@ -55,6 +59,10 @@ type Order = {
   vehicleLicensePlate?: string | null;
   mechanicId?: string | null;
   mechanicName?: string | null;
+  plannedCompletionAt?: string | null;
+  workStartedAt?: string | null;
+  workCompletedAt?: string | null;
+  planningLocked?: boolean;
 
   paymentStatus?: string | null;
   paymentId?: number;
@@ -69,6 +77,10 @@ type Payment = {
   status: string;
 };
 
+const pageSize = 25;
+const dateKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
 type Mechanic = {
   userId: string;
   username: string;
@@ -76,12 +88,63 @@ type Mechanic = {
   isBlocked?: boolean;
 };
 
+function PlannedCompletionField({ order, onSaved }: {
+  order: Order;
+  onSaved: (plannedCompletionAt: string) => void;
+}) {
+  const fieldId = useId();
+  const [saving, setSaving] = useState(false);
+  const planned = order.plannedCompletionAt ? new Date(order.plannedCompletionAt) : null;
+  const canEdit = !order.planningLocked && !order.workStartedAt && !order.workCompletedAt
+    && ["Pending", "Confirmed"].includes(order.status);
+  const localValue = planned && !Number.isNaN(planned.valueOf())
+    ? new Date(planned.getTime() - planned.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
+    : "";
+
+  if (!canEdit) return <span>{planned ? planned.toLocaleString("uk-UA") : "Не вказано"}</span>;
+
+  const save = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = new FormData(event.currentTarget).get("plannedCompletion");
+    const date = new Date(typeof value === "string" ? value : "");
+    if (Number.isNaN(date.valueOf())) {
+      toast.error("Вкажіть дату й час завершення.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const timestamp = date.toISOString();
+      await setPlannedCompletion(order.orderId, timestamp);
+      onSaved(timestamp);
+      toast.success("Плановий строк збережено");
+    } catch (error) {
+      const message = isAxiosError(error) ? error.response?.data?.message : undefined;
+      toast.error(typeof message === "string" ? message : "Не вдалося зберегти плановий строк.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <form onSubmit={save} className="min-w-48 space-y-2">
+      <label htmlFor={fieldId} className="sr-only">Планове завершення замовлення №{order.orderId}</label>
+      <Input id={fieldId} name="plannedCompletion" type="datetime-local" defaultValue={localValue} required disabled={saving} />
+      <Button type="submit" size="sm" variant="outline" disabled={saving}>{saving ? "Збереження…" : "Зберегти"}</Button>
+    </form>
+  );
+}
 
 export default function AdminOrders() {
   const { user } = useAuth();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [calendarOrders, setCalendarOrders] = useState<Order[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [mechanics, setMechanics] = useState<Mechanic[]>([]);
 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
@@ -104,65 +167,70 @@ export default function AdminOrders() {
   ];
 
 
-  const loadOrders = useCallback(async () => {
+  const loadOrders = useCallback(async (signal: AbortSignal) => {
   try {
     setLoading(true);
+    setLoadError(false);
 
-    const [ordersRes, paymentsRes, mechanicsRes, rawOrdersRes] = await Promise.all([
-      api.get("/aggregation/orders", {
-        params: {
+    const params = {
           status: filters.status || undefined,
           fromDate: filters.fromDate || undefined,
           toDate: filters.toDate || undefined,
-        },
+    };
+    const [ordersRes, paymentsRes, mechanicsRes, calendarRes] = await Promise.all([
+      api.get<{ orders: Order[]; hasMore: boolean }>("/aggregation/orders", {
+        params: { ...params, page, pageSize }, signal,
       }),
-      api.get("/Orders/payments"),
-      api.get("/users/mechanics"),
-      api.get("/Orders/Order"),
+      api.get<Payment[]>("/Orders/payments", { signal }),
+      api.get<Mechanic[]>("/users/mechanics", { signal }),
+      selectedDate ? api.get<{ orders: Order[] }>("/aggregation/orders", {
+        params: { ...params, date: dateKey(selectedDate), page: 1, pageSize: 100 }, signal,
+      }) : Promise.resolve(null),
     ]);
+    if (signal.aborted) return;
 
-    const payments = paymentsRes.data;
+    const payments = new Map(paymentsRes.data.map(payment => [payment.orderId, payment]));
     setMechanics(mechanicsRes.data.filter((mechanic: Mechanic) => !mechanic.isBlocked));
 
-    const ordersWithPayments = ordersRes.data.map((order: Order) => {
-      const payment = payments.find(
-        (p: Payment) => p.orderId === order.orderId
-      );
-      const rawOrder = rawOrdersRes.data.find(
-        (item: Order) => item.orderId === order.orderId
-      );
+    const withPayment = (order: Order) => {
+      const payment = payments.get(order.orderId);
 
       return {
         ...order,
-        mechanicId: rawOrder?.mechanicId ?? null,
-        mechanicName: rawOrder?.mechanicName ?? null,
         paymentStatus: payment?.status ?? null,
         paymentId: payment?.paymentId,
       };
-    });
+    };
 
-    setOrders(ordersWithPayments);
+    setOrders(ordersRes.data.orders.map(withPayment));
+    setHasMore(ordersRes.data.hasMore);
+    setCalendarOrders(calendarRes?.data.orders.map(withPayment) ?? []);
   } catch {
-    toast.error("Не вдалося завантажити замовлення");
+    if (!signal.aborted) setLoadError(true);
   } finally {
-    setLoading(false);
+    if (!signal.aborted) setLoading(false);
   }
-  }, [filters]);
+  }, [filters, page, selectedDate]);
 
   useEffect(() => {
-    if (user?.role === "Admin") loadOrders();
-  }, [user, loadOrders]);
+    if (user?.role !== "Admin") return;
+    const controller = new AbortController();
+    void loadOrders(controller.signal);
+    return () => controller.abort();
+  }, [user, loadOrders, retry]);
 
+  const updateVisibleOrder = (orderId: number, patch: (order: Order) => Partial<Order>) => {
+    const update = (list: Order[]) => list.map(order => order.orderId === orderId ? { ...order, ...patch(order) } : order);
+    setOrders(update);
+    setCalendarOrders(update);
+  };
 
   const updateStatus = async (orderId: number, status: string) => {
     try {
       await updateAdminOrderStatus(orderId, status);
 
-      setOrders((prev) =>
-        prev.map((o) =>
-          o.orderId === orderId ? { ...o, status } : o
-        )
-      );
+      const locksPlanning = ["Diagnosing", "InProgress", "Completed"].includes(status);
+      updateVisibleOrder(orderId, order => ({ status, planningLocked: order.planningLocked || locksPlanning }));
 
       toast.success("Статус оновлено");
     } catch {
@@ -180,11 +248,7 @@ export default function AdminOrders() {
         mechanicId,
         mechanicName,
       });
-      setOrders((current) => current.map((order) =>
-        order.orderId === orderId
-          ? { ...order, mechanicId, mechanicName }
-          : order
-      ));
+      updateVisibleOrder(orderId, () => ({ mechanicId, mechanicName }));
       toast.success("Майстра призначено");
     } catch {
       toast.error("Не вдалося призначити майстра");
@@ -194,13 +258,6 @@ export default function AdminOrders() {
 
   const totalPrice = (order: Order) =>
     order.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-  const filteredByDate = selectedDate
-    ? orders.filter((o) => {
-        const d = new Date(o.orderDate);
-        return d.toDateString() === selectedDate.toDateString();
-      })
-    : [];
 
 
   if (!user || user.role !== "Admin") {
@@ -219,6 +276,14 @@ export default function AdminOrders() {
     );
   }
 
+  if (loadError) {
+    return (
+      <div role="alert" className="container flex flex-col items-center gap-4 py-10">
+        Не вдалося завантажити замовлення.
+        <Button type="button" variant="outline" onClick={() => setRetry(value => value + 1)}>Спробувати ще раз</Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container py-8 max-w-6xl">
@@ -236,7 +301,7 @@ export default function AdminOrders() {
         </h1>
 
         <Badge className="ml-auto bg-accent text-accent-foreground">
-          {orders.length}
+          На сторінці: {orders.length}
         </Badge>
       </div>
 
@@ -245,9 +310,7 @@ export default function AdminOrders() {
         <select
           className="border rounded-lg px-3 py-2 text-sm"
           value={filters.status}
-          onChange={(e) =>
-            setFilters({ ...filters, status: e.target.value })
-          }
+          onChange={(e) => { setPage(1); setFilters({ ...filters, status: e.target.value }); }}
         >
           <option value="">Всі статуси</option>
           {statuses.map((s) => (
@@ -261,18 +324,14 @@ export default function AdminOrders() {
           type="date"
           className="border rounded-lg px-3 py-2 text-sm"
           value={filters.fromDate}
-          onChange={(e) =>
-            setFilters({ ...filters, fromDate: e.target.value })
-          }
+          onChange={(e) => { setPage(1); setFilters({ ...filters, fromDate: e.target.value }); }}
         />
 
         <input
           type="date"
           className="border rounded-lg px-3 py-2 text-sm"
           value={filters.toDate}
-          onChange={(e) =>
-            setFilters({ ...filters, toDate: e.target.value })
-          }
+          onChange={(e) => { setPage(1); setFilters({ ...filters, toDate: e.target.value }); }}
         />
       </div>
 
@@ -300,13 +359,13 @@ export default function AdminOrders() {
     <p className="text-muted-foreground">
       Оберіть дату
     </p>
-  ) : filteredByDate.length === 0 ? (
+  ) : calendarOrders.length === 0 ? (
     <p className="text-muted-foreground">
       Немає записів
     </p>
   ) : (
     <div className="space-y-3">
-      {filteredByDate.map((o) => (
+      {calendarOrders.map((o) => (
         <div
           key={o.orderId}
           className="border rounded-lg p-3 flex justify-between items-center"
@@ -407,6 +466,7 @@ export default function AdminOrders() {
               <TableHead className="text-white">ID</TableHead>
               <TableHead className="text-white">Користувач</TableHead>
               <TableHead className="text-white">Дата</TableHead>
+              <TableHead className="text-white">Планове завершення</TableHead>
               <TableHead className="text-white">Автомобіль</TableHead>
               <TableHead className="text-white">Послуги</TableHead>
        <TableHead className="text-white">Сума</TableHead>
@@ -437,6 +497,13 @@ export default function AdminOrders() {
 
                 <TableCell>
                   {new Date(order.orderDate).toLocaleString()}
+                </TableCell>
+
+                <TableCell>
+                  <PlannedCompletionField
+                    order={order}
+                    onSaved={(plannedCompletionAt) => updateVisibleOrder(order.orderId, () => ({ plannedCompletionAt }))}
+                  />
                 </TableCell>
 
                 <TableCell className="text-sm">
@@ -541,6 +608,11 @@ export default function AdminOrders() {
           </TableBody>
 
         </Table>
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <Button type="button" variant="outline" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Назад</Button>
+        <span className="text-sm text-muted-foreground">Сторінка {page}</span>
+        <Button type="button" variant="outline" disabled={!hasMore} onClick={() => setPage(p => p + 1)}>Далі</Button>
       </div>
 
     </div>

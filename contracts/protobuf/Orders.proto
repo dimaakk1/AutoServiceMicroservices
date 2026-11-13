@@ -8,6 +8,10 @@ message OrderFilterRequest {
     string userId = 1;
     string status = 2;
     string date = 3;
+    string fromDate = 4;
+    string toDate = 5;
+    int32 offset = 6;
+    int32 limit = 7;
 }
 
 // =====================
@@ -34,6 +38,11 @@ message OrderResponse {
     string vehicleDisplayName = 7;
     string vehicleVin = 8;
     string vehicleLicensePlate = 9;
+    string mechanicId = 10;
+    string mechanicName = 11;
+    string workStartedAt = 12;
+    string workCompletedAt = 13;
+    string plannedCompletionAt = 14;
 }
 
 message OrderListResponse {

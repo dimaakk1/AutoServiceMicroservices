@@ -22,5 +22,15 @@ namespace AutoserviceOrders.DAL.Repositories
             string sql = "SELECT * FROM OrderItems WHERE OrderId = @OrderId";
             return await _connection.QueryAsync<OrderItem>(sql, new { OrderId = orderId }, transaction: _transaction);
         }
+
+        public async Task<IEnumerable<OrderItem>> GetItemsByOrderIdsAsync(int[] orderIds)
+        {
+            var items = new List<OrderItem>();
+            foreach (var ids in orderIds.Chunk(1000))
+                items.AddRange(await _connection.QueryAsync<OrderItem>(
+                    "SELECT * FROM OrderItems WHERE OrderId IN @Ids ORDER BY OrderItemId",
+                    new { Ids = ids }, transaction: _transaction));
+            return items;
+        }
     }
 }

@@ -14,6 +14,7 @@ namespace AutoServiceCatalog.BLL.Services.Interfaces
     {
         Task<List<ServiceDto>> GetAllAsync();
         Task<ServiceDto> GetByIdAsync(int id);
+        Task<List<ServiceDto>> GetByIdsAsync(int[] ids, CancellationToken cancellationToken);
         Task<ServiceDto> CreateAsync(ServiceCreateDto dto);
         Task UpdateAsync(int id, ServiceCreateDto dto);
         Task DeleteAsync(int id);

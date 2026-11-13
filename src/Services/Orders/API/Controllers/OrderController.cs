@@ -39,6 +39,7 @@ namespace AutoserviceOrders.API.Controllers
 
             orderDto.UserId = userId; // 🔥 додаємо
             orderDto.OrderDate = DateTime.SpecifyKind(orderDto.OrderDate, DateTimeKind.Utc);
+            orderDto.PlannedCompletionAt = null;
             try
             {
                 if (orderDto.VehicleId.HasValue)
@@ -148,6 +149,23 @@ namespace AutoserviceOrders.API.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpPut("{id:int}/planned-completion")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SetPlannedCompletion(int id, [FromBody] SetPlannedCompletionDto dto)
+        {
+            if (dto.PlannedCompletionAt is not { } plannedCompletionAt)
+                return BadRequest(new { message = "Вкажіть плановий строк завершення." });
+
+            var result = await _orderService.SetPlannedCompletionAsync(id, plannedCompletionAt);
+            return result switch
+            {
+                PlannedCompletionResult.Saved => NoContent(),
+                PlannedCompletionResult.NotFound => NotFound(new { message = "Замовлення не знайдено." }),
+                PlannedCompletionResult.BeforeOrAtAppointment => BadRequest(new { message = "Планове завершення має бути пізніше за час запису." }),
+                _ => Conflict(new { message = "Плановий строк можна змінювати лише до початку робіт." })
+            };
         }
 
         [HttpPut("{id}/status")]

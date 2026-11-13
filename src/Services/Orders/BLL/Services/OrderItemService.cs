@@ -106,145 +106,81 @@ namespace AutoserviceOrders.BLL.Services
         }
 
 
-        public async Task<IEnumerable<OrderWithItemsDto>> GetOrdersWithItemsAsync(string userId)
+        public Task<IEnumerable<OrderWithItemsDto>> GetOrdersWithItemsAsync(string userId) =>
+            LoadOrdersAsync(() => _unitOfWork.Orders!.GetByUserIdAsync(userId));
+
+        public Task<IEnumerable<OrderWithItemsDto>> GetAllOrdersWithItemsAsync(OrderFilterDto filter)
         {
+            static string? Optional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
+            var query = new OrderReadFilter(Optional(filter.UserId), Optional(filter.MechanicId),
+                Optional(filter.Status), filter.Date, filter.FromDate, filter.ToDate,
+                Math.Max(0, filter.Offset), filter.Limit is int limit ? Math.Clamp(limit, 1, 101) : null);
+            return LoadOrdersAsync(() => _unitOfWork.Orders!.GetFilteredAsync(query));
+        }
+
+        private async Task<IEnumerable<OrderWithItemsDto>> LoadOrdersAsync(Func<Task<List<Order>>> getOrders)
+        {
+            List<Order> orders;
+            IEnumerable<OrderItem> items;
             await _unitOfWork.BeginTransactionAsync();
-
-            // 🔥 тільки мої замовлення
-            var orders = await _unitOfWork.Orders.GetByUserIdAsync(userId);
-            var items = await _unitOfWork.OrderItems.GetAllAsync();
-
-            await _unitOfWork.CommitAsync();
-
-            var result = new List<OrderWithItemsDto>();
-
-            foreach (var order in orders)
+            try
             {
-                var orderDto = new OrderWithItemsDto
+                orders = await getOrders();
+                items = orders.Count == 0
+                    ? Array.Empty<OrderItem>()
+                    : await _unitOfWork.OrderItems!.GetItemsByOrderIdsAsync(orders.Select(o => o.OrderId).ToArray());
+                await _unitOfWork.CommitAsync();
+            }
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
+
+            var itemsByOrder = items.ToLookup(item => item.OrderId);
+            var parts = new Dictionary<int, PartReply>();
+            var deadline = DateTime.UtcNow.AddSeconds(6);
+            foreach (var ids in items.Select(item => item.ProductId).Distinct().Chunk(500))
+            {
+                var request = new GetPartsByIdsRequest();
+                request.Ids.AddRange(ids);
+                var reply = await _partGrpcClient.GetPartsByIdsAsync(request, deadline: deadline);
+                foreach (var part in reply.Parts)
+                    parts[part.Id] = part;
+            }
+
+            return orders.Select(order => new OrderWithItemsDto
+            {
+                OrderId = order.OrderId,
+                UserId = order.UserId,
+                OrderDate = order.OrderDate,
+                Status = order.Status,
+                VehicleId = order.VehicleId,
+                VehicleDisplayName = order.VehicleDisplayName,
+                VehicleVin = order.VehicleVin,
+                VehicleLicensePlate = order.VehicleLicensePlate,
+                MechanicId = order.MechanicId,
+                MechanicName = order.MechanicName,
+                WorkStartedAt = order.WorkStartedAt,
+                WorkCompletedAt = order.WorkCompletedAt,
+                PlannedCompletionAt = order.PlannedCompletionAt,
+                Items = itemsByOrder[order.OrderId].Select(item =>
                 {
-                    OrderId = order.OrderId,
-                    UserId = order.UserId,
-                    OrderDate = order.OrderDate,
-                    Status = order.Status,
-                    VehicleId = order.VehicleId,
-                    VehicleDisplayName = order.VehicleDisplayName,
-                    VehicleVin = order.VehicleVin,
-                    VehicleLicensePlate = order.VehicleLicensePlate,
-                    MechanicId = order.MechanicId,
-                    MechanicName = order.MechanicName,
-                    WorkStartedAt = order.WorkStartedAt,
-                    WorkCompletedAt = order.WorkCompletedAt,
-                    Items = new List<OrderItemWithProductDto>()
-                };
-
-                var orderItems = items.Where(i => i.OrderId == order.OrderId);
-
-                foreach (var item in orderItems)
-                {
-                    var part = await _partGrpcClient.GetPartAsync(
-                        new GetPartRequest { Id = item.ProductId }
-                    );
-
-                    orderDto.Items.Add(new OrderItemWithProductDto
+                    if (!parts.TryGetValue(item.ProductId, out var part))
+                        throw new RpcException(new Status(StatusCode.NotFound, $"Catalog service {item.ProductId} was not found."));
+                    var price = Convert.ToDecimal(part.Price);
+                    return new OrderItemWithProductDto
                     {
                         OrderItemId = item.OrderItemId,
                         OrderId = item.OrderId,
                         ProductId = item.ProductId,
                         ProductName = part.Name,
-                        Price = Convert.ToDecimal(part.Price),
+                        Price = price,
                         Quantity = item.Quantity,
-                        TotalPrice = Convert.ToDecimal(part.Price) * item.Quantity
-                    });
-                }
-
-                result.Add(orderDto);
-            }
-
-            return result;
+                        TotalPrice = price * item.Quantity
+                    };
+                }).ToList()
+            }).ToList();
         }
-
-        public async Task<IEnumerable<OrderWithItemsDto>> GetAllOrdersWithItemsAsync(
-     OrderFilterDto filter)
-        {
-            await _unitOfWork.BeginTransactionAsync();
-
-            var orders = await _unitOfWork.Orders.GetAllAsync();
-            var items = await _unitOfWork.OrderItems.GetAllAsync();
-
-            await _unitOfWork.CommitAsync();
-
-            var result = new List<OrderWithItemsDto>();
-
-            foreach (var order in orders)
-            {
-                // 🔎 FILTERS
-                if (!string.IsNullOrEmpty(filter.Status) &&
-                    order.Status != filter.Status)
-                    continue;
-
-                if (filter.Date.HasValue &&
-    order.OrderDate.Date != filter.Date.Value.Date)
-                    continue;
-
-                if (filter.FromDate.HasValue &&
-                    order.OrderDate < filter.FromDate.Value)
-                    continue;
-
-                if (filter.ToDate.HasValue &&
-                    order.OrderDate > filter.ToDate.Value)
-                    continue;
-
-                if (!string.IsNullOrEmpty(filter.UserId) &&
-                    order.UserId != filter.UserId)
-                    continue;
-
-                if (!string.IsNullOrEmpty(filter.MechanicId) &&
-                    order.MechanicId != filter.MechanicId)
-                    continue;
-
-                var dto = new OrderWithItemsDto
-                {
-                    OrderId = order.OrderId,
-                    UserId = order.UserId, // 🔥 FIX
-                    OrderDate = order.OrderDate,
-                    Status = order.Status,
-                    VehicleId = order.VehicleId,
-                    VehicleDisplayName = order.VehicleDisplayName,
-                    VehicleVin = order.VehicleVin,
-                    VehicleLicensePlate = order.VehicleLicensePlate,
-                    MechanicId = order.MechanicId,
-                    MechanicName = order.MechanicName,
-                    WorkStartedAt = order.WorkStartedAt,
-                    WorkCompletedAt = order.WorkCompletedAt,
-                    Items = new List<OrderItemWithProductDto>()
-                };
-
-                var orderItems = items.Where(i => i.OrderId == order.OrderId);
-
-                foreach (var item in orderItems)
-                {
-                    var part = await _partGrpcClient.GetPartAsync(
-                        new GetPartRequest { Id = item.ProductId }
-                    );
-
-                    dto.Items.Add(new OrderItemWithProductDto
-                    {
-                        OrderItemId = item.OrderItemId,
-                        OrderId = item.OrderId,
-                        ProductId = item.ProductId,
-                        ProductName = part.Name,
-                        Price = Convert.ToDecimal(part.Price),
-                        Quantity = item.Quantity,
-                        TotalPrice = Convert.ToDecimal(part.Price) * item.Quantity
-                    });
-                }
-
-                result.Add(dto);
-            }
-
-            return result;
-        }
-
-
     }
 }

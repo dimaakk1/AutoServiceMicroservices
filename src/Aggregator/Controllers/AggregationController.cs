@@ -37,8 +37,19 @@ namespace AggregatorService.Controllers
         [HttpGet("orders")]
         public async Task<IActionResult> GetAllOrders([FromQuery] OrderAggregationFilterRequest filter)
         {
-            var result = await _service.GetAllOrdersWithReviewAsync(filter);
-            return Ok(result);
+            if (filter.Page is < 1 or > 100_000 || filter.PageSize is < 1 or > 100)
+                return BadRequest("Invalid order pagination.");
+            try
+            {
+                var result = await _service.GetAllOrdersWithReviewAsync(filter);
+                if (filter.Page.HasValue)
+                    return Ok(new { orders = result.Take(filter.PageSize), hasMore = result.Count > filter.PageSize });
+                return Ok(result);
+            }
+            catch (Grpc.Core.RpcException ex) when (ex.StatusCode is Grpc.Core.StatusCode.Unavailable or Grpc.Core.StatusCode.DeadlineExceeded)
+            {
+                return StatusCode(503, new { message = "Один із сервісів замовлень тимчасово недоступний. Спробуйте ще раз." });
+            }
         }
         [Authorize]
         [HttpGet("my-orders")]

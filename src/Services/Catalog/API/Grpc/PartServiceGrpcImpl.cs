@@ -45,22 +45,17 @@ namespace AutoServiceCatalog.API.Grpc
         {
             try
             {
-                var ids = request.Ids.ToList();
                 var reply = new GetPartsByIdsReply();
-
-                foreach (var id in ids)
+                foreach (var ids in request.Ids.Distinct().Chunk(500))
                 {
-                    var service = await _serviceService.GetByIdAsync(id);
-                    if (service != null)
+                    var services = await _serviceService.GetByIdsAsync(ids, context.CancellationToken);
+                    reply.Parts.AddRange(services.Select(service => new PartReply
                     {
-                        reply.Parts.Add(new PartReply
-                        {
-                            Id = service.ServiceId,
-                            Name = service.Name,
-                            Price = (double)service.Price,
-                            CategoryId = service.CategoryId
-                        });
-                    }
+                        Id = service.ServiceId,
+                        Name = service.Name,
+                        Price = (double)service.Price,
+                        CategoryId = service.CategoryId
+                    }));
                 }
 
                 return reply;

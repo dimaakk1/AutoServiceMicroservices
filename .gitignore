@@ -366,3 +366,6 @@ FodyWeavers.xsd
 
 # Legacy frontend build/cache left by the old repository layout.
 /frontend/
+
+# Python training bytecode
+__pycache__/

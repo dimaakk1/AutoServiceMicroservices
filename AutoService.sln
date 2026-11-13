@@ -15,9 +15,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AggregatorService", "Aggreg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AggregatorService", "src\Aggregator\AggregatorService.csproj", "{4B8808F4-20B8-4C16-8164-C4C1DC85887E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoService.AppHost", "src\AppHost\AppHost\AppHostt.AppHost.csproj", "{D5E32143-99C1-486D-99DB-FD03370F2449}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppHostt.AppHost", "src\AppHost\AppHost\AppHostt.AppHost.csproj", "{D5E32143-99C1-486D-99DB-FD03370F2449}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServiceDefaults", "src\AppHost\ServiceDefaults\AppHostt.ServiceDefaults.csproj", "{694873D5-9A8D-4344-9B97-9F83633BB617}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppHostt.ServiceDefaults", "src\AppHost\ServiceDefaults\AppHostt.ServiceDefaults.csproj", "{694873D5-9A8D-4344-9B97-9F83633BB617}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "orders-service", "orders-service", "{2EF2E86E-C080-4443-BE26-2EAA6A9E09B8}"
 EndProject
@@ -49,11 +49,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "proto", "proto", "{A80E7CCD
 	ProjectSection(SolutionItems) = preProject
 		contracts\protobuf\Orders.proto = contracts\protobuf\Orders.proto
 		contracts\protobuf\OrdersAll.proto = contracts\protobuf\OrdersAll.proto
+		contracts\protobuf\Part.proto = contracts\protobuf\Part.proto
 		contracts\protobuf\Reviews.proto = contracts\protobuf\Reviews.proto
 		contracts\protobuf\Service.proto = contracts\protobuf\Service.proto
 		contracts\protobuf\User.proto = contracts\protobuf\User.proto
 		contracts\protobuf\Vehicle.proto = contracts\protobuf\Vehicle.proto
-		contracts\protobuf\Part.proto = contracts\protobuf\Part.proto
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "user-service", "user-service", "{BF429BEA-F2CD-4C84-BCCD-F54E795B1BD4}"
@@ -97,6 +97,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoserviceVehicle.DAL", "src\Services\Vehicles\DAL\AutoserviceVehicle.DAL.csproj", "{0886BA80-3BE5-4C69-AE3B-A227BB3108ED}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoserviceVehicle.Tests", "tests\Vehicles\AutoserviceVehicle.Tests.csproj", "{0E283B54-12BD-48B5-BFB7-5FFBBE3A22C1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{B025C999-F5EF-434D-B46A-451AE031A68D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MlSeed", "tools\MlSeed\MlSeed.csproj", "{92068F50-A93A-CCC4-0938-1FD13575053D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -468,6 +472,18 @@ Global
 		{0E283B54-12BD-48B5-BFB7-5FFBBE3A22C1}.Release|x64.Build.0 = Release|Any CPU
 		{0E283B54-12BD-48B5-BFB7-5FFBBE3A22C1}.Release|x86.ActiveCfg = Release|Any CPU
 		{0E283B54-12BD-48B5-BFB7-5FFBBE3A22C1}.Release|x86.Build.0 = Release|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Debug|x64.Build.0 = Debug|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Debug|x86.Build.0 = Debug|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Release|x64.ActiveCfg = Release|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Release|x64.Build.0 = Release|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Release|x86.ActiveCfg = Release|Any CPU
+		{92068F50-A93A-CCC4-0938-1FD13575053D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -511,6 +527,7 @@ Global
 		{22350FEB-31B5-4417-B784-70F932252B6A} = {70DA88A1-2AAA-414D-B414-3A2E67ABE7DA}
 		{0886BA80-3BE5-4C69-AE3B-A227BB3108ED} = {70DA88A1-2AAA-414D-B414-3A2E67ABE7DA}
 		{0E283B54-12BD-48B5-BFB7-5FFBBE3A22C1} = {70DA88A1-2AAA-414D-B414-3A2E67ABE7DA}
+		{92068F50-A93A-CCC4-0938-1FD13575053D} = {B025C999-F5EF-434D-B46A-451AE031A68D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D0F88AF4-206C-4605-A005-17234DFD5C59}

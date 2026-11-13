@@ -12,6 +12,11 @@ namespace AutoserviceOrders.DAL.db
         public static void Initialize(string connectionString)
         {
             // Підключення до master для створення бази, якщо її ще нема
+            var databaseName = new SqlConnectionStringBuilder(connectionString).InitialCatalog;
+            if (string.IsNullOrWhiteSpace(databaseName) || databaseName.Length > 128 ||
+                new[] { "master", "tempdb", "model", "msdb" }.Contains(databaseName, StringComparer.OrdinalIgnoreCase))
+                throw new ArgumentException("Specify a valid Orders database in the connection string.", nameof(connectionString));
+
             var masterConnectionString = new SqlConnectionStringBuilder(connectionString)
             {
                 InitialCatalog = "master"
@@ -22,12 +27,14 @@ namespace AutoserviceOrders.DAL.db
                 masterConnection.Open();
 
                 var createDbCommand = @"
-            IF DB_ID('OrdersDb') IS NULL
+            IF DB_ID(@DatabaseName) IS NULL
             BEGIN
-                CREATE DATABASE OrdersDb;
+                DECLARE @CreateSql nvarchar(300) = N'CREATE DATABASE ' + QUOTENAME(@DatabaseName);
+                EXEC (@CreateSql);
             END";
 
                 using var cmd = new SqlCommand(createDbCommand, masterConnection);
+                cmd.Parameters.Add("@DatabaseName", System.Data.SqlDbType.NVarChar, 128).Value = databaseName;
                 cmd.ExecuteNonQuery();
             }
 
@@ -51,7 +58,8 @@ namespace AutoserviceOrders.DAL.db
             MechanicId NVARCHAR(450) NULL,
             MechanicName NVARCHAR(200) NULL,
             WorkStartedAt DATETIME2 NULL,
-            WorkCompletedAt DATETIME2 NULL
+            WorkCompletedAt DATETIME2 NULL,
+            PlannedCompletionAt DATETIME2 NULL
         );
 
         IF COL_LENGTH('Orders', 'VehicleId') IS NULL
@@ -70,6 +78,8 @@ namespace AutoserviceOrders.DAL.db
             ALTER TABLE Orders ADD WorkStartedAt DATETIME2 NULL;
         IF COL_LENGTH('Orders', 'WorkCompletedAt') IS NULL
             ALTER TABLE Orders ADD WorkCompletedAt DATETIME2 NULL;
+        IF COL_LENGTH('Orders', 'PlannedCompletionAt') IS NULL
+            ALTER TABLE Orders ADD PlannedCompletionAt DATETIME2 NULL;
 
         IF OBJECT_ID('OrderDetails') IS NULL
         CREATE TABLE OrderDetails (
@@ -101,7 +111,14 @@ namespace AutoserviceOrders.DAL.db
             PaidAt DATETIME NULL,
             Description NVARCHAR(MAX),
             FOREIGN KEY (OrderId) REFERENCES Orders(OrderId)
-        );";
+        );
+
+        IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Orders') AND name = 'IX_Orders_OrderDate_OrderId')
+            CREATE INDEX IX_Orders_OrderDate_OrderId ON dbo.Orders(OrderDate DESC, OrderId DESC);
+        IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.Orders') AND name = 'IX_Orders_UserId')
+            CREATE INDEX IX_Orders_UserId ON dbo.Orders(UserId);
+        IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE object_id = OBJECT_ID('dbo.OrderItems') AND name = 'IX_OrderItems_OrderId')
+            CREATE INDEX IX_OrderItems_OrderId ON dbo.OrderItems(OrderId);";
 
             using var cmd2 = new SqlCommand(createTablesScript, conn);
             cmd2.ExecuteNonQuery();
