@@ -87,6 +87,35 @@ var aiService = builder
 
 if (builder.Environment.IsDevelopment())
 {
+    var repoRoot = Path.GetFullPath(Path.Combine(builder.AppHostDirectory, "..", "..", ".."));
+    var predictionDirectory = Path.Combine(repoRoot, "src", "Services", "RepairPrediction");
+    var modelDirectory = Path.Combine(repoRoot, "artifacts", "ml");
+    var venvPython = OperatingSystem.IsWindows() ? Path.Combine("Scripts", "python.exe") : Path.Combine("bin", "python");
+    var configuredPython = builder.Configuration["RepairPrediction:PythonExecutable"];
+    var defaultPython = new[]
+    {
+        Path.Combine(predictionDirectory, ".venv", venvPython),
+        Path.Combine(modelDirectory, "training-venv", venvPython),
+        Path.Combine(modelDirectory, ".venv", venvPython)
+    }.FirstOrDefault(File.Exists);
+    var predictionPython = string.IsNullOrWhiteSpace(configuredPython) ? defaultPython : configuredPython;
+
+    if (predictionPython is not null
+        && File.Exists(Path.Combine(modelDirectory, "duration", "duration.joblib"))
+        && File.Exists(Path.Combine(modelDirectory, "delay", "delay.joblib")))
+    {
+        var repairPrediction = builder.AddExecutable("repair-prediction", predictionPython, predictionDirectory,
+                "-u", "prediction_server.py", "--model-dir", modelDirectory)
+            .WithHttpEndpoint(name: "grpc", env: "REPAIR_PREDICTION_PORT");
+
+        // No WaitFor: prediction is optional and must not hold up orders or booking.
+        ordersService.WithEnvironment("Services__RepairPredictionUrl", repairPrediction.GetEndpoint("grpc"));
+    }
+    else
+    {
+        Console.WriteLine("RepairPrediction skipped: set up the Python environment and both model files (see RepairPrediction/README.md).");
+    }
+
     builder.AddProject<Projects.MlSeed>("ml-seed", launchProfileName: null)
         .WithReference(ordersDb)
         .WithReference(catalogDb)

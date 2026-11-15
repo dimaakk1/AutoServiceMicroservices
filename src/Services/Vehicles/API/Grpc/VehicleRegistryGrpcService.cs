@@ -18,7 +18,7 @@ public sealed class VehicleRegistryGrpcService(IVehicleService vehicleService)
         if (vehicle is null)
             throw new RpcException(new Status(StatusCode.NotFound, "Автомобіль не знайдено у гаражі користувача."));
 
-        return new VehicleBookingReply
+        var reply = new VehicleBookingReply
         {
             VehicleId = vehicle.Id.ToString(),
             Vin = vehicle.Vin,
@@ -27,5 +27,10 @@ public sealed class VehicleRegistryGrpcService(IVehicleService vehicleService)
             Year = vehicle.Year,
             LicensePlate = vehicle.LicensePlate ?? string.Empty
         };
+
+        if (vehicle.MileageKm is { } mileage)
+            reply.MileageKm = mileage;
+
+        return reply;
     }
 }

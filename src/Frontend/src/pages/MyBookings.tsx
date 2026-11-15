@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import { useAuth } from "../lib/auth-context";
 import { Button } from "../components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createCheckout } from "../api/payment";
 import {
   CalendarDays,
@@ -16,7 +17,10 @@ import {
 import { toast } from "sonner";
 
 import { getOrdersWithItems, updateOrder } from "../api/order";
+import { getVehicles } from "../api/vehicle";
+import type { Vehicle } from "../api/vehicle";
 import { PageHeader } from "../components/PageHeader";
+import { OrderForecast } from "../components/OrderForecast";
 
 type BookingItem = {
   orderItemId: number;
@@ -29,10 +33,38 @@ type BookingOrder = {
   orderId: number;
   orderDate: string;
   status: string;
+  vehicleId?: string | null;
+  mechanicId?: string | null;
   vehicleDisplayName?: string | null;
   vehicleLicensePlate?: string | null;
   items: BookingItem[];
 };
+
+type GarageCheck = { ownerId: string; vehicles: Vehicle[] | null };
+
+function getDurationBlockers(order: BookingOrder, garage: GarageCheck | null): ReactNode[] {
+  if (order.status === "Completed") return ["Ремонт уже завершено. Прогноз потрібен лише для активних записів."];
+  if (order.status === "Cancelled") return ["Запис скасовано."];
+
+  const reasons: ReactNode[] = [];
+  if (!order.mechanicId?.trim()) reasons.push("Майстра ще не призначено.");
+  if (!order.items?.length) reasons.push("До запису не додано жодної послуги.");
+  if (!order.vehicleId) {
+    reasons.push("До запису не прив’язано автомобіль.");
+  } else if (!garage) {
+    reasons.push("Перевіряємо дані автомобіля…");
+  } else if (!garage.vehicles) {
+    reasons.push("Не вдалося перевірити дані авто. Оновіть сторінку й спробуйте ще раз.");
+  } else {
+    const vehicle = garage.vehicles.find((item) => item.id.toLowerCase() === order.vehicleId?.toLowerCase());
+    if (!vehicle) {
+      reasons.push("Автомобіля з цього запису більше немає у вашому гаражі.");
+    } else if (typeof vehicle.mileageKm !== "number" || !Number.isInteger(vehicle.mileageKm) || vehicle.mileageKm < 0) {
+      reasons.push(<>У профілі авто не вказано пробіг. <Link className="underline" to={`/my-vehicles/${vehicle.id}/edit`}>Вказати пробіг</Link></>);
+    }
+  }
+  return reasons;
+}
 
 export default function MyBookings() {
   const { user } = useAuth();
@@ -40,6 +72,21 @@ export default function MyBookings() {
 
   const [orders, setOrders] = useState<BookingOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [garageCheck, setGarageCheck] = useState<GarageCheck | null>(null);
+  const ownerId = user?.id;
+
+  useEffect(() => {
+    if (!ownerId) return;
+    const controller = new AbortController();
+    getVehicles(AbortSignal.any([controller.signal, AbortSignal.timeout(8000)]))
+      .then(({ data }) => {
+        if (!controller.signal.aborted) setGarageCheck({ ownerId, vehicles: data });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setGarageCheck({ ownerId, vehicles: null });
+      });
+    return () => controller.abort();
+  }, [ownerId]);
 
   useEffect(() => {
     if (!user) return;
@@ -302,6 +349,15 @@ export default function MyBookings() {
                           <p className="mt-1 font-semibold">{order.vehicleDisplayName || "Не вказано"}</p>
                           {order.vehicleLicensePlate && <p className="mt-1 text-sm text-muted-foreground">Номер: {order.vehicleLicensePlate}</p>}
                         </div>
+                      </div>
+
+                      <div className="mb-5 border border-border bg-muted/30 p-4">
+                        <OrderForecast
+                          key={JSON.stringify([order.orderId, order.vehicleId, order.mechanicId, order.orderDate, order.status])}
+                          orderId={order.orderId}
+                          kind="duration"
+                          blockedBy={getDurationBlockers(order, garageCheck?.ownerId === ownerId ? garageCheck : null)}
+                        />
                       </div>
 
                       <div className="space-y-4">

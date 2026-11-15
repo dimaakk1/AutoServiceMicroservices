@@ -9,6 +9,7 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Calendar } from "../../components/ui/calendar";
 import { Input } from "../../components/ui/input";
+import { OrderForecast } from "../../components/OrderForecast";
 
 import {
   Select,
@@ -87,6 +88,18 @@ type Mechanic = {
   fullName?: string | null;
   isBlocked?: boolean;
 };
+
+function getDelayRiskBlockers(order: Order): string[] {
+  if (order.status === "Completed") return ["Ремонт уже завершено."];
+  if (order.status === "Cancelled") return ["Замовлення скасовано."];
+
+  const reasons: string[] = [];
+  if (!order.plannedCompletionAt) reasons.push("Не збережено плановий термін завершення.");
+  if (!order.vehicleId) reasons.push("До замовлення не прив’язано автомобіль.");
+  if (!order.mechanicId?.trim()) reasons.push("Майстра ще не призначено.");
+  if (!order.items?.length) reasons.push("До замовлення не додано послуг.");
+  return reasons;
+}
 
 function PlannedCompletionField({ order, onSaved }: {
   order: Order;
@@ -504,6 +517,14 @@ export default function AdminOrders() {
                     order={order}
                     onSaved={(plannedCompletionAt) => updateVisibleOrder(order.orderId, () => ({ plannedCompletionAt }))}
                   />
+                  <div className="mt-2">
+                    <OrderForecast
+                      key={JSON.stringify([order.orderId, order.vehicleId, order.mechanicId, order.orderDate, order.plannedCompletionAt, order.status])}
+                      orderId={order.orderId}
+                      kind="risk"
+                      blockedBy={getDelayRiskBlockers(order)}
+                    />
+                  </div>
                 </TableCell>
 
                 <TableCell className="text-sm">

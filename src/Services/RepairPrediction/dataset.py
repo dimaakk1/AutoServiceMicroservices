@@ -12,8 +12,10 @@ from pathlib import Path
 class Repair:
     order_id: int
     appointment: datetime
-    features: dict[str, str | int]
+    features: dict[str, str | int | float]
     duration: float
+    planned_budget_minutes: float | None = None
+    delayed: int | None = None
 
 
 def make_features(appointment, mechanic_id, vehicle_year, mileage_km, service_ids, service_count):
@@ -29,11 +31,13 @@ def make_features(appointment, mechanic_id, vehicle_year, mileage_km, service_id
     return features
 
 
-def load_repairs(path: Path) -> list[Repair]:
+def load_repairs(path: Path, *, include_delay: bool = False) -> list[Repair]:
     required = {
         "order_id", "appointment_local", "mechanic_id", "vehicle_year", "mileage_km",
         "service_ids", "service_count", "duration_minutes",
     }
+    if include_delay:
+        required.update({"planned_budget_minutes", "delayed"})
     repairs = []
     seen = set()
     with path.open(encoding="utf-8-sig", newline="") as source:
@@ -51,6 +55,10 @@ def load_repairs(path: Path) -> list[Repair]:
                 services = json.loads(row["service_ids"])
                 mechanic = row["mechanic_id"].strip()
                 duration = float(row["duration_minutes"])
+                budget = float(row["planned_budget_minutes"]) if include_delay else None
+                delayed = int(row["delayed"]) if include_delay else None
+                if include_delay and (not math.isfinite(budget) or budget <= 0 or delayed not in (0, 1)):
+                    raise ValueError("Expected positive planned_budget_minutes and binary delayed")
                 if (
                     order_id <= 0 or order_id in seen or appointment.tzinfo is not None
                     or not 1886 <= year <= appointment.year or mileage < 0 or not mechanic
@@ -65,7 +73,7 @@ def load_repairs(path: Path) -> list[Repair]:
             seen.add(order_id)
             repairs.append(Repair(order_id, appointment, make_features(
                 appointment, mechanic, year, mileage, services, count,
-            ), duration))
+            ), duration, budget, delayed))
     return sorted(repairs, key=lambda repair: (repair.appointment, repair.order_id))
 
 

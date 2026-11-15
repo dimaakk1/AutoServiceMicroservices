@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option csharp_namespace = "RepairPredictionGrpc";
+
+package repairprediction;
+
+service RepairPrediction {
+  rpc PredictRepair (PredictRepairRequest) returns (PredictRepairReply);
+}
+
+message PredictRepairRequest {
+  // Workshop-local date and time, ISO 8601 without a UTC offset.
+  string appointment_local = 1;
+  string mechanic_id = 2;
+  int32 vehicle_year = 3;
+  optional int32 mileage_km = 4;
+  repeated int32 service_ids = 5;
+  // Total quantity across all services, not just the number of distinct IDs.
+  int32 service_count = 6;
+  // Minutes from the appointment to the agreed completion time.
+  optional double planned_budget_minutes = 7;
+}
+
+message PredictRepairReply {
+  double estimated_duration_minutes = 1;
+  // A probability from 0 to 1, absent when no completion time was agreed.
+  optional double delay_probability = 2;
+}

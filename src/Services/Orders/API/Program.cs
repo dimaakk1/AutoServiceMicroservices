@@ -17,6 +17,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Part;
+using RepairPredictionGrpc;
 using VehicleGrpc;
 using System.Data;
 using System.Text;
@@ -134,6 +135,12 @@ namespace AutoserviceOrders.API
             {
                 o.Address = new Uri(builder.Configuration["Services:VehicleServiceUrl"] ?? "https://localhost:7290");
             });
+            if (Uri.TryCreate(builder.Configuration["Services:RepairPredictionUrl"], UriKind.Absolute, out var predictionUri)
+                && (predictionUri.Scheme == Uri.UriSchemeHttp || predictionUri.Scheme == Uri.UriSchemeHttps))
+            {
+                builder.Services.AddGrpcClient<RepairPrediction.RepairPredictionClient>(o => o.Address = predictionUri);
+            }
+            builder.Services.AddScoped<RepairPredictionService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -66,3 +66,19 @@ export const updateAdminOrderStatus = (orderId: number, status: string) =>
 
 export const setPlannedCompletion = (orderId: number, plannedCompletionAt: string) =>
   api.put(`/Orders/Order/${orderId}/planned-completion`, { plannedCompletionAt });
+
+export async function getEstimatedDuration(orderId: number, signal?: AbortSignal) {
+  const response = await api.get<{ estimatedDurationMinutes: number }>(
+    `/Orders/Order/${orderId}/estimated-duration`, { signal, timeout: 8000 },
+  );
+  const value = response.data?.estimatedDurationMinutes;
+  return response.status !== 204 && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+export async function getDelayRisk(orderId: number, signal?: AbortSignal) {
+  const response = await api.get<{ delayProbability: number }>(
+    `/Orders/Order/${orderId}/delay-risk`, { signal, timeout: 8000 },
+  );
+  const value = response.data?.delayProbability;
+  return response.status !== 204 && Number.isFinite(value) && value >= 0 && value <= 1 ? value : null;
+}

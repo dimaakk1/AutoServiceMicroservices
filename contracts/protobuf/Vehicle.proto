@@ -20,4 +20,5 @@ message VehicleBookingReply {
   string model = 4;
   int32 year = 5;
   string license_plate = 6;
+  optional int32 mileage_km = 7;
 }
